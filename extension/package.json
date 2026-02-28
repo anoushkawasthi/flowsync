@@ -9,13 +9,19 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "workspaceContains:.flowsync.json"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "flowsync.helloWorld",
-        "title": "Hello World"
+        "command": "flowsync.initProject",
+        "title": "FlowSync: Initialize Project"
+      },
+      {
+        "command": "flowsync.joinProject",
+        "title": "FlowSync: Join Project"
       }
     ]
   },
