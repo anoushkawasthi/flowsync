@@ -1,0 +1,25 @@
+{
+  "name": "flowsync",
+  "version": "1.0.0",
+  "description": "> **AI for Bharat Hackathon** | Powered by AWS\r > Team **Vanta** — Aahil Khan, Anoushka Awasthi, Maulik Dang, Sanyam Wadhwa",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anoushkawasthi/flowsync.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anoushkawasthi/flowsync/issues"
+  },
+  "homepage": "https://github.com/anoushkawasthi/flowsync#readme",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1000.0"
+  }
+}
