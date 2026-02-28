@@ -1,0 +1,11 @@
+{
+  "projectName": "Flowsync Demo",
+  "eventType": "Commit",
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2026-02-28T10:43:00Z",
+  "author": "Alice",
+  "projectId": "flowsync-demo-001",
+  "commitMessage": "Switched to JWT refresh token strategy",
+  "codeDiff": "diff --git a/src/auth/tokens.ts b/src/auth/tokens.ts\nindex 123..456 100644\n--- a/src/auth/tokens.ts\n+++ b/src/auth/tokens.ts\n@@ ...existing code...\n+export function refreshToken() {\n+  // new JWT refresh logic\n+}\n",
+  "source": "VS Code Extension"
+}
