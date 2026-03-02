@@ -22,6 +22,10 @@
       {
         "command": "flowsync.joinProject",
         "title": "FlowSync: Join Project"
+      },
+      {
+        "command": "flowsync.openPanel",
+        "title": "FlowSync: Open Dashboard"
       }
     ]
   },
