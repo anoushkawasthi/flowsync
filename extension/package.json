@@ -16,14 +16,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "flowsync.initProject",
-        "title": "FlowSync: Initialize Project"
-      },
-      {
-        "command": "flowsync.joinProject",
-        "title": "FlowSync: Join Project"
-      },
-      {
         "command": "flowsync.openPanel",
         "title": "FlowSync: Open Dashboard"
       }
