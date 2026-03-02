@@ -8,6 +8,7 @@ import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
 import { registerInitCommand } from "./commands/initProject";
 import { registerJoinCommand } from "./commands/joinProject";
+import { FlowSyncPanel } from "./panels/FlowSyncPanel";
 import { initLogger, log } from "./logger";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -33,6 +34,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(registerInitCommand(context, onAuthenticated));
   context.subscriptions.push(registerJoinCommand(context, onAuthenticated));
+
+  // Register the webview panel command
+  context.subscriptions.push(
+    vscode.commands.registerCommand("flowsync.openPanel", () => {
+      const initialView = readConfig() ? "dashboard" : "welcome";
+      FlowSyncPanel.createOrShow(
+        context.extensionUri,
+        context,
+        onAuthenticated,
+        initialView
+      );
+    })
+  );
 
   if (config) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
