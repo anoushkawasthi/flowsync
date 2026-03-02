@@ -118,7 +118,11 @@ export class InfraStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        `arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0`,
+        // Nova Pro cross-region inference profile (account-scoped)
+        `arn:aws:bedrock:us-east-1:357229249502:inference-profile/us.amazon.nova-pro-v1:0`,
+        // Underlying Nova Pro foundation model (required for cross-region routing)
+        `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
+        // Titan embeddings
         `arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1`,
       ],
     });

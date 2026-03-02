@@ -1,7 +1,11 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { writeConfig, getWorkspaceRoot } from "../config";
+import * as https from "https";
+import { writeConfig, getWorkspaceRoot, BASE_PORT } from "../config";
+import { findAvailablePort } from "../hookListener";
+
+const BACKEND_URL = "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
 
 /**
  * Copilot instructions content written to .github/copilot-instructions.md.
@@ -33,7 +37,8 @@ When logging context after a push:
  * until the backend engineer has the endpoint ready.
  */
 export function registerInitCommand(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  onInitialized: () => void
 ): vscode.Disposable {
   return vscode.commands.registerCommand("flowsync.initProject", async () => {
     const workspaceRoot = getWorkspaceRoot();
@@ -56,7 +61,7 @@ export function registerInitCommand(
     const projectName = await vscode.window.showInputBox({
       prompt: "Project name",
       placeHolder: "my-project",
-      validateInput: (value) => {
+      validateInput: (value: string) => {
         if (!value || !/^[a-zA-Z0-9-_]+$/.test(value)) {
           return "Alphanumeric, hyphens, underscores only";
         }
@@ -101,23 +106,67 @@ export function registerInitCommand(
       return;
     }
 
-    // TODO: POST /api/v1/projects → get { projectId, apiToken }
-    // For now, generate a placeholder ID. Backend engineer will wire this up.
-    const projectId = generateTempId();
-    const backendUrl = "https://api.flowsync.dev"; // will become configurable
+    // Step 2: POST /api/v1/projects → get { projectId, apiToken }
+    let projectId: string;
+    let apiToken: string;
+    try {
+      const result = await postJson(`${BACKEND_URL}/api/v1/projects`, {
+        name: projectName,
+        description,
+        languages,
+        frameworks: [],
+        defaultBranch,
+        teamMembers: [],
+      });
+      projectId = result.projectId as string;
+      apiToken = result.apiToken as string;
+      if (!projectId || !apiToken) {
+        throw new Error("Backend returned unexpected response");
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `FlowSync: failed to create project. Check your network and try again. (${String(err)})`
+      );
+      return;
+    }
 
-    // Step 3: Write .flowsync.json
-    writeConfig({ projectId, backendUrl, defaultBranch });
+    const backendUrl = BACKEND_URL;
+
+    // Step 5: Store API token in SecretStorage — never written to disk
+    await context.secrets.store(`flowsync.token.${projectId}`, apiToken);
+
+    // Allocate a port for this project — first available from BASE_PORT
+    const port = await findAvailablePort(BASE_PORT);
+
+    // Step 3: Write .flowsync.json (includes port)
+    writeConfig({ projectId, backendUrl, defaultBranch, port });
 
     // Step 4: Write .github/copilot-instructions.md
     writeCopilotInstructions(workspaceRoot);
 
-    // Step 6: Inject post-push hook
-    injectPostPushHook(workspaceRoot);
+    // Step 6: Inject post-push hook with the allocated port
+    injectPostPushHook(workspaceRoot, port);
+
+    // Show token — this is the ONLY time it is ever visible. Auto-copy + modal.
+    await vscode.env.clipboard.writeText(apiToken);
+    const tokenAction = await vscode.window.showInformationMessage(
+      `FlowSync initialized for "${projectName}"!\n\n` +
+      `Your API token (already copied to clipboard):\n${apiToken}\n\n` +
+      `Share this token with teammates so they can run "FlowSync: Join Project". ` +
+      `It will NOT be shown again.`,
+      { modal: true },
+      "Copy Again"
+    );
+    if (tokenAction === "Copy Again") {
+      await vscode.env.clipboard.writeText(apiToken);
+    }
 
     vscode.window.showInformationMessage(
-      `FlowSync initialized for "${projectName}". Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
+      `FlowSync ready. Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
     );
+
+    // Start hook listener immediately — no window reopen needed
+    onInitialized();
   });
 }
 
@@ -135,31 +184,64 @@ function writeCopilotInstructions(workspaceRoot: string): void {
 }
 
 /**
- * Injects the post-push git hook into .git/hooks/.
- * The hook sends a signal to the local listener on port 38475.
+ * Injects the pre-push git hook into .git/hooks/.
+ * pre-push is a real Git hook (post-push does NOT exist in Git).
+ * The hook sends a signal to the local listener on the project's allocated port.
  */
-function injectPostPushHook(workspaceRoot: string): void {
+function injectPostPushHook(workspaceRoot: string, port: number): void {
   const hooksDir = path.join(workspaceRoot, ".git", "hooks");
   if (!fs.existsSync(hooksDir)) {
     fs.mkdirSync(hooksDir, { recursive: true });
   }
 
-  const hookPath = path.join(hooksDir, "post-push");
+  // pre-push receives lines on stdin — we must consume them or git hangs.
+  // Fire curl in background (&) so the push is not delayed.
+  const hookPath = path.join(hooksDir, "pre-push");
   const hookContent = `#!/bin/sh
-curl -s http://localhost:38475/flowsync-hook \\
-  --data "{\\"event\\":\\"post-push\\",\\"branch\\":\\"$(git branch --show-current)\\"}"
+# FlowSync — notify local listener of push
+cat > /dev/null
+curl -s http://localhost:${port}/flowsync-hook \\
+  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &
 `;
 
   fs.writeFileSync(hookPath, hookContent, { mode: 0o755 });
 }
 
 /**
- * Temporary ID generator until backend is wired up.
+ * POST JSON to a URL and return the parsed response.
  */
-function generateTempId(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
+function postJson(url: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const parsedUrl = new URL(url);
+
+    const req = https.request(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(data),
+        },
+      },
+      (res) => {
+        let responseBody = "";
+        res.on("data", (chunk: Buffer) => { responseBody += chunk.toString(); });
+        res.on("end", () => {
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            try { resolve(JSON.parse(responseBody)); }
+            catch { reject(new Error(`Failed to parse response: ${responseBody}`)); }
+          } else {
+            reject(new Error(`HTTP ${res.statusCode}: ${responseBody}`));
+          }
+        });
+      }
+    );
+
+    req.on("error", reject);
+    req.write(data);
+    req.end();
   });
 }

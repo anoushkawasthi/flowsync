@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
+const BASE_PORT = 38475;
+
 /**
  * Shape of the .flowsync.json file committed to the repo root.
  * Contains no secrets — only connection metadata.
@@ -10,11 +12,13 @@ export interface FlowSyncConfig {
   projectId: string;
   backendUrl: string;
   defaultBranch: string;
+  port: number; // per-project listener port — unique per workspace
 }
 
 /**
  * Reads .flowsync.json from the workspace root.
  * Returns null if the file doesn't exist or is malformed.
+ * Backwards-compatible: missing port defaults to BASE_PORT.
  */
 export function readConfig(): FlowSyncConfig | null {
   const workspaceRoot = getWorkspaceRoot();
@@ -31,9 +35,13 @@ export function readConfig(): FlowSyncConfig | null {
     const raw = fs.readFileSync(configPath, "utf-8");
     const parsed = JSON.parse(raw);
 
-    // Validate required fields
     if (!parsed.projectId || !parsed.backendUrl || !parsed.defaultBranch) {
       return null;
+    }
+
+    // Backwards-compatible: old configs without port get the base port
+    if (!parsed.port) {
+      parsed.port = BASE_PORT;
     }
 
     return parsed as FlowSyncConfig;
@@ -66,3 +74,5 @@ export function getWorkspaceRoot(): string | null {
   }
   return folders[0].uri.fsPath;
 }
+
+export { BASE_PORT };

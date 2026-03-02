@@ -1,71 +1,104 @@
 import * as vscode from "vscode";
-import { readConfig } from "./config";
+import * as fs from "fs";
+import * as path from "path";
+import { readConfig, writeConfig, getWorkspaceRoot } from "./config";
 import { startHookListener, stopHookListener } from "./hookListener";
-import { getDiff, getLastCommitInfo, getCurrentBranch, getGitUserName } from "./gitUtils";
+import { getDiff, getLastCommitInfo, getGitUserName } from "./gitUtils";
 import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
 import { registerInitCommand } from "./commands/initProject";
+import { registerJoinCommand } from "./commands/joinProject";
+import { initLogger, log } from "./logger";
 
-/**
- * Called when the extension activates.
- * Activation triggers:
- * - workspaceContains:.flowsync.json (auto, on workspace open)
- * - flowsync.initProject command (manual, from command palette)
- */
 export function activate(context: vscode.ExtensionContext) {
-  console.log("FlowSync extension activated");
+  const outputChannel = initLogger();
+  outputChannel.show(false); // show panel without stealing focus
 
-  // Register commands
-  context.subscriptions.push(registerInitCommand(context));
+  log.sep();
+  log.info("FlowSync extension activated");
 
-  // Check if this workspace has a FlowSync project
   const config = readConfig();
+  log.info("Workspace config", config ?? "no .flowsync.json found");
+
+  const onAuthenticated = () => {
+    log.step("onAuthenticated", "reading fresh config after init/join");
+    const freshConfig = readConfig();
+    if (freshConfig) {
+      log.ok("onAuthenticated", `projectId=${freshConfig.projectId} port=${freshConfig.port}`);
+      initializeForProject(context, freshConfig);
+    } else {
+      log.error("onAuthenticated", "readConfig returned null after init — .flowsync.json may not have been written");
+    }
+  };
+
+  context.subscriptions.push(registerInitCommand(context, onAuthenticated));
+  context.subscriptions.push(registerJoinCommand(context, onAuthenticated));
+
   if (config) {
-    initializeForProject(context, config.projectId, config.backendUrl, config.defaultBranch);
+    log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
+    initializeForProject(context, config);
+  } else {
+    log.info("activate", "no .flowsync.json — waiting for initProject or joinProject command");
   }
 }
 
-/**
- * Sets up the extension for a connected FlowSync project.
- * Starts the hook listener and handles incoming push events.
- */
 async function initializeForProject(
   context: vscode.ExtensionContext,
-  projectId: string,
-  backendUrl: string,
-  defaultBranch: string
+  config: ReturnType<typeof readConfig> & object
 ): Promise<void> {
-  // Retrieve API token from SecretStorage
+  const { projectId, backendUrl, defaultBranch, port: preferredPort } = config;
+
+  log.sep();
+  log.step("initializeForProject", `projectId=${projectId} preferredPort=${preferredPort}`);
+
+  log.step("initializeForProject", "checking SecretStorage for API token");
   const apiToken = await context.secrets.get(`flowsync.token.${projectId}`);
   if (!apiToken) {
-    // No token stored — prompt the join flow
+    log.warn("initializeForProject", `no token in SecretStorage for key flowsync.token.${projectId} — prompting join flow`);
     vscode.window.showInformationMessage(
       "FlowSync project detected. Enter your API token to connect.",
       "Enter Token"
-    ).then((selection) => {
+    ).then((selection: string | undefined) => {
       if (selection === "Enter Token") {
         vscode.commands.executeCommand("flowsync.joinProject");
       }
     });
     return;
   }
+  log.ok("initializeForProject", "API token found in SecretStorage");
 
-  // Start the local HTTP listener for post-push hook signals
-  startHookListener((branch: string) => {
-    handlePushEvent(context, projectId, backendUrl, defaultBranch, apiToken, branch);
-  });
+  log.step("initializeForProject", `starting hook listener on preferred port ${preferredPort}`);
+  const actualPort = await startHookListener(
+    (branch: string) => handlePushEvent(context, projectId, backendUrl, defaultBranch, apiToken, branch),
+    preferredPort
+  );
 
-  vscode.window.setStatusBarMessage("$(check) FlowSync connected", 5000);
+  if (actualPort !== preferredPort) {
+    log.warn("initializeForProject", `port ${preferredPort} was taken, bound to ${actualPort} — updating .flowsync.json and hook script`);
+    writeConfig({ projectId, backendUrl, defaultBranch, port: actualPort });
+    vscode.window.setStatusBarMessage(`$(check) FlowSync connected on port ${actualPort}`, 8000);
+  } else {
+    log.ok("initializeForProject", `listener bound on port ${actualPort}`);
+    vscode.window.setStatusBarMessage(`$(check) FlowSync connected (port ${actualPort})`, 8000);
+  }
+  updateHookPort(actualPort);
+  log.info("initializeForProject", "ready — waiting for push events");
 }
 
-/**
- * Handles an incoming push event from the git hook.
- *
- * Flow:
- * 1. Capture diff + commit metadata from git
- * 2. POST to backend ingestion endpoint (with retry)
- * 3. Show "Add reasoning?" notification
- */
+function updateHookPort(port: number): void {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) { return; }
+  const hooksDir = path.join(workspaceRoot, ".git", "hooks");
+  const hookPath = path.join(hooksDir, "pre-push");
+  const existed = fs.existsSync(hookPath);
+  if (!fs.existsSync(hooksDir)) {
+    fs.mkdirSync(hooksDir, { recursive: true });
+  }
+  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\ncat > /dev/null  # consume stdin (required by pre-push hook protocol)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &\n`;
+  fs.writeFileSync(hookPath, content, { mode: 0o755 });
+  log.ok("updateHookPort", `hook script ${existed ? "updated" : "created"} at ${hookPath} for port ${port}`);
+}
+
 async function handlePushEvent(
   _context: vscode.ExtensionContext,
   projectId: string,
@@ -74,17 +107,28 @@ async function handlePushEvent(
   apiToken: string,
   branch: string
 ): Promise<void> {
-  // Capture git data
+  log.sep();
+  log.step("handlePushEvent", `push signal received on branch=${branch}`);
+
+  log.step("handlePushEvent", "running git diff HEAD~1 HEAD");
   const diff = getDiff();
+  log.step("handlePushEvent", "running git log for commit info");
   const commitInfo = getLastCommitInfo();
   const gitUserName = getGitUserName();
 
+  if (!diff) {
+    log.error("handlePushEvent", "getDiff() returned null — git diff failed or repo has no commits");
+  }
+  if (!commitInfo) {
+    log.error("handlePushEvent", "getLastCommitInfo() returned null — git log failed or format parse error");
+  }
   if (!diff || !commitInfo) {
-    console.warn("FlowSync: could not capture git data for push");
+    vscode.window.showWarningMessage("FlowSync: could not read git data. Check Output panel for details.");
     return;
   }
 
-  // Build the event payload
+  log.ok("handlePushEvent", `commit=${commitInfo.commitHash.slice(0, 8)} author="${commitInfo.author}" message="${commitInfo.message}" diffLen=${diff.length}`);
+
   const event: CapturedEvent = {
     eventId: crypto.randomUUID(),
     projectId,
@@ -100,29 +144,24 @@ async function handlePushEvent(
     },
   };
 
-  // Transmit to backend
+  log.step("handlePushEvent", `transmitting eventId=${event.eventId} to ${backendUrl}`);
+
   try {
-    await transmitEvent(backendUrl, apiToken, event);
-    console.log(`FlowSync: event ${event.eventId} transmitted`);
+    const result = await transmitEvent(backendUrl, apiToken, event);
+    log.ok("handlePushEvent", `event transmitted successfully — response: ${JSON.stringify(result)}`);
+    vscode.window.showInformationMessage(`FlowSync: push captured (${commitInfo.commitHash.slice(0, 8)})`);
   } catch (err) {
-    console.error("FlowSync: failed to transmit event", err);
-    vscode.window.showWarningMessage(
-      "FlowSync: could not send push data to backend. Will retry later."
-    );
-    // TODO: persist to globalState for manual retry
+    log.error("handlePushEvent", `transmit failed after all retries: ${err instanceof Error ? err.message : String(err)}`);
+    vscode.window.showWarningMessage("FlowSync: could not send push data to backend. Check Output panel.");
     return;
   }
 
-  // Show post-push notification
   if (gitUserName) {
     await showPostPushNotification(branch, diff, gitUserName);
   }
 }
 
-/**
- * Called when the extension deactivates. Clean up resources.
- */
 export function deactivate() {
+  log.info("FlowSync extension deactivated");
   stopHookListener();
 }
-

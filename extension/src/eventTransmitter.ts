@@ -1,10 +1,7 @@
 import * as https from "https";
 import * as http from "http";
+import { log } from "./logger";
 
-/**
- * Event payload sent to the ingestion backend.
- * Matches the CapturedEvent interface from the spec.
- */
 export interface CapturedEvent {
   eventId: string;
   projectId: string;
@@ -22,25 +19,21 @@ export interface PushPayload {
   parentBranch?: string;
 }
 
-/**
- * Transmits a captured event to the backend ingestion endpoint.
- *
- * Retry strategy (from spec):
- * - On failure: retry at 1s → 2s → 4s (exponential backoff, max 3 attempts)
- *
- * Returns the response body on success, or throws on all retries exhausted.
- */
 export async function transmitEvent(
   backendUrl: string,
   apiToken: string,
   event: CapturedEvent
 ): Promise<Record<string, unknown>> {
-  const retryDelays = [0, 1000, 2000, 4000]; // first attempt immediate, then backoff
+  const retryDelays = [0, 1000, 2000, 4000];
 
   for (let attempt = 0; attempt < retryDelays.length; attempt++) {
     if (retryDelays[attempt] > 0) {
+      log.info("transmitEvent", `waiting ${retryDelays[attempt]}ms before retry attempt ${attempt + 1}`);
       await sleep(retryDelays[attempt]);
     }
+
+    log.step("transmitEvent", `attempt ${attempt + 1}/${retryDelays.length} → POST ${backendUrl}/api/v1/events`);
+    log.info("transmitEvent", `payload summary: eventId=${event.eventId} projectId=${event.projectId} branch=${event.branch} commitHash=${event.payload.commitHash.slice(0, 8)} author="${event.payload.author}" diffLen=${event.payload.diff.length}`);
 
     try {
       const result = await postJson(
@@ -48,23 +41,21 @@ export async function transmitEvent(
         apiToken,
         event as unknown as Record<string, unknown>
       );
+      log.ok("transmitEvent", `HTTP 2xx — response: ${JSON.stringify(result)}`);
       return result;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (attempt === retryDelays.length - 1) {
-        throw err; // all retries exhausted
+        log.error("transmitEvent", `all retries exhausted — last error: ${msg}`);
+        throw err;
       }
-      console.warn(
-        `FlowSync: transmit attempt ${attempt + 1} failed, retrying...`
-      );
+      log.warn("transmitEvent", `attempt ${attempt + 1} failed: ${msg} — will retry`);
     }
   }
 
   throw new Error("FlowSync: transmit failed after all retries");
 }
 
-/**
- * POST JSON to an endpoint with Bearer token auth.
- */
 function postJson(
   url: string,
   token: string,
@@ -89,26 +80,23 @@ function postJson(
       },
       (res) => {
         let responseBody = "";
-        res.on("data", (chunk: Buffer) => {
-          responseBody += chunk.toString();
-        });
+        res.on("data", (chunk: Buffer) => { responseBody += chunk.toString(); });
         res.on("end", () => {
+          log.info("postJson", `response: HTTP ${res.statusCode} — ${responseBody.slice(0, 300)}`);
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              resolve(JSON.parse(responseBody));
-            } catch {
-              resolve({});
-            }
+            try { resolve(JSON.parse(responseBody)); }
+            catch { resolve({}); }
           } else {
-            reject(
-              new Error(`HTTP ${res.statusCode}: ${responseBody}`)
-            );
+            reject(new Error(`HTTP ${res.statusCode}: ${responseBody}`));
           }
         });
       }
     );
 
-    req.on("error", reject);
+    req.on("error", (err) => {
+      log.error("postJson", `network error: ${err.message}`);
+      reject(err);
+    });
     req.write(data);
     req.end();
   });

@@ -1,75 +1,96 @@
 import * as http from "http";
-
-const HOOK_PORT = 38475;
+import * as net from "net";
+import { log } from "./logger";
 
 type HookCallback = (branch: string) => void;
 
 let server: http.Server | null = null;
+let activePort: number | null = null;
 
-/**
- * Starts a local HTTP server on port 38475.
- *
- * The post-push git hook sends a request here when the developer pushes.
- * This works regardless of whether the push came from VS Code, terminal,
- * or any GUI git client.
- *
- * Endpoint: POST /flowsync-hook
- * Body: { "event": "post-push", "branch": "feature/xyz" }
- */
-export function startHookListener(onPush: HookCallback): void {
-  if (server) {
-    return; // already running
+function isPortFree(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const probe = net.createServer();
+    probe.once("error", () => resolve(false));
+    probe.once("listening", () => probe.close(() => resolve(true)));
+    probe.listen(port, "127.0.0.1");
+  });
+}
+
+export async function findAvailablePort(preferredPort: number): Promise<number> {
+  log.step("findAvailablePort", `scanning from ${preferredPort}`);
+  for (let p = preferredPort; p < preferredPort + 100; p++) {
+    const free = await isPortFree(p);
+    if (free) {
+      log.ok("findAvailablePort", `port ${p} is free`);
+      return p;
+    }
+    log.info("findAvailablePort", `port ${p} is taken, trying next`);
   }
+  throw new Error(`FlowSync: no available port found in range ${preferredPort}–${preferredPort + 99}`);
+}
+
+export async function startHookListener(
+  onPush: HookCallback,
+  preferredPort: number
+): Promise<number> {
+  if (server) {
+    log.info("startHookListener", `already running on port ${activePort}`);
+    return activePort!;
+  }
+
+  const port = await findAvailablePort(preferredPort);
+  log.step("startHookListener", `binding HTTP server on 127.0.0.1:${port}`);
 
   server = http.createServer((req, res) => {
     if (req.method === "POST" && req.url === "/flowsync-hook") {
       let body = "";
-
-      req.on("data", (chunk: Buffer) => {
-        body += chunk.toString();
-      });
-
+      req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
       req.on("end", () => {
+        log.info("hookListener", `received POST /flowsync-hook — body: ${body}`);
         try {
           const parsed = JSON.parse(body);
-          if (parsed.event === "post-push" && parsed.branch) {
+          if ((parsed.event === "push" || parsed.event === "post-push") && parsed.branch) {
+            log.ok("hookListener", `valid push signal — branch=${parsed.branch}`);
             onPush(parsed.branch);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ status: "received" }));
           } else {
+            log.warn("hookListener", `invalid payload — expected event=post-push and branch, got: ${body}`);
             res.writeHead(400, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: "invalid payload" }));
           }
-        } catch {
+        } catch (e) {
+          log.error("hookListener", `JSON parse failed: ${e} — raw body: ${body}`);
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "invalid json" }));
         }
       });
     } else {
+      log.warn("hookListener", `unexpected request: ${req.method} ${req.url}`);
       res.writeHead(404);
       res.end();
     }
   });
 
-  server.listen(HOOK_PORT, "127.0.0.1", () => {
-    console.log(`FlowSync hook listener running on port ${HOOK_PORT}`);
+  await new Promise<void>((resolve, reject) => {
+    server!.listen(port, "127.0.0.1", () => resolve());
+    server!.on("error", reject);
   });
 
-  server.on("error", (err: NodeJS.ErrnoException) => {
-    if (err.code === "EADDRINUSE") {
-      console.warn(`FlowSync: port ${HOOK_PORT} already in use`);
-    } else {
-      console.error("FlowSync hook listener error:", err);
-    }
-  });
+  activePort = port;
+  log.ok("startHookListener", `listening on port ${port}`);
+  return port;
 }
 
-/**
- * Stops the hook listener. Called on extension deactivation.
- */
+export function getActivePort(): number | null {
+  return activePort;
+}
+
 export function stopHookListener(): void {
   if (server) {
+    log.info("stopHookListener", `closing server on port ${activePort}`);
     server.close();
     server = null;
+    activePort = null;
   }
 }

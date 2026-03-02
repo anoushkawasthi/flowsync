@@ -1,22 +1,41 @@
-# flowsync README
+# FlowSync
 
-This is the README for your extension "flowsync". After writing up a brief description, we recommend including the following sections.
+AI-powered context layer for AI-assisted development teams.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Project Initialization**: Create a new FlowSync project with `FlowSync: Initialize Project` command
+- **Team Onboarding**: Share API token with teammates so they can join via `FlowSync: Join Project`
+- **Automatic Context Capture**: Post-push git hook captures diffs and sends them to AWS backend
+- **AI Extraction**: Nova Pro analyzes commits and extracts features, decisions, risks, and tasks
+- **Vector Embeddings**: Titan embeddings generated for RAG queries
+- **Multi-Developer Support**: Full team collaboration on the same project across multiple laptops
 
-For example if there is an image subfolder under your extension project workspace:
+## How to Use
 
-\!\[feature X\]\(images/feature-x.png\)
+### For the Team Lead (Initializing a Project)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Open a new repo in VS Code
+2. Press `Ctrl+Shift+P` and run **FlowSync: Initialize Project**
+3. Fill in project details (name, description, languages, branch)
+4. Your API token will be displayed — **copy it and share with your team**
+5. Commit `.flowsync.json` and `.github/copilot-instructions.md` to the repo
+6. Push to GitHub — your first event is captured automatically
+
+### For Team Members (Joining a Project)
+
+1. Clone the repo (it already has `.flowsync.json`)
+2. VS Code will prompt you to join FlowSync
+3. Run `FlowSync: Join Project` and paste the API token from your team lead
+4. Your pushes are now automatically captured and sent to the backend
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VS Code 1.109 or later
+- Git repository with `.git/hooks` support
+- Network access to `https://86tzell2w9.execute-api.us-east-1.amazonaws.com` (for testing)
 
-## Extension Settings
+## Backend Integration
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 

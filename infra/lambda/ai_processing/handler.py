@@ -1,13 +1,12 @@
 import json
 import boto3
 import os
-import re
 from datetime import datetime, timedelta
 from decimal import Decimal
 from botocore.exceptions import ClientError
 
 # Model and embedding configuration
-MODEL_ID = "openai.gpt-oss-120b-1:0"
+MODEL_ID = "us.amazon.nova-pro-v1:0"
 EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"
 
 # DynamoDB table names (set via environment variables or hardcoded for prototype)
@@ -19,85 +18,77 @@ bedrock_client = boto3.client("bedrock-runtime")
 dynamodb = boto3.resource("dynamodb")
 cloudwatch = boto3.client("cloudwatch")
 
-def call_bedrock(diff):
-    """Call Bedrock with the given diff and return extracted context."""
-    prompt = f"""Analyze this git diff and extract structured context. Return ONLY valid JSON with these fields:
-- feature: string (what feature/component changed)
-- decision: string (key decision or change made)
-- tasks: array of strings (tasks completed)
-- stage: string (development stage: planning/implementation/testing/deployment)
-- risk: string (low/medium/high)
-- confidence: number (0.0-1.0)
-- entities: array of strings (files, functions, classes affected)
+def call_bedrock(event_data):
+    """Call Nova Pro via Bedrock Converse API with commit metadata and return extracted context as JSON."""
+    diff         = event_data.get('diff', '')
+    commit_hash  = event_data.get('commitHash', '')
+    message      = event_data.get('message', '')
+    author       = event_data.get('author', '')
+    branch       = event_data.get('branch', 'main')
+    changed_files = event_data.get('changedFiles', [])
+
+    system_prompt = (
+        "You are a deterministic software project intelligence extractor. "
+        "Return STRICT JSON only. No explanation, no markdown, no free text outside the JSON object."
+    )
+
+    user_prompt = f"""Analyze this Git push and extract structured project intelligence.
+
+Commit Hash: {commit_hash}
+Commit Message: {message}
+Author: {author}
+Branch: {branch}
+Changed Files: {', '.join(changed_files) if changed_files else 'not provided'}
 
 Diff:
 {diff}
 
-Return ONLY the JSON object, no markdown or explanation."""
+Return ONLY a valid JSON object with this exact structure:
+{{
+  "feature": "name of the feature or module being modified (e.g. 'Auth pipeline', 'Event ingestion', 'Dashboard UI')",
+  "decision": "<see rules below>",
+  "tasks": ["specific remaining task inferred from TODOs, partial implementations, or stub functions — empty array if none visible"],
+  "stage": "one of: Setup | Feature Development | Refactoring | Bug Fix | Testing | Documentation",
+  "risk": "a concrete risk visible in the diff (e.g. 'No error handling on DB write', 'Token logged in plaintext', 'No input validation') — null if none",
+  "confidence": 0.85,
+  "entities": ["every function name, class name, or filename directly modified in this diff"]
+}}
 
-    # Use invoke_model to match JavaScript implementation
-    body = {
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        "inference_config": {
-            "maxTokens": 512,
-            "temperature": 1,
-            "topP": 0.5
-        },
-        "additional_model_request_fields": {},
-        "performance_config": {
-            "latency": "standard"
-        }
-    }
-    
-    response = bedrock_client.invoke_model(
+Rules for 'decision' field:
+- SET to a concise string when the diff shows ANY of these patterns:
+    * One technology/library/approach REPLACED by another (e.g. removed bcrypt import, added scrypt call)
+    * An explicit design choice in data structures (e.g. storing token as salt:hash, using GSI for query)
+    * A new architectural pattern introduced (e.g. fire-and-forget async invoke, singleton SDK client)
+    * A change in API style or protocol (e.g. switched from invoke_model to converse API)
+    * A security or performance tradeoff made explicit in the code or commit message
+    * Added/removed a dependency that implies a deliberate choice
+- SET to null ONLY when the diff is purely additive content with no technology or approach choice visible
+- Be specific: write WHAT was chosen and WHY if evident (e.g. 'Used Bedrock Converse API over invoke_model for model-agnostic interface')
+
+Extract only factual information present in the diff and message. Do not invent or assume."""
+
+    # Bedrock Converse API — works with Nova Pro and all Amazon/Meta models
+    response = bedrock_client.converse(
         modelId=MODEL_ID,
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps(body)
+        system=[{"text": system_prompt}],
+        messages=[{"role": "user", "content": [{"text": user_prompt}]}],
+        inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 1}
     )
-    
-    # Decode response body
-    response_body = json.loads(response['body'].read())
-    print(f"Bedrock response: {json.dumps(response_body, default=str)}")
-    
-    # Extract text from response - GPT-OSS format
+
+    print(f"Bedrock response metadata: {json.dumps(response.get('usage', {}), default=str)}")
+
+    # Converse API response format: output.message.content[0].text
     try:
-        # GPT-OSS response format: {"choices": [{"message": {"content": "..."}}]}
-        if 'choices' in response_body and len(response_body['choices']) > 0:
-            output_text = response_body['choices'][0]['message']['content']
-        elif 'output' in response_body and 'message' in response_body['output']:
-            output_text = response_body['output']['message']['content'][0]['text']
-        elif 'content' in response_body:
-            output_text = response_body['content'][0]['text'] if isinstance(response_body['content'], list) else response_body['content']
-        elif 'completion' in response_body:
-            output_text = response_body['completion']
-        else:
-            output_text = str(response_body)
+        output_text = response['output']['message']['content'][0]['text'].strip()
     except (KeyError, IndexError, TypeError) as e:
-        print(f"Error extracting text from response: {e}")
-        print(f"Response body keys: {response_body.keys() if isinstance(response_body, dict) else type(response_body)}")
-        raise ValueError(f"Unexpected Bedrock response structure: {e}")
-    
-    # Parse JSON from response
-    output_text = output_text.strip()
-    
-    # Strip reasoning tags if present
-    if '<reasoning>' in output_text:
-        # Remove everything between <reasoning> and </reasoning>
-        import re
-        output_text = re.sub(r'<reasoning>.*?</reasoning>', '', output_text, flags=re.DOTALL).strip()
-    
-    # Strip markdown code blocks if present
+        raise ValueError(f"Unexpected Bedrock Converse response structure: {e}. Response: {response}")
+
+    # Strip markdown code fences if present
     if output_text.startswith('```json'):
         output_text = output_text.split('```json')[1].split('```')[0].strip()
     elif output_text.startswith('```'):
         output_text = output_text.split('```')[1].split('```')[0].strip()
-    
+
     result = json.loads(output_text)
     return result
 
@@ -169,20 +160,16 @@ def find_orphaned_record(project_id, branch, author, timestamp):
     window_start = (time_obj - timedelta(minutes=30)).isoformat().replace('+00:00', 'Z')
     
     try:
-        # Query using BranchContextIndex GSI (assuming it exists)
-        # projectId-branch as partition key, extractedAt as sort key
+        # BranchContextIndex GSI: PK=projectId, SK=branch#extractedAt
+        # Filter for uncommitted records (commitHash is None) by this author
         response = table.query(
             IndexName='BranchContextIndex',
-            KeyConditionExpression='#pk = :pk AND #sk BETWEEN :start AND :end',
+            KeyConditionExpression='projectId = :pk AND branchExtractedAt BETWEEN :start AND :end',
             FilterExpression='commitHash = :null AND author = :author',
-            ExpressionAttributeNames={
-                '#pk': 'projectId-branch',
-                '#sk': 'extractedAt'
-            },
             ExpressionAttributeValues={
-                ':pk': f"{project_id}#{branch}",
-                ':start': window_start,
-                ':end': timestamp,
+                ':pk': project_id,
+                ':start': f"{branch}#{window_start}",
+                ':end': f"{branch}#{timestamp}",
                 ':null': None,
                 ':author': author
             },
@@ -242,11 +229,21 @@ def handler(event, context):
     
     try:
         # Day 1: Use hardcoded diff for initial test
-        diff = event.get("diff") or "diff --git a/file.txt b/file.txt\n..."
-        commit_hash = event.get("commitHash", None)
-        branch = event.get("branch", "main")
-        author = event.get("author", "unknown")
-        timestamp = event.get("timestamp", "2026-03-01T00:00:00Z")
+        # Extract all fields from the event payload (forwarded by Ingestion Lambda)
+        payload      = event.get("payload", event)   # support both wrapped and flat
+        diff         = payload.get("diff") or event.get("diff") or "diff --git a/file.txt b/file.txt\n..."
+        commit_hash  = payload.get("commitHash") or event.get("commitHash", None)
+        branch       = event.get("branch", "main")
+        author       = payload.get("author") or event.get("author", "unknown")
+        timestamp    = event.get("timestamp", datetime.utcnow().isoformat() + "Z")
+        parent_branch = event.get("parentBranch", None)
+        changed_files = payload.get("changedFiles", [])
+        message       = payload.get("message") or event.get("message", "")
+
+        event_data = {
+            "diff": diff, "commitHash": commit_hash, "message": message,
+            "author": author, "branch": branch, "changedFiles": changed_files
+        }
 
         # Direction B: Check for orphaned record if this is a commit event
         if commit_hash:
@@ -279,32 +276,35 @@ def handler(event, context):
                 }
 
         # Call Bedrock for extraction
-        extraction = call_bedrock(diff)
+        extraction = call_bedrock(event_data)
         validate_extraction_schema(extraction)
 
         # Generate Titan embedding
         embedding_input = json.dumps(extraction)
         embedding = call_titan_embedding(embedding_input)
 
-        # Build context record
+        # Build context record — matches flowsync-context schema exactly
         context_record = {
-            "eventId": event.get("eventId", "test-event"),
-            "projectId": project_id,
-            "branch": branch,
-            "commitHash": commit_hash,
-            "status": "complete" if commit_hash else "uncommitted",
-            "feature": extraction["feature"],
-            "decision": extraction["decision"],
-            "tasks": extraction["tasks"],
-            "stage": extraction["stage"],
-            "risk": extraction["risk"],
-            "confidence": extraction["confidence"],
-            "entities": extraction["entities"],
-            "author": author,
-            "modelVersion": MODEL_ID,
-            "embedding": embedding,
-            "extractedAt": timestamp,
-            "processingDuration": 0  # Set real duration if needed
+            "eventId":            event.get("eventId", "test-event"),
+            "projectId":          project_id,
+            "branch":             branch,
+            "branchExtractedAt":  f"{branch}#{timestamp}",   # BranchContextIndex GSI SK
+            "parentBranch":       parent_branch,
+            "commitHash":         commit_hash,
+            "status":             "complete" if commit_hash else "uncommitted",
+            "feature":            extraction["feature"],
+            "decision":           extraction["decision"],
+            "tasks":              extraction["tasks"],
+            "stage":              extraction["stage"],
+            "risk":               extraction["risk"],
+            "confidence":         extraction["confidence"],
+            "entities":           extraction["entities"],
+            "author":             author,
+            "agentReasoning":     None,
+            "modelVersion":       MODEL_ID,
+            "embedding":          embedding,
+            "extractedAt":        timestamp,
+            "processingDuration": 0
         }
         write_context_record(context_record)
 
