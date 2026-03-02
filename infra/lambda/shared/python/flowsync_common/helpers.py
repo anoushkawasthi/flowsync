@@ -142,9 +142,15 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
     # Step 3: Compute similarities (convert Decimal embeddings to float)
     similarities = []
     for record in records:
-        # Critical: DynamoDB stores embeddings as Decimal, must convert to float
-        embedding = [float(x) for x in record.get('embedding', [])]
-        if not embedding:
+        # Critical: DynamoDB stores embeddings as Decimal, must convert to float.
+        # Must check for None explicitly — orphaned (uncommitted) records store
+        # embedding as DynamoDB null, which boto3 deserializes as Python None.
+        # .get('embedding', []) returns None (not []) when null is present.
+        raw_embedding = record.get('embedding')
+        if not raw_embedding:
+            continue
+        embedding = [float(x) for x in raw_embedding]
+        if len(embedding) != 1536:
             continue
         score = cosine_similarity(query_embedding, embedding)
         similarities.append((record, score))

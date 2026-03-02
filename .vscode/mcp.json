@@ -1,0 +1,22 @@
+{
+  "inputs": [
+    {
+      "id": "flowsync-token",
+      "type": "promptString",
+      "description": "FlowSync API token — find it in .flowsync.json in your project repo",
+      "password": true
+    }
+  ],
+  "servers": {
+    "flowsync": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/mcp-server/dist/index.js"],
+      "env": {
+        "FLOWSYNC_API_URL": "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod",
+        "FLOWSYNC_PROJECT_ID": "28c3fad3-4cbd-414e-bb63-fcc559ea238b",
+        "FLOWSYNC_TOKEN": "${input:flowsync-token}"
+      }
+    }
+  }
+}
