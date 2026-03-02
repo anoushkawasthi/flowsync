@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as https from "https";
-import { readConfig } from "../config";
+import { readConfig, getWorkspaceRoot } from "../config";
+import { writeMcpConfig } from "./initProject";
 
 /**
  * Registers the "FlowSync: Join Project" command.
@@ -67,6 +68,12 @@ export function registerJoinCommand(
 
     // Delegate back to extension.ts to start the hook listener
     onAuthenticated();
+
+    // Write .vscode/mcp.json so Copilot discovers FlowSync tools in this workspace
+    const workspaceRoot = getWorkspaceRoot();
+    if (workspaceRoot) {
+      writeMcpConfig(workspaceRoot, context.extensionPath, projectId, token.trim());
+    }
 
     vscode.window.setStatusBarMessage("$(check) FlowSync connected", 5000);
     vscode.window.showInformationMessage(

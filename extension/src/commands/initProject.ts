@@ -23,6 +23,48 @@ When logging context after a push:
 `;
 
 /**
+ * Writes .vscode/mcp.json into the workspace, registering the FlowSync MCP server
+ * so GitHub Copilot can discover and call the tools automatically.
+ *
+ * Points to the bundled mcp-server.js shipped inside the extension VSIX at
+ * `<extensionPath>/dist/mcp-server.js` — no separate install required.
+ */
+export function writeMcpConfig(
+  workspaceRoot: string,
+  extensionPath: string,
+  projectId: string,
+  token: string
+): void {
+  const vscodeDir = path.join(workspaceRoot, ".vscode");
+  if (!fs.existsSync(vscodeDir)) {
+    fs.mkdirSync(vscodeDir, { recursive: true });
+  }
+
+  const mcpServerPath = path.join(extensionPath, "dist", "mcp-server.mjs");
+
+  const mcpConfig = {
+    servers: {
+      flowsync: {
+        type: "stdio",
+        command: "node",
+        args: [mcpServerPath],
+        env: {
+          FLOWSYNC_API_URL: BACKEND_URL,
+          FLOWSYNC_PROJECT_ID: projectId,
+          FLOWSYNC_TOKEN: token,
+        },
+      },
+    },
+  };
+
+  fs.writeFileSync(
+    path.join(vscodeDir, "mcp.json"),
+    JSON.stringify(mcpConfig, null, 2),
+    "utf-8"
+  );
+}
+
+/**
  * Registers the "FlowSync: Initialize Project" command.
  *
  * Flow:
@@ -143,6 +185,9 @@ export function registerInitCommand(
 
     // Step 4: Write .github/copilot-instructions.md
     writeCopilotInstructions(workspaceRoot);
+
+    // Step 4b: Write .vscode/mcp.json so Copilot auto-discovers the FlowSync tools
+    writeMcpConfig(workspaceRoot, context.extensionPath, projectId, apiToken);
 
     // Step 6: Inject post-push hook with the allocated port
     injectPostPushHook(workspaceRoot, port);
