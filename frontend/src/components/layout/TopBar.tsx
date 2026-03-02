@@ -22,7 +22,6 @@ interface TopBarProps {
   selectedBranch: string;
   onBranchChange: (branch: string) => void;
   onMenuClick?: () => void;
-  showMenu?: boolean;
 }
 
 export function TopBar({
@@ -30,31 +29,29 @@ export function TopBar({
   selectedBranch,
   onBranchChange,
   onMenuClick,
-  showMenu,
 }: TopBarProps) {
   const pathname = usePathname();
   const title = pageTitles[pathname] || 'FlowSync';
 
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-6 backdrop-blur">
-      <div className="flex items-center gap-3">
-        {showMenu && (
-          <button
-            onClick={onMenuClick}
-            className="text-zinc-400 hover:text-zinc-100 lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        )}
-        <h1 className="text-lg font-semibold text-zinc-100">{title}</h1>
+    <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-4 sm:px-6 backdrop-blur">
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={onMenuClick}
+          className="shrink-0 rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 lg:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <h1 className="truncate text-lg font-semibold text-zinc-100">{title}</h1>
       </div>
 
       {pathname !== '/settings' && branches.length > 0 && (
-        <div className="flex items-center gap-2">
-          <GitBranch className="h-4 w-4 text-zinc-500" />
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          <GitBranch className="hidden h-4 w-4 text-zinc-500 sm:block" />
           <Select value={selectedBranch} onValueChange={onBranchChange}>
-            <SelectTrigger className="w-[180px] h-8 text-sm">
-              <SelectValue placeholder="Select branch" />
+            <SelectTrigger className="w-[120px] sm:w-[180px] h-8 text-xs sm:text-sm">
+              <SelectValue placeholder="Branch" />
             </SelectTrigger>
             <SelectContent>
               {branches.map((branch) => (

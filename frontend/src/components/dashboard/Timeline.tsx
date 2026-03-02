@@ -8,8 +8,8 @@ interface TimelineProps {
 
 export function Timeline({ events }: TimelineProps) {
   return (
-    <ScrollArea className="h-[calc(100vh-8rem)]">
-      <div className="space-y-3 pr-4">
+    <ScrollArea className="h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)]">
+      <div className="space-y-3 pr-1 sm:pr-4">
         {events.map((event) => (
           <ContextCard key={event.eventId} event={event} />
         ))}

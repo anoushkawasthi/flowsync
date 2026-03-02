@@ -12,3 +12,15 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+
+# webview source — only ship the built output under webview-ui/build/
+webview-ui/src/**
+webview-ui/node_modules/**
+webview-ui/public/**
+webview-ui/index.html
+webview-ui/eslint.config.js
+webview-ui/tsconfig*.json
+webview-ui/vite.config.ts
+webview-ui/package-lock.json
+webview-ui/.gitignore
+webview-ui/README.md

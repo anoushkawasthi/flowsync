@@ -6,8 +6,6 @@ import { startHookListener, stopHookListener } from "./hookListener";
 import { getDiff, getLastCommitInfo, getGitUserName } from "./gitUtils";
 import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
-import { registerInitCommand } from "./commands/initProject";
-import { registerJoinCommand } from "./commands/joinProject";
 import { FlowSyncPanel } from "./panels/FlowSyncPanel";
 import { initLogger, log } from "./logger";
 
@@ -32,9 +30,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   };
 
-  context.subscriptions.push(registerInitCommand(context, onAuthenticated));
-  context.subscriptions.push(registerJoinCommand(context, onAuthenticated));
-
   // Register the webview panel command
   context.subscriptions.push(
     vscode.commands.registerCommand("flowsync.openPanel", () => {
@@ -52,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
     initializeForProject(context, config);
   } else {
-    log.info("activate", "no .flowsync.json — waiting for initProject or joinProject command");
+    log.info("activate", "no .flowsync.json — open FlowSync dashboard to initialize or join a project");
   }
 }
 
@@ -68,13 +63,23 @@ async function initializeForProject(
   log.step("initializeForProject", "checking SecretStorage for API token");
   const apiToken = await context.secrets.get(`flowsync.token.${projectId}`);
   if (!apiToken) {
-    log.warn("initializeForProject", `no token in SecretStorage for key flowsync.token.${projectId} — prompting join flow`);
+    log.warn("initializeForProject", `no token in SecretStorage for key flowsync.token.${projectId} — prompting dashboard join flow`);
     vscode.window.showInformationMessage(
       "FlowSync project detected. Enter your API token to connect.",
       "Enter Token"
     ).then((selection: string | undefined) => {
       if (selection === "Enter Token") {
-        vscode.commands.executeCommand("flowsync.joinProject");
+        FlowSyncPanel.createOrShow(
+          context.extensionUri,
+          context,
+          () => {
+            const freshConfig = readConfig();
+            if (freshConfig) {
+              initializeForProject(context, freshConfig);
+            }
+          },
+          "join"
+        );
       }
     });
     return;

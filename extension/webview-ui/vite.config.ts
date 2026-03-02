@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     outDir: 'build',
     emptyOutDir: true,
+    modulePreload: false,
     rollupOptions: {
       output: {
         // Deterministic filenames (no hashes) so the extension can reference them

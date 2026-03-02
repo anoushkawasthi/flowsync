@@ -7,7 +7,7 @@ export default function SettingsPage() {
   const { config, setConfig } = useAppContext();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl px-0 sm:px-0">
       <ConfigForm config={config} onSave={setConfig} />
     </div>
   );

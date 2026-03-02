@@ -16,11 +16,11 @@ export function ContextCard({ event }: ContextCardProps) {
   });
 
   return (
-    <div className="animate-slide-down-fade rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+    <div className="animate-slide-down-fade rounded-lg border border-zinc-800 bg-zinc-900 p-3 sm:p-4 space-y-2.5 sm:space-y-3 hover:border-zinc-700 transition-colors">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <StageBadge stage={event.stage} />
-        <span className="text-sm text-zinc-300">{event.author}</span>
+        <span className="text-xs sm:text-sm text-zinc-300">{event.author}</span>
         <span className="text-xs text-zinc-500">{relativeTime}</span>
         <span className="ml-auto font-mono text-xs text-zinc-500">
           {event.commitHash?.slice(0, 7) ?? ''}
@@ -28,7 +28,7 @@ export function ContextCard({ event }: ContextCardProps) {
       </div>
 
       {/* Feature title */}
-      <h3 className="text-lg font-semibold text-zinc-100">{event.feature}</h3>
+      <h3 className="text-base sm:text-lg font-semibold text-zinc-100">{event.feature}</h3>
 
       {/* Decision */}
       {event.decision && (
@@ -58,18 +58,18 @@ export function ContextCard({ event }: ContextCardProps) {
       )}
 
       {/* Footer: Entities + Confidence */}
-      <div className="flex flex-wrap items-center gap-2 pt-1">
-        <div className="flex flex-wrap gap-1.5 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
+        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
           {event.entities.map((entity) => (
             <span
               key={entity}
-              className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-300"
+              className="rounded bg-zinc-800 px-1.5 sm:px-2 py-0.5 font-mono text-[11px] sm:text-xs text-zinc-300 truncate max-w-[120px] sm:max-w-none"
             >
               {entity}
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Progress value={event.confidence} className="h-1.5 w-16" />
           <span className="text-xs text-zinc-500">{event.confidence}%</span>
         </div>

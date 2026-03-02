@@ -134,6 +134,7 @@ export class FlowSyncPanel {
       content="default-src 'none';
                style-src ${webview.cspSource} 'unsafe-inline';
                script-src 'nonce-${nonce}';
+               connect-src ${webview.cspSource};
                font-src ${webview.cspSource};
                img-src ${webview.cspSource} data:;">
     <link rel="stylesheet" href="${styleUri}">
@@ -141,7 +142,7 @@ export class FlowSyncPanel {
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
   </body>
 </html>`;
   }
