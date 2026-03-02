@@ -24,6 +24,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     setSelectedBranch,
   } = useAppContext();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!loaded) {
     return (
@@ -40,15 +41,17 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => setMobileOpen(false)}
         />
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           <TopBar
             branches={branches}
             selectedBranch={selectedBranch}
             onBranchChange={setSelectedBranch}
-            showMenu={false}
+            onMenuClick={() => setMobileOpen(true)}
           />
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
         </div>
       </div>
     </>

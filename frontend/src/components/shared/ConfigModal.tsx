@@ -48,7 +48,7 @@ export function ConfigModal({ open, onSave }: ConfigModalProps) {
         hideCloseButton
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="sm:max-w-md"
+        className="w-[calc(100%-2rem)] sm:max-w-md mx-auto"
       >
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">

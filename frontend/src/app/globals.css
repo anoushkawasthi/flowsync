@@ -33,6 +33,19 @@
   }
   body {
     @apply bg-zinc-950 text-zinc-100;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile viewport fix */
+@supports (height: 100dvh) {
+  .h-screen {
+    height: 100dvh !important;
   }
 }
 
@@ -53,4 +66,12 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
 }

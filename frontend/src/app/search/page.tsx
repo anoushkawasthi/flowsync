@@ -18,7 +18,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
       <SearchBar onSearch={search} loading={loading} />
 
       {loading && <LoadingSearchResult />}

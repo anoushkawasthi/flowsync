@@ -26,11 +26,11 @@ export function RiskList({ events }: RiskListProps) {
             className="flex gap-3 rounded-md border-l-2 border-orange-500 bg-zinc-800/50 p-3"
           >
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 space-y-1 min-w-0">
               <p className="text-sm text-orange-300">{event.risk}</p>
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
-                <span>{event.feature}</span>
-                <span>·</span>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-zinc-500">
+                <span className="truncate max-w-[150px] sm:max-w-none">{event.feature}</span>
+                <span className="hidden sm:inline">·</span>
                 <span>{event.author}</span>
                 <span>·</span>
                 <span>
