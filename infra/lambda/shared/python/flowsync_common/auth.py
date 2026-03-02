@@ -53,9 +53,11 @@ def verify_token(token, stored_hash):
         
         # Python scrypt: must specify n, r, p explicitly (Node.js uses defaults)
         # Node.js scryptSync defaults: n=16384, r=8, p=1
+        # Node.js scryptSync receives the salt as a UTF-8 string (hex chars),
+        # so Python must do the same — encode as UTF-8, NOT bytes.fromhex().
         derived = hashlib.scrypt(
             token.encode(),
-            salt=bytes.fromhex(salt),
+            salt=salt.encode('utf-8'),
             n=16384,
             r=8,
             p=1,

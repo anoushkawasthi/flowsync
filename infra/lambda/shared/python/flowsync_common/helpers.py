@@ -79,7 +79,6 @@ def strip_embeddings(records):
     # Also convert Decimal objects to regular numbers for JSON serialization
     records = convert_decimals(records)
     return records
-    return records
 
 
 def convert_floats_to_decimal(obj):

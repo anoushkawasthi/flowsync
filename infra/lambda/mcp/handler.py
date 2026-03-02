@@ -253,6 +253,14 @@ def log_context(params):
                 update_expr += ", decision = :decision"
                 expr_values[':decision'] = decision
             
+            if tasks:
+                update_expr += ", tasks = :tasks"
+                expr_values[':tasks'] = tasks
+            
+            if risk:
+                update_expr += ", risk = :risk"
+                expr_values[':risk'] = risk
+            
             table.update_item(
                 Key={'eventId': event_id},
                 UpdateExpression=update_expr,
