@@ -116,7 +116,7 @@ export class InfraStack extends cdk.Stack {
 
     const bedrockPolicy = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['bedrock:InvokeModel'],
+      actions: ['bedrock:InvokeModel', 'bedrock:Converse'],
       resources: [
         // Nova Pro cross-region inference profile (account-scoped)
         `arn:aws:bedrock:us-east-1:357229249502:inference-profile/us.amazon.nova-pro-v1:0`,
@@ -125,6 +125,17 @@ export class InfraStack extends cdk.Stack {
         // Titan embeddings
         `arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1`,
       ],
+    });
+
+    // ─────────────────────────────────────────────
+    // LAMBDA LAYER (shared code for MCP and Query Lambdas)
+    // ─────────────────────────────────────────────
+
+    const sharedLayer = new lambda.LayerVersion(this, 'FlowSyncSharedLayer', {
+      layerVersionName: 'flowsync-shared-layer',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/shared')),
+      compatibleRuntimes: [lambda.Runtime.PYTHON_3_12],
+      description: 'Shared utilities for MCP and Query Lambda functions',
     });
 
     // ─────────────────────────────────────────────
@@ -171,6 +182,7 @@ export class InfraStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/mcp')),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      layers: [sharedLayer],
       environment: {
         PROJECTS_TABLE: projectsTable.tableName,
         CONTEXT_TABLE: contextTable.tableName,
@@ -186,6 +198,7 @@ export class InfraStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/query')),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      layers: [sharedLayer],
       environment: {
         PROJECTS_TABLE: projectsTable.tableName,
         CONTEXT_TABLE: contextTable.tableName,
