@@ -161,6 +161,9 @@ export class FlowSyncPanel {
       case "refreshStatus":
         await this._sendStatus();
         break;
+      case "sendChatMessage":
+        await this._handleSendChatMessage(message.data as Record<string, unknown>);
+        break;
       case "copyToken":
         await vscode.env.clipboard.writeText(message.token as string);
         vscode.window.showInformationMessage("Token copied to clipboard");
@@ -278,6 +281,57 @@ export class FlowSyncPanel {
 
     this._sendJoinResult(true, "Connected successfully.");
     this._onInitialized();
+  }
+
+  /* ─── chat message handler ─── */
+
+  private async _handleSendChatMessage(data: Record<string, unknown>): Promise<void> {
+    const config = readConfig();
+    if (!config) {
+      this._panel.webview.postMessage({
+        type: "chatError",
+        message: "Project not configured",
+      });
+      return;
+    }
+
+    const apiToken = await this._context.secrets.get(`flowsync.token.${config.projectId}`);
+    if (!apiToken) {
+      this._panel.webview.postMessage({
+        type: "chatError",
+        message: "No API token found",
+      });
+      return;
+    }
+
+    const { message, sessionId } = data as { message: string; sessionId: string | null };
+
+    log.step("WebviewPanel:sendChatMessage", `sending message for project ${config.projectId}`);
+
+    try {
+      const response = await postJsonWithAuth(
+        `${config.backendUrl}/api/v1/chat`,
+        apiToken,
+        {
+          projectId: config.projectId,
+          message,
+          sessionId,
+        }
+      );
+
+      log.ok("WebviewPanel:sendChatMessage", "received response from chat API");
+
+      this._panel.webview.postMessage({
+        type: "chatResponse",
+        data: response,
+      });
+    } catch (err) {
+      log.error("WebviewPanel:sendChatMessage", `chat API error: ${err}`);
+      this._panel.webview.postMessage({
+        type: "chatError",
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   /* ─── status ─── */
@@ -451,6 +505,50 @@ function validateToken(
       }
     );
     req.on("error", reject);
+    req.end();
+  });
+}
+
+function postJsonWithAuth(
+  url: string,
+  token: string,
+  body: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const parsedUrl = new URL(url);
+    const req = https.request(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(data),
+          Authorization: `Bearer ${token}`,
+        },
+      },
+      (res) => {
+        let responseBody = "";
+        res.on("data", (chunk: Buffer) => {
+          responseBody += chunk.toString();
+        });
+        res.on("end", () => {
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              resolve(JSON.parse(responseBody));
+            } catch {
+              reject(new Error(`Failed to parse response: ${responseBody}`));
+            }
+          } else {
+            reject(new Error(`HTTP ${res.statusCode}: ${responseBody}`));
+          }
+        });
+      }
+    );
+    req.on("error", reject);
+    req.write(data);
     req.end();
   });
 }

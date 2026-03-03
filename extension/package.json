@@ -18,6 +18,10 @@
       {
         "command": "flowsync.openPanel",
         "title": "FlowSync: Open Dashboard"
+      },
+      {
+        "command": "flowsync.openChat",
+        "title": "FlowSync: Open AI Chat"
       }
     ]
   },

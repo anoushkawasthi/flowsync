@@ -3,9 +3,10 @@ import { Welcome } from "./components/Welcome";
 import { InitProject } from "./components/InitProject";
 import { JoinProject } from "./components/JoinProject";
 import { Dashboard } from "./components/Dashboard";
+import { Chat } from "./components/Chat";
 import "./App.css";
 
-type View = "welcome" | "init" | "join" | "dashboard";
+type View = "welcome" | "init" | "join" | "dashboard" | "chat";
 
 function App() {
   const [view, setView] = useState<View>("welcome");
@@ -29,6 +30,7 @@ function App() {
       {view === "init" && <InitProject onNavigate={navigate} />}
       {view === "join" && <JoinProject onNavigate={navigate} />}
       {view === "dashboard" && <Dashboard onNavigate={navigate} />}
+      {view === "chat" && <Chat />}
     </div>
   );
 }

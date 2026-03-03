@@ -74,7 +74,15 @@ export class InfraStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const allTables = [projectsTable, eventsTable, contextTable, auditTable];
+    const chatSessionsTable = new dynamodb.Table(this, 'FlowSyncChatSessions', {
+      tableName: 'flowsync-chat-sessions',
+      partitionKey: { name: 'sessionId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'ttl', // auto-cleanup old sessions
+    });
+
+    const allTables = [projectsTable, eventsTable, contextTable, auditTable, chatSessionsTable];
 
     // ─────────────────────────────────────────────
     // S3 BUCKETS
@@ -122,6 +130,9 @@ export class InfraStack extends cdk.Stack {
         `arn:aws:bedrock:us-east-1:357229249502:inference-profile/us.amazon.nova-pro-v1:0`,
         // Underlying Nova Pro foundation model (required for cross-region routing)
         `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
+        // Nova Lite for chat (cost-effective conversational AI)
+        `arn:aws:bedrock:us-east-1:357229249502:inference-profile/us.amazon.nova-lite-v1:0`,
+        `arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0`,
         // Titan embeddings
         `arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1`,
       ],
@@ -206,12 +217,29 @@ export class InfraStack extends cdk.Stack {
     });
     queryFn.addToRolePolicy(bedrockPolicy);
 
+    const chatFn = new lambda.Function(this, 'ChatFn', {
+      functionName: 'flowsync-chat',
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'handler.lambda_handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/chat')),
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 512,
+      layers: [sharedLayer],
+      environment: {
+        PROJECT_TABLE_NAME: projectsTable.tableName,
+        CONTEXT_TABLE_NAME: contextTable.tableName,
+        SESSIONS_TABLE_NAME: chatSessionsTable.tableName,
+      },
+    });
+    chatFn.addToRolePolicy(bedrockPolicy);
+
     // Grant DynamoDB permissions
     allTables.forEach(table => {
       table.grantReadWriteData(ingestionFn);
       table.grantReadWriteData(aiProcessingFn);
       table.grantReadWriteData(mcpFn);
       table.grantReadWriteData(queryFn);
+      table.grantReadWriteData(chatFn);
     });
 
     // Grant S3 permissions
@@ -236,6 +264,7 @@ export class InfraStack extends cdk.Stack {
     const ingestionIntegration = new apigateway.LambdaIntegration(ingestionFn);
     const mcpIntegration = new apigateway.LambdaIntegration(mcpFn);
     const queryIntegration = new apigateway.LambdaIntegration(queryFn);
+    const chatIntegration = new apigateway.LambdaIntegration(chatFn);
 
     // /api/v1
     const apiV1 = api.root.addResource('api').addResource('v1');
@@ -254,6 +283,9 @@ export class InfraStack extends cdk.Stack {
 
     // POST /api/v1/query
     apiV1.addResource('query').addMethod('POST', queryIntegration);
+
+    // POST /api/v1/chat
+    apiV1.addResource('chat').addMethod('POST', chatIntegration);
 
     // POST /mcp
     api.root.addResource('mcp').addMethod('POST', mcpIntegration);

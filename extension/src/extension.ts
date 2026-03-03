@@ -43,6 +43,18 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Register the chat command
+  context.subscriptions.push(
+    vscode.commands.registerCommand("flowsync.openChat", () => {
+      FlowSyncPanel.createOrShow(
+        context.extensionUri,
+        context,
+        onAuthenticated,
+        "chat"
+      );
+    })
+  );
+
   if (config) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
     initializeForProject(context, config);

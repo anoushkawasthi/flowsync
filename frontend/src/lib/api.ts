@@ -70,3 +70,74 @@ export async function searchContext(
   );
   return response.data;
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface ChatSource {
+  eventId: string;
+  contextId: string;
+  branch: string;
+  timestamp: string;
+  feature: string;
+  stage: string;
+  relevance: number;
+  snippet: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  sources: ChatSource[];
+  sessionId: string;
+  timestamp: string;
+}
+
+export async function sendChatMessage(
+  projectId: string,
+  message: string,
+  token: string,
+  sessionId?: string | null
+): Promise<ChatResponse> {
+  if (useMock) {
+    await delay(1000);
+    // Mock response with varied replies
+    const mockReplies = [
+      "Based on the recent commits, it looks like you're working on implementing authentication. The JWT token generation was added in the auth module.",
+      "The last major feature was the dashboard analytics component. It includes activity charts and risk assessment based on code changes.",
+      "I can see that the project is currently in the development stage. The main tasks remaining include testing and deployment preparation.",
+    ];
+    return {
+      reply: mockReplies[Math.floor(Math.random() * mockReplies.length)],
+      sources: [
+        {
+          eventId: 'mock-event-1',
+          contextId: 'mock-context-1',
+          branch: 'main',
+          timestamp: new Date().toISOString(),
+          feature: 'Authentication System',
+          stage: 'implementation',
+          relevance: 0.92,
+          snippet: 'Added JWT token generation and validation...',
+        },
+      ],
+      sessionId: sessionId || `mock-session-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  const response = await api.post<ChatResponse>(
+    '/api/v1/chat',
+    {
+      projectId,
+      message,
+      sessionId,
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return response.data;
+}
