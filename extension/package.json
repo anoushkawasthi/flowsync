@@ -18,6 +18,14 @@
       {
         "command": "flowsync.openPanel",
         "title": "FlowSync: Open Dashboard"
+      },
+      {
+        "command": "flowsync.catchMeUp",
+        "title": "FlowSync: Catch Me Up"
+      },
+      {
+        "command": "flowsync.viewRecentActivity",
+        "title": "FlowSync: View Recent Activity"
       }
     ]
   },

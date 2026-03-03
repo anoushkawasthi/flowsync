@@ -69,6 +69,10 @@ export class FlowSyncPanel {
     this._panel.webview.postMessage({ type: "navigate", view });
   }
 
+  public sendCatchUpData(data: unknown): void {
+    this._panel.webview.postMessage({ type: "catchUpData", data });
+  }
+
   private _sendAutoDetect(): void {
     const workspaceRoot = getWorkspaceRoot();
     if (!workspaceRoot) { return; }
@@ -185,6 +189,10 @@ export class FlowSyncPanel {
         break;
       case "requestAutoDetect":
         this._sendAutoDetect();
+        break;
+      case "requestRecentActivity":
+        // User wants to see recent activity even though there are no new changes
+        vscode.commands.executeCommand("flowsync.viewRecentActivity");
         break;
     }
   }
