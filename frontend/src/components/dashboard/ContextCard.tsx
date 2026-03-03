@@ -70,8 +70,8 @@ export function ContextCard({ event }: ContextCardProps) {
           ))}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Progress value={event.confidence} className="h-1.5 w-16" />
-          <span className="text-xs text-zinc-500">{event.confidence}%</span>
+          <Progress value={event.confidence * 100} className="h-1.5 w-16" />
+          <span className="text-xs text-zinc-500">{Math.round(event.confidence * 100)}%</span>
         </div>
       </div>
     </div>

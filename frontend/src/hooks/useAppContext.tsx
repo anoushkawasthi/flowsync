@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { useConfig } from '@/hooks/useConfig';
 import { useEvents } from '@/hooks/useEvents';
 import { useBranches } from '@/hooks/useBranches';
@@ -45,11 +45,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const branches = useBranches(allEvents);
 
-  // Filter events by selected branch
-  const events =
-    selectedBranch === 'all'
-      ? allEvents
-      : allEvents.filter((e) => e.branch === selectedBranch);
+  // Filter events by selected branch (memoised so reference is stable when data is unchanged)
+  const events = useMemo(
+    () =>
+      selectedBranch === 'all'
+        ? allEvents
+        : allEvents.filter((e) => e.branch === selectedBranch),
+    [allEvents, selectedBranch]
+  );
 
   return (
     <AppContext.Provider

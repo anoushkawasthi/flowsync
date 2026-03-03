@@ -47,12 +47,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           <div className="flex items-center gap-2">
             <Zap className="h-6 w-6 shrink-0 text-teal-500" />
             {(!collapsed || mobileOpen) && (
-              <span className="text-lg font-bold text-zinc-100 lg:hidden xl:inline">
-                FlowSync
-              </span>
-            )}
-            {!collapsed && (
-              <span className="hidden text-lg font-bold text-zinc-100 lg:inline">
+              <span className="text-lg font-bold text-zinc-100">
                 FlowSync
               </span>
             )}
