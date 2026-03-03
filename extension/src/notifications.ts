@@ -38,13 +38,29 @@ function openCopilotChatWithContext(
   gitUserName: string
 ): void {
   // Truncate diff for the chat prompt (Copilot Chat has context limits)
-  const truncatedDiff = diff.length > 10_000 ? diff.slice(0, 10_000) + "\n... (truncated)" : diff;
+  const truncatedDiff =
+    diff.length > 10_000 ? diff.slice(0, 10_000) + "\n... (truncated)" : diff;
 
-  const prompt = `A push was just detected on branch ${branch}. Here is the diff:
+  // Extract a summary of changed files from the diff
+  const changedFiles = [...truncatedDiff.matchAll(/^diff --git a\/.+ b\/(.+)$/gm)].map(
+    (m) => `- ${m[1]}`
+  );
+  const filesSummary =
+    changedFiles.length > 0
+      ? `**Changed files (${changedFiles.length}):**\n${changedFiles.join("\n")}`
+      : "";
 
-${truncatedDiff}
-
-Call the FlowSync \`log_context\` MCP tool with your reasoning: what was decided, what changed, what is still pending, and any risks. Set the \`author\` field to "${gitUserName}".`;
+  const prompt = [
+    `## FlowSync — Push Detected on \`${branch}\``,
+    "",
+    ...(filesSummary ? [filesSummary, ""] : []),
+    "**Full diff:**",
+    "```diff",
+    truncatedDiff,
+    "```",
+    "",
+    `Call the FlowSync \`log_context\` MCP tool with your reasoning: what was decided, what changed, what is still pending, and any risks. Set the \`author\` field to "${gitUserName}".`,
+  ].join("\n");
 
   // Use VS Code command to open Copilot Chat with the pre-filled prompt
   vscode.commands.executeCommand("workbench.action.chat.open", {
