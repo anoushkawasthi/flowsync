@@ -168,6 +168,16 @@
   opacity: 0.75;
 }
 
+.auto-detect-notice {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--vscode-terminal-ansiCyan) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vscode-terminal-ansiCyan) 35%, transparent);
+  color: var(--vscode-foreground);
+  opacity: 0.9;
+}
+
 /* ===== Form Elements ===== */
 .project-form {
   display: flex;

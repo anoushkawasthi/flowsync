@@ -4,6 +4,7 @@ import * as path from "path";
 import * as https from "https";
 import { writeConfig, getWorkspaceRoot, BASE_PORT } from "../config";
 import { findAvailablePort } from "../hookListener";
+import { detectAll } from "../autoDetect";
 
 const BACKEND_URL = "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
 
@@ -99,9 +100,68 @@ export function registerInitCommand(
       return;
     }
 
-    // Collect project info
+    // Auto-detect project metadata
+    vscode.window.showInformationMessage("FlowSync: detecting project metadata...");
+    const detected = detectAll(workspaceRoot);
+
+    const hasAllDetected =
+      !!detected.name &&
+      detected.languages.length > 0 &&
+      !!detected.defaultBranch;
+
+    // --- FAST PATH: everything detected, single confirmation screen ---
+    if (hasAllDetected) {
+      const detectedSummary = [
+        `Name:     ${detected.name}`,
+        `Languages:${detected.languages.join(", ")}`,
+        `Frameworks:${detected.frameworks.length > 0 ? detected.frameworks.join(", ") : "none detected"}`,
+        `Branch:   ${detected.defaultBranch}`,
+        detected.description ? `Description: ${detected.description.slice(0, 80)}…` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const confirmAction = await vscode.window.showQuickPick(
+        [
+          {
+            label: "$(check) Confirm & Create",
+            description: "Use detected values and create project now",
+            detail: detectedSummary,
+          },
+          {
+            label: "$(edit) Edit detected values",
+            description: "Review and modify before creating",
+          },
+        ],
+        {
+          placeHolder: `Auto-detected: ${detected.name} (${detected.languages.join(", ")})`,
+          matchOnDescription: false,
+          matchOnDetail: false,
+        }
+      );
+
+      if (!confirmAction) return;
+
+      // Fast-path confirm: skip all forms, go straight to API call
+      if (confirmAction.label.includes("Confirm")) {
+        return await createProject({
+          context,
+          workspaceRoot,
+          projectName: detected.name!,
+          description: detected.description ?? `${detected.name} project`,
+          languages: detected.languages,
+          frameworks: detected.frameworks,
+          defaultBranch: detected.defaultBranch,
+          onInitialized,
+        });
+      }
+      // else fall through to manual form (pre-filled with detected values)
+    }
+
+    // --- SLOW PATH: manual form (pre-filled when auto-detect ran) ---
     const projectName = await vscode.window.showInputBox({
       prompt: "Project name",
+      value: detected.name ?? undefined,
       placeHolder: "my-project",
       validateInput: (value: string) => {
         if (!value || !/^[a-zA-Z0-9-_]+$/.test(value)) {
@@ -110,109 +170,154 @@ export function registerInitCommand(
         return null;
       },
     });
-    if (!projectName) {
-      return;
-    }
+    if (!projectName) return;
 
     const description = await vscode.window.showInputBox({
       prompt: "Short project description (1-3 sentences)",
+      value: detected.description ?? undefined,
       placeHolder: "What does this project do?",
     });
-    if (!description) {
-      return;
-    }
+    if (description === undefined) return; // null means cancelled
 
-    const languageOptions = [
-      "JavaScript",
-      "TypeScript",
-      "Python",
-      "Go",
-      "Java",
-      "Rust",
-      "C++",
-      "Other",
+    const ALL_LANGUAGES = [
+      "JavaScript", "TypeScript", "Python", "Go", "Java", "Rust", "C++", "C#", "Other",
     ];
-    const languages = await vscode.window.showQuickPick(languageOptions, {
+
+    // Pre-check detected languages using QuickPickItem with picked:true
+    const languageItems: vscode.QuickPickItem[] = ALL_LANGUAGES.map((lang) => ({
+      label: lang,
+      picked: detected.languages.includes(lang),
+    }));
+
+    const selectedLanguageItems = await vscode.window.showQuickPick(languageItems, {
       canPickMany: true,
-      placeHolder: "Select primary language(s)",
+      placeHolder:
+        detected.languages.length > 0
+          ? `Detected: ${detected.languages.join(", ")} — confirm or change`
+          : "Select primary language(s)",
     });
-    if (!languages || languages.length === 0) {
+
+    const finalLanguages =
+      selectedLanguageItems && selectedLanguageItems.length > 0
+        ? selectedLanguageItems.map((i) => i.label)
+        : detected.languages.length > 0
+        ? detected.languages
+        : null;
+
+    if (!finalLanguages || finalLanguages.length === 0) {
+      vscode.window.showErrorMessage("FlowSync: at least one language is required.");
       return;
     }
 
     const defaultBranch = await vscode.window.showInputBox({
       prompt: "Default branch",
-      value: "main",
+      value: detected.defaultBranch,
     });
-    if (!defaultBranch) {
-      return;
-    }
+    if (!defaultBranch) return;
 
-    // Step 2: POST /api/v1/projects → get { projectId, apiToken }
-    let projectId: string;
-    let apiToken: string;
-    try {
-      const result = await postJson(`${BACKEND_URL}/api/v1/projects`, {
-        name: projectName,
-        description,
-        languages,
-        frameworks: [],
-        defaultBranch,
-        teamMembers: [],
-      });
-      projectId = result.projectId as string;
-      apiToken = result.apiToken as string;
-      if (!projectId || !apiToken) {
-        throw new Error("Backend returned unexpected response");
-      }
-    } catch (err) {
-      vscode.window.showErrorMessage(
-        `FlowSync: failed to create project. Check your network and try again. (${String(err)})`
-      );
-      return;
-    }
-
-    const backendUrl = BACKEND_URL;
-
-    // Step 5: Store API token in SecretStorage — never written to disk
-    await context.secrets.store(`flowsync.token.${projectId}`, apiToken);
-
-    // Allocate a port for this project — first available from BASE_PORT
-    const port = await findAvailablePort(BASE_PORT);
-
-    // Step 3: Write .flowsync.json (includes port)
-    writeConfig({ projectId, backendUrl, defaultBranch, port });
-
-    // Step 4: Write .github/copilot-instructions.md
-    writeCopilotInstructions(workspaceRoot);
-
-    // Step 4b: Write .vscode/mcp.json so Copilot auto-discovers the FlowSync tools
-    writeMcpConfig(workspaceRoot, context.extensionPath, projectId, apiToken);
-
-    // Step 6: Inject post-push hook with the allocated port
-    injectPostPushHook(workspaceRoot, port);
-
-    // Show token — this is the ONLY time it is ever visible. Auto-copy + modal.
-    await vscode.env.clipboard.writeText(apiToken);
-    const tokenAction = await vscode.window.showInformationMessage(
-      `FlowSync initialized for "${projectName}"!\n\n` +
-      `Your API token (already copied to clipboard):\n${apiToken}\n\n` +
-      `Share this token with teammates so they can run "FlowSync: Join Project". ` +
-      `It will NOT be shown again.`,
-      { modal: true },
-      "Copy Again"
-    );
-    if (tokenAction === "Copy Again") {
-      await vscode.env.clipboard.writeText(apiToken);
-    }
-
-    vscode.window.showInformationMessage(
-      `FlowSync ready. Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
-    );
-
-    // Start hook listener immediately — no window reopen needed
-    onInitialized();
+    await createProject({
+      context,
+      workspaceRoot,
+      projectName,
+      description: description || `${projectName} project`,
+      languages: finalLanguages,
+      frameworks: detected.frameworks,
+      defaultBranch,
+      onInitialized,
+    });
   });
+}
+
+interface CreateProjectOptions {
+  context: vscode.ExtensionContext;
+  workspaceRoot: string;
+  projectName: string;
+  description: string;
+  languages: string[];
+  frameworks: string[];
+  defaultBranch: string;
+  onInitialized: () => void;
+}
+
+/**
+ * Calls the backend to create the project, writes all config files,
+ * injects the git hook, and shows the token modal.
+ * Used by both the fast-path (auto-detect confirm) and slow-path (manual form).
+ */
+async function createProject({
+  context,
+  workspaceRoot,
+  projectName,
+  description,
+  languages,
+  frameworks,
+  defaultBranch,
+  onInitialized,
+}: CreateProjectOptions): Promise<void> {
+  // POST /api/v1/projects → get { projectId, apiToken }
+  let projectId: string;
+  let apiToken: string;
+  try {
+    const result = await postJson(`${BACKEND_URL}/api/v1/projects`, {
+      name: projectName,
+      description,
+      languages,
+      frameworks,
+      defaultBranch,
+      teamMembers: [],
+    });
+    projectId = result.projectId as string;
+    apiToken = result.apiToken as string;
+    if (!projectId || !apiToken) {
+      throw new Error("Backend returned unexpected response");
+    }
+  } catch (err) {
+    vscode.window.showErrorMessage(
+      `FlowSync: failed to create project. Check your network and try again. (${String(err)})`
+    );
+    return;
+  }
+
+  const backendUrl = BACKEND_URL;
+
+  // Store API token in SecretStorage — never written to disk
+  await context.secrets.store(`flowsync.token.${projectId}`, apiToken);
+
+  // Allocate a port for this project — first available from BASE_PORT
+  const port = await findAvailablePort(BASE_PORT);
+
+  // Write .flowsync.json (includes port)
+  writeConfig({ projectId, backendUrl, defaultBranch, port });
+
+  // Write .github/copilot-instructions.md
+  writeCopilotInstructions(workspaceRoot);
+
+  // Write .vscode/mcp.json so Copilot auto-discovers the FlowSync tools
+  writeMcpConfig(workspaceRoot, context.extensionPath, projectId, apiToken);
+
+  // Inject post-push hook with the allocated port
+  injectPostPushHook(workspaceRoot, port);
+
+  // Show token — this is the ONLY time it is ever visible. Auto-copy + modal.
+  await vscode.env.clipboard.writeText(apiToken);
+  const tokenAction = await vscode.window.showInformationMessage(
+    `FlowSync initialized for "${projectName}"!\n\n` +
+    `Your API token (already copied to clipboard):\n${apiToken}\n\n` +
+    `Share this token with teammates so they can run "FlowSync: Join Project". ` +
+    `It will NOT be shown again.`,
+    { modal: true },
+    "Copy Again"
+  );
+  if (tokenAction === "Copy Again") {
+    await vscode.env.clipboard.writeText(apiToken);
+  }
+
+  vscode.window.showInformationMessage(
+    `FlowSync ready. Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
+  );
+
+  // Start hook listener immediately — no window reopen needed
+  onInitialized();
 }
 
 /**

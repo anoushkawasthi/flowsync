@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { vscode } from "../utilities/vscode";
 
 const LANGUAGE_OPTIONS = [
@@ -34,6 +34,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
   const [defaultBranch, setDefaultBranch] = useState("main");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [autoDetected, setAutoDetected] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
@@ -78,18 +79,30 @@ export function InitProject({ onNavigate }: InitProjectProps) {
     });
   };
 
-  // Listen for results from the extension
-  useState(() => {
+  // On mount, request auto-detected metadata from the extension
+  useEffect(() => {
+    vscode.postMessage({ type: "requestAutoDetect" });
+  }, []);
+
+  // Listen for results and auto-detected metadata from the extension
+  useEffect(() => {
     const handler = (event: MessageEvent) => {
       const message = event.data;
       if (message.type === "initResult") {
         setLoading(false);
         setResult(message);
+      } else if (message.type === "autoDetect") {
+        const d = message.data;
+        if (d.name)                        setName(d.name);
+        if (d.description)                 setDescription(d.description);
+        if (d.languages?.length > 0)       setLanguages(d.languages);
+        if (d.defaultBranch)               setDefaultBranch(d.defaultBranch);
+        setAutoDetected(true);
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  });
+  }, []);
 
   if (result?.success) {
     return (
@@ -141,6 +154,12 @@ export function InitProject({ onNavigate }: InitProjectProps) {
         <h1>Initialize Project</h1>
         <p>Set up FlowSync for your project. This will create config files and register with the backend.</p>
       </div>
+
+      {autoDetected && (
+        <div className="auto-detect-notice">
+          ✦ Fields pre-filled from your project files — review and confirm before submitting.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="project-form">
         <div className={`form-group ${errors.name ? "has-error" : ""}`}>
