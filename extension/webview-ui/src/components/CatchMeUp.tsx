@@ -113,25 +113,25 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Total Events</div>
-          <div className="stat-value" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+          <div className="stat-value" style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--text)" }}>
             {data.totalEvents}
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Active Authors</div>
-          <div className="stat-value" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+          <div className="stat-value" style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--text)" }}>
             {data.authors.length}
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Decisions Made</div>
-          <div className="stat-value" style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+          <div className="stat-value" style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--accent)" }}>
             {data.decisions.length}
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Risks Flagged</div>
-          <div className="stat-value" style={{ fontSize: "1.5rem", fontWeight: 700, color: data.risks.length > 0 ? "var(--vscode-editorWarning-foreground)" : "inherit" }}>
+          <div className="stat-value" style={{ fontSize: "1.75rem", fontWeight: 700, color: data.risks.length > 0 ? "var(--warn)" : "var(--text)" }}>
             {data.risks.length}
           </div>
         </div>
@@ -172,22 +172,13 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       {data.decisions.length > 0 && (
         <div className="dashboard-section">
           <h2>Architectural Decisions</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
             {data.decisions.map((dec, idx) => (
-              <div
-                key={idx}
-                className="stat-card"
-                style={{
-                  borderLeft: "3px solid var(--vscode-terminal-ansiCyan)",
-                  background: "color-mix(in srgb, var(--vscode-terminal-ansiCyan) 8%, transparent)",
-                }}
-              >
-                <div style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                  {dec.text}
-                </div>
-                <div style={{ fontSize: "0.75rem", opacity: 0.7, display: "flex", gap: "1rem" }}>
-                  <span>👤 {dec.author}</span>
-                  <span>📝 {dec.commitHash.slice(0, 7)}</span>
+              <div key={idx} className="decision-card">
+                <div className="decision-card-text">{dec.text}</div>
+                <div className="decision-card-meta">
+                  <span>&#128100; {dec.author}</span>
+                  <span>&#128221; {dec.commitHash?.slice(0, 7) ?? ""}</span>
                 </div>
               </div>
             ))}
@@ -198,23 +189,14 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       {/* Risks */}
       {data.risks.length > 0 && (
         <div className="dashboard-section">
-          <h2>Risks & Concerns</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <h2>Risks &amp; Concerns</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
             {data.risks.map((risk, idx) => (
-              <div
-                key={idx}
-                className="stat-card"
-                style={{
-                  borderLeft: "3px solid var(--vscode-editorWarning-foreground)",
-                  background: "color-mix(in srgb, var(--vscode-editorWarning-foreground) 8%, transparent)",
-                }}
-              >
-                <div style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                  ⚠️ {risk.text}
-                </div>
-                <div style={{ fontSize: "0.75rem", opacity: 0.7, display: "flex", gap: "1rem" }}>
-                  <span>👤 {risk.author}</span>
-                  <span>📝 {risk.commitHash.slice(0, 7)}</span>
+              <div key={idx} className="risk-card">
+                <div className="decision-card-text" style={{ color: "var(--warn)" }}>&#9888;&#65039; {risk.text}</div>
+                <div className="decision-card-meta">
+                  <span>&#128100; {risk.author}</span>
+                  <span>&#128221; {risk.commitHash?.slice(0, 7) ?? ""}</span>
                 </div>
               </div>
             ))}
@@ -226,17 +208,12 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       {data.tasks.length > 0 && (
         <div className="dashboard-section">
           <h2>Pending Tasks ({data.tasks.length})</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <div className="task-list">
             {data.tasks.slice(0, 15).map((task, idx) => (
-              <div key={idx} style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
-                <span style={{ opacity: 0.5, fontSize: "0.85rem", flexShrink: 0 }}>
-                  {idx + 1}.
-                </span>
-                <span style={{ fontSize: "0.88rem" }}>{task}</span>
-              </div>
+              <div key={idx} className="task-item">{task}</div>
             ))}
             {data.tasks.length > 15 && (
-              <div style={{ fontSize: "0.82rem", opacity: 0.6, paddingTop: "0.5rem" }}>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-dim)", paddingTop: "0.25rem" }}>
                 ...and {data.tasks.length - 15} more tasks
               </div>
             )}
@@ -245,7 +222,7 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       )}
 
       {/* Action */}
-      <div className="actions-row" style={{ paddingTop: "1rem" }}>
+      <div className="actions-row" style={{ paddingTop: "0.5rem" }}>
         <button className="btn btn-primary" onClick={() => onNavigate("dashboard")}>
           View Full Timeline
         </button>

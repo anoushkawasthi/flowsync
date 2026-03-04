@@ -45,10 +45,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return (
       <div className="dashboard-container">
         <div className="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="var(--vscode-descriptionForeground)" strokeWidth="1.5" strokeDasharray="4 4" />
-            <path d="M8 12H16" stroke="var(--vscode-descriptionForeground)" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          <div className="empty-state-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+              <path d="M8 12H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
           <h2>Not Connected</h2>
           <p>No active FlowSync project detected in this workspace.</p>
           <div className="empty-state-actions">

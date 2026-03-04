@@ -41,10 +41,9 @@ function App() {
   return (
     <div className="app-shell">
       {view === "loading" && (
-        <div className="dashboard-container">
-          <div className="loading-view">
-            <span className="spinner spinner-lg" />
-          </div>
+        <div className="loading-view">
+          <span className="spinner spinner-lg" />
+          <p>Loading FlowSync...</p>
         </div>
       )}
       {view === "welcome" && <Welcome onNavigate={navigate} />}

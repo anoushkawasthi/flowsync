@@ -1,4 +1,6 @@
-/* ===== Base Reset & VS Code Theme Integration ===== */
+/* ===== FlowSync Design System — Base Reset ===== */
+/* Matches frontend: zinc-950 background, zinc-100 text, teal accent #14B8A6 */
+
 *,
 *::before,
 *::after {
@@ -8,12 +10,44 @@
 }
 
 :root {
-  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif);
-  font-size: var(--vscode-font-size, 13px);
+  --bg:        #09090b;
+  --surface:   #18181b;
+  --surface-2: #27272a;
+  --surface-3: #3f3f46;
+  --border:    #27272a;
+  --border-2:  #3f3f46;
+
+  --text:      #f4f4f5;
+  --text-muted:#a1a1aa;
+  --text-dim:  #71717a;
+
+  --accent:    #14B8A6;
+  --accent-fg: #F0FDFA;
+  --accent-dim:#0D9488;
+  --accent-bg: rgba(20, 184, 166, 0.1);
+  --accent-border: rgba(20, 184, 166, 0.3);
+
+  --danger:    #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
+  --danger-border: rgba(239, 68, 68, 0.3);
+
+  --warn:      #f59e0b;
+  --warn-bg:   rgba(245, 158, 11, 0.1);
+
+  --success:   #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --success-border: rgba(34, 197, 94, 0.3);
+
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-lg: 12px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.6;
-  color: var(--vscode-foreground);
-  background-color: var(--vscode-editor-background);
+  color: var(--text);
+  background-color: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -22,111 +56,100 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 #root {
   min-height: 100vh;
+  background-color: var(--bg);
 }
 
-/* ===== Typography ===== */
-h1, h2, h3 {
-  color: var(--vscode-foreground);
+h1, h2, h3, h4 {
+  color: var(--text);
   font-weight: 600;
   line-height: 1.3;
 }
 
-h1 { font-size: 1.65rem; }
-h2 { font-size: 1.25rem; }
-h3 { font-size: 1.05rem; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.125rem; }
+h3 { font-size: 1rem; }
 
 p {
-  color: var(--vscode-descriptionForeground, var(--vscode-foreground));
-  line-height: 1.6;
+  color: var(--text-muted);
+  line-height: 1.65;
 }
 
 code {
-  font-family: var(--vscode-editor-font-family, "SF Mono", "Fira Code", monospace);
-  font-size: 0.9em;
-  padding: 0.15em 0.4em;
-  background: var(--vscode-textCodeBlock-background, rgba(127, 127, 127, 0.1));
-  border-radius: 3px;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.125em 0.375em;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
 }
 
-/* ===== Scrollbar Styling ===== */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--vscode-scrollbarSlider-background);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--vscode-scrollbarSlider-hoverBackground);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
-/* ===== Focus Styles ===== */
 :focus-visible {
-  outline: 1px solid var(--vscode-focusBorder);
-  outline-offset: -1px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-/* ===== Chat Component ===== */
+/* ===== Chat ===== */
 .chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: 0;
+  background: var(--bg);
 }
 
 .chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--vscode-panel-border);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
 }
 
-.chat-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-}
+.chat-header h2 { margin: 0; font-size: 1rem; color: var(--text); }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.message-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.message-group { display: flex; flex-direction: column; gap: 8px; }
 
 .message {
-  padding: 12px;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
   max-width: 85%;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .message-user {
   align-self: flex-end;
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
+  background: var(--accent);
+  color: var(--accent-fg);
   margin-left: auto;
 }
 
 .message-assistant {
   align-self: flex-start;
-  background: var(--vscode-editor-inactiveSelectionBackground);
-  border: 1px solid var(--vscode-panel-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .message-header {
@@ -134,120 +157,68 @@ code {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
-.message-time {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-.message-content {
-  line-height: 1.5;
-}
-
-.message-content p {
-  margin: 0;
-  margin-bottom: 8px;
-}
-
-.message-content p:last-child {
-  margin-bottom: 0;
-}
+.message-time { font-size: 0.78rem; color: var(--text-dim); }
+.message-content { line-height: 1.6; color: var(--text); }
+.message-content p { margin: 0 0 8px; color: inherit; }
+.message-content p:last-child { margin-bottom: 0; }
 
 .message-sources {
   margin-left: 12px;
   padding-left: 12px;
-  border-left: 2px solid var(--vscode-panel-border);
+  border-left: 2px solid var(--border-2);
 }
 
 .sources-toggle {
   background: none;
   border: none;
-  color: var(--vscode-textLink-foreground);
+  color: var(--accent);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   padding: 4px 0;
+  font-family: inherit;
 }
+.sources-toggle:hover { color: var(--accent-fg); }
 
-.sources-toggle:hover {
-  color: var(--vscode-textLink-activeForeground);
-}
-
-.sources-list {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.sources-list { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 
 .source-card {
-  padding: 10px;
-  background: var(--vscode-editor-background);
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: 4px;
-  font-size: 0.85rem;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
 }
 
-.source-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.source-feature {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.source-snippet {
-  color: var(--vscode-descriptionForeground);
-  margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.source-meta {
-  font-size: 0.8rem;
-  color: var(--vscode-descriptionForeground);
-  opacity: 0.8;
-}
-
-.relevance {
-  font-size: 0.8rem;
-  color: var(--vscode-descriptionForeground);
-}
+.source-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.source-feature { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.source-snippet { color: var(--text-muted); margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-meta, .relevance { font-size: 0.78rem; color: var(--text-dim); }
 
 .chat-input-container {
   display: flex;
   gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--vscode-panel-border);
-  background: var(--vscode-editor-background);
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
 }
 
 .chat-input {
   flex: 1;
-  padding: 8px 12px;
-  background: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  border: 1px solid var(--vscode-input-border, transparent);
-  border-radius: 4px;
-  font-family: var(--vscode-font-family);
-  font-size: var(--vscode-font-size);
+  padding: 9px 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
 }
-
-.chat-input:focus {
-  outline: 1px solid var(--vscode-focusBorder);
-  outline-offset: -1px;
-}
-
-.chat-input:disabled {
-  opacity: 0.5;
-}
-
-.btn-send {
-  white-space: nowrap;
-}
+.chat-input::placeholder { color: var(--text-dim); }
+.chat-input:focus { outline: none; border-color: var(--accent); }
+.chat-input:disabled { opacity: 0.5; cursor: not-allowed; }

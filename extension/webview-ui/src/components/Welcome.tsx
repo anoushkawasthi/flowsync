@@ -9,11 +9,10 @@ export function Welcome({ onNavigate }: WelcomeProps) {
     <div className="welcome-container">
       <div className="welcome-header">
         <div className="logo-icon">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="12" fill="var(--vscode-button-background)" />
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
             <path
               d="M14 24L20 30L34 16"
-              stroke="var(--vscode-button-foreground)"
+              stroke="#F0FDFA"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
