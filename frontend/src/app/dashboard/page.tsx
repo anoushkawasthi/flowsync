@@ -39,19 +39,9 @@ export default function DashboardPage() {
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <EmptyState
-        icon={<GitCommitHorizontal className="h-8 w-8 text-zinc-500" />}
-        title="No events captured yet"
-        description="Push some code to get started. FlowSync will automatically capture context from your commits."
-      />
-    );
-  }
-
   return (
     <div className="space-y-4">
-      {/* Tab switcher */}
+      {/* Tab switcher — always visible so Compare is reachable even when branch has no events */}
       <div className="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 p-1 w-fit">
         <button
           onClick={() => setTab('summary')}
@@ -77,13 +67,49 @@ export default function DashboardPage() {
           <List className="h-3.5 w-3.5" />
           Timeline
         </button>
+        <button
+          onClick={() => setTab('compare')}
+          className={cn(
+            'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            tab === 'compare'
+              ? 'bg-zinc-800 text-zinc-100'
+              : 'text-zinc-400 hover:text-zinc-200'
+          )}
+        >
+          <GitBranch className="h-3.5 w-3.5" />
+          Compare
+        </button>
       </div>
 
       {/* Tab content */}
-      {tab === 'summary' ? (
-        <ProjectSummary events={events} />
-      ) : (
-        <Timeline events={events} />
+      {tab === 'summary' && (
+        events.length === 0 ? (
+          <EmptyState
+            icon={<GitCommitHorizontal className="h-8 w-8 text-zinc-500" />}
+            title="No events captured yet"
+            description="Push some code to get started. FlowSync will automatically capture context from your commits."
+          />
+        ) : (
+          <ProjectSummary events={events} />
+        )
+      )}
+      {tab === 'timeline' && (
+        events.length === 0 ? (
+          <EmptyState
+            icon={<GitCommitHorizontal className="h-8 w-8 text-zinc-500" />}
+            title="No events captured yet"
+            description="Push some code to get started. FlowSync will automatically capture context from your commits."
+          />
+        ) : (
+          <Timeline events={events} />
+        )
+      )}
+      {tab === 'compare' && (
+        <BranchCompare
+          projectId={config.projectId}
+          token={config.token}
+          branches={branches}
+        />
       )}
     </div>
   );

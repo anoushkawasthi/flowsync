@@ -88,6 +88,7 @@ function BranchColumn({
   classified,
   onBranchChange,
   accentColor,
+  disabledBranches = [],
 }: {
   branch: string;
   branches: string[];
@@ -95,6 +96,7 @@ function BranchColumn({
   classified: { record: ContextRecord; label: Classification }[];
   onBranchChange: (b: string) => void;
   accentColor: 'blue' | 'purple';
+  disabledBranches?: string[];
 }) {
   const uniqueCount = classified.filter((c) => c.label !== 'shared').length;
   const sharedCount = classified.filter((c) => c.label === 'shared').length;
@@ -119,7 +121,12 @@ function BranchColumn({
           className="flex-1 min-w-0 bg-transparent text-sm text-zinc-200 outline-none cursor-pointer"
         >
           {branches.map((b) => (
-            <option key={b} value={b} className="bg-zinc-900 text-zinc-200">
+            <option
+              key={b}
+              value={b}
+              className="bg-zinc-900 text-zinc-200"
+              disabled={disabledBranches.includes(b)}
+            >
               {b}
             </option>
           ))}
@@ -242,6 +249,7 @@ export function BranchCompare({ projectId, token, branches }: BranchCompareProps
           classified={classified.left}
           onBranchChange={setLeftBranch}
           accentColor="blue"
+          disabledBranches={[rightBranch]}
         />
         <BranchColumn
           branch={rightBranch}
@@ -250,6 +258,7 @@ export function BranchCompare({ projectId, token, branches }: BranchCompareProps
           classified={classified.right}
           onBranchChange={setRightBranch}
           accentColor="purple"
+          disabledBranches={[leftBranch]}
         />
       </div>
     </div>
