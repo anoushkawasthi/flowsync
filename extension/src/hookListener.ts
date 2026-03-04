@@ -49,13 +49,15 @@ export async function startHookListener(
         log.info("hookListener", `received POST /flowsync-hook — body: ${body}`);
         try {
           const parsed = JSON.parse(body);
-          if ((parsed.event === "push" || parsed.event === "post-push") && parsed.branch) {
-            log.ok("hookListener", `valid push signal — branch=${parsed.branch} remoteRef=${parsed.remoteRef ?? "none"}`);
-            onPush(parsed.branch, parsed.remoteRef);
+          if (parsed.event === "push" || parsed.event === "post-push") {
+            // Accept empty branch (detached HEAD) — fall back to "HEAD"
+            const branch = parsed.branch || "HEAD";
+            log.ok("hookListener", `valid push signal — branch=${branch}${!parsed.branch ? " (detached HEAD fallback)" : ""}`);
+            onPush(branch);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ status: "received" }));
           } else {
-            log.warn("hookListener", `invalid payload — expected event=post-push and branch, got: ${body}`);
+            log.warn("hookListener", `invalid payload — expected event=push or post-push, got: ${body}`);
             res.writeHead(400, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: "invalid payload" }));
           }
