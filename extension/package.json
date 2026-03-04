@@ -26,10 +26,6 @@
       {
         "command": "flowsync.viewRecentActivity",
         "title": "FlowSync: View Recent Activity"
-      },
-      {
-        "command": "flowsync.openChat",
-        "title": "FlowSync: Open AI Chat"
       }
     ]
   },
