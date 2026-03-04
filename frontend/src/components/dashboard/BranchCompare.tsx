@@ -102,9 +102,9 @@ function BranchColumn({
   const sharedCount = classified.filter((c) => c.label === 'shared').length;
 
   return (
-    <div className="flex flex-col min-w-0 flex-1">
+    <div className="flex flex-col min-w-0 md:min-w-auto flex-1 w-full md:w-auto snap-center md:snap-align-none">
       <div
-        className={`flex items-center gap-2 rounded-lg border p-2 mb-3 ${
+        className={`flex items-center gap-2 rounded-lg border p-2 mb-3 text-xs sm:text-sm ${
           accentColor === 'blue'
             ? 'border-blue-500/30 bg-blue-500/5'
             : 'border-purple-500/30 bg-purple-500/5'
@@ -118,7 +118,7 @@ function BranchColumn({
         <select
           value={branch}
           onChange={(e) => onBranchChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent text-sm text-zinc-200 outline-none cursor-pointer"
+          className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-zinc-200 outline-none cursor-pointer truncate"
         >
           {branches.map((b) => (
             <option
@@ -134,7 +134,7 @@ function BranchColumn({
       </div>
 
       {!loading && classified.length > 0 && (
-        <div className="flex gap-3 mb-3 text-xs text-zinc-500">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 text-[11px] sm:text-xs text-zinc-500">
           <span>
             <span
               className={`font-semibold ${
@@ -151,7 +151,7 @@ function BranchColumn({
         </div>
       )}
 
-      <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-16rem)] pr-1">
+      <div className="space-y-2 sm:space-y-3 overflow-y-auto max-h-[calc(100vh-22rem)] sm:max-h-[calc(100vh-18rem)] pr-1 sm:pr-2">
         {loading ? (
           <LoadingCards count={3} />
         ) : classified.length === 0 ? (
@@ -222,44 +222,49 @@ export function BranchCompare({ projectId, token, branches }: BranchCompareProps
   return (
     <div className="space-y-4">
       {hasBothLoaded && (
-        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2.5 text-sm">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm">
           <span className="text-zinc-500">Comparison:</span>
-          <span>
+          <span className="flex flex-wrap gap-1 sm:gap-0">
             <span className="font-semibold text-blue-400">{totalLeft}</span>
-            <span className="text-zinc-400"> unique to </span>
+            <span className="text-zinc-400 ml-1 mr-1">unique to</span>
             <span className="font-medium text-zinc-300">{leftBranch}</span>
           </span>
-          <span>
+          <span className="flex flex-wrap gap-1 sm:gap-0">
             <span className="font-semibold text-purple-400">{totalRight}</span>
-            <span className="text-zinc-400"> unique to </span>
+            <span className="text-zinc-400 ml-1 mr-1">unique to</span>
             <span className="font-medium text-zinc-300">{rightBranch}</span>
           </span>
-          <span>
+          <span className="flex flex-wrap gap-1 sm:gap-0">
             <span className="font-semibold text-zinc-400">{totalShared}</span>
-            <span className="text-zinc-400"> shared</span>
+            <span className="text-zinc-400 ml-1">shared</span>
           </span>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <BranchColumn
-          branch={leftBranch}
-          branches={branches}
-          loading={leftLoading}
-          classified={classified.left}
-          onBranchChange={setLeftBranch}
-          accentColor="blue"
-          disabledBranches={[rightBranch]}
-        />
-        <BranchColumn
-          branch={rightBranch}
-          branches={branches}
-          loading={rightLoading}
-          classified={classified.right}
-          onBranchChange={setRightBranch}
-          accentColor="purple"
-          disabledBranches={[leftBranch]}
-        />
+      {/* Mobile: Horizontal scroll, Desktop: 2-column grid */}
+      <div className="flex md:grid md:grid-cols-2 gap-3 md:gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none">
+        <div className="md:contents">
+          <BranchColumn
+            branch={leftBranch}
+            branches={branches}
+            loading={leftLoading}
+            classified={classified.left}
+            onBranchChange={setLeftBranch}
+            accentColor="blue"
+            disabledBranches={[rightBranch]}
+          />
+        </div>
+        <div className="md:contents">
+          <BranchColumn
+            branch={rightBranch}
+            branches={branches}
+            loading={rightLoading}
+            classified={classified.right}
+            onBranchChange={setRightBranch}
+            accentColor="purple"
+            disabledBranches={[leftBranch]}
+          />
+        </div>
       </div>
     </div>
   );
