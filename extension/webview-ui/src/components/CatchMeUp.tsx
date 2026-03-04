@@ -32,7 +32,22 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
       }
     };
     window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
+
+    // Safety fallback: if data never arrives (e.g. timing issue), stop spinning after 5s
+    const fallback = setTimeout(() => {
+      setLoading((prev) => {
+        if (prev) {
+          // Request data again in case the message was lost
+          vscode.postMessage({ type: "requestCatchUpData" });
+        }
+        return false;
+      });
+    }, 5000);
+
+    return () => {
+      window.removeEventListener("message", handler);
+      clearTimeout(fallback);
+    };
   }, []);
 
   if (loading) {
@@ -47,11 +62,6 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
   }
 
   if (!data || data.totalEvents === 0) {
-    const handleViewRecent = () => {
-      setLoading(true);
-      vscode.postMessage({ type: "requestRecentActivity" });
-    };
-
     return (
       <div className="dashboard-container">
         <button className="back-button" onClick={() => onNavigate("dashboard")}>
@@ -63,18 +73,14 @@ export function CatchMeUp({ onNavigate }: CatchMeUpProps) {
         <div className="empty-state">
           <h2>All Caught Up!</h2>
           <p>
-            {data?.isFirstTime 
-              ? "No recent changes in the last 24 hours."
+            {data?.isFirstTime
+              ? "No activity captured in the last 24 hours."
               : "No new changes since you were last here."}
           </p>
-          {data?.canViewRecent && (
-            <button 
-              className="btn btn-primary" 
-              onClick={handleViewRecent}
-              style={{ marginTop: "1rem" }}
-            >
-              View Recent Activity (Last 24 Hours)
-            </button>
+          {!data && (
+            <p style={{ fontSize: "0.8rem", opacity: 0.5, marginTop: "0.5rem" }}>
+              Try running Catch Me Up again from the command palette.
+            </p>
           )}
         </div>
       </div>

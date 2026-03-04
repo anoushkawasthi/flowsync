@@ -12,6 +12,7 @@ import { GitBranch, Menu } from 'lucide-react';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
+  '/chat': 'Chat',
   '/search': 'Search',
   '/analytics': 'Analytics',
   '/settings': 'Settings',

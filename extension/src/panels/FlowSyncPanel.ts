@@ -24,6 +24,8 @@ export class FlowSyncPanel {
   private readonly _context: vscode.ExtensionContext;
   private readonly _onInitialized: () => void;
   private _disposables: vscode.Disposable[] = [];
+  private _pendingView?: string;
+  private _lastCatchUpData: unknown = null;
 
   /* ─── public API ─── */
 
@@ -70,6 +72,7 @@ export class FlowSyncPanel {
   }
 
   public sendCatchUpData(data: unknown): void {
+    this._lastCatchUpData = data;
     this._panel.webview.postMessage({ type: "catchUpData", data });
   }
 
@@ -118,9 +121,9 @@ export class FlowSyncPanel {
       this._disposables
     );
 
-    // Send initial navigation after React mounts
+    // Store pending view — send when webview signals ready
     if (initialView) {
-      setTimeout(() => this.navigateTo(initialView), 300);
+      this._pendingView = initialView;
     }
   }
 
@@ -196,6 +199,22 @@ export class FlowSyncPanel {
       case "requestRecentActivity":
         // User wants to see recent activity even though there are no new changes
         vscode.commands.executeCommand("flowsync.viewRecentActivity");
+        break;
+      case "ready":
+        // Webview finished mounting — respond with pending navigation immediately
+        if (this._pendingView) {
+          this.navigateTo(this._pendingView);
+          this._pendingView = undefined;
+        }
+        break;
+      case "requestCatchUpData":
+        // Retry: re-send last catch-up data if available
+        if (this._lastCatchUpData !== null) {
+          this._panel.webview.postMessage({ type: "catchUpData", data: this._lastCatchUpData });
+        } else {
+          // Re-run the catch me up command
+          vscode.commands.executeCommand("flowsync.catchMeUp");
+        }
         break;
     }
   }

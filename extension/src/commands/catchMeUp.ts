@@ -300,14 +300,14 @@ function showCatchUpPanel(
   };
 
   // Open the panel and send data
-  FlowSyncPanel.createOrShow(extensionUri, context, () => {}, "catchmeup");
+  FlowSyncPanel.createOrShow(extensionUri, context, () => {}, "catchMeUp");
   
   // Send the data after a short delay to ensure the panel is ready
   setTimeout(() => {
     if (FlowSyncPanel.currentPanel) {
       FlowSyncPanel.currentPanel.sendCatchUpData(serializedData);
     }
-  }, 500);
+  }, 600);
 }
 
 /**

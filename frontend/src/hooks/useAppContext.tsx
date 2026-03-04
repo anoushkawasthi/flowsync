@@ -9,6 +9,7 @@ import type { ProjectConfig, ContextRecord } from '@/types';
 interface AppContextValue {
   config: ProjectConfig;
   setConfig: (config: ProjectConfig) => void;
+  clearConfig: () => void;
   isConfigured: boolean;
   loaded: boolean;
   events: ContextRecord[];
@@ -29,7 +30,7 @@ export function useAppContext() {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { config, setConfig, isConfigured, loaded } = useConfig();
+  const { config, setConfig, clearConfig, isConfigured, loaded } = useConfig();
   const [selectedBranch, setSelectedBranch] = useState('main');
 
   // Fetch all events (no branch filter) — for branch list
@@ -59,6 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         config,
         setConfig,
+        clearConfig,
         isConfigured,
         loaded,
         events,

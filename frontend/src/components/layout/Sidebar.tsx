@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   MessageSquare,
@@ -11,9 +11,11 @@ import {
   ChevronRight,
   Zap,
   X,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { useAppContext } from '@/hooks/useAppContext';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -31,6 +33,14 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { clearConfig } = useAppContext();
+
+  const handleLogout = () => {
+    clearConfig();
+    onMobileClose();
+    router.push('/');
+  };
 
   const sidebarContent = (
     <TooltipProvider delayDuration={0}>
@@ -99,6 +109,27 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             return link;
           })}
         </nav>
+
+        {/* Logout */}
+        <div className="border-t border-zinc-800 p-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLogout}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                  'text-zinc-500 hover:bg-red-500/10 hover:text-red-400'
+                )}
+              >
+                <LogOut className="h-5 w-5 shrink-0" />
+                <span className={cn('lg:hidden', !collapsed && 'lg:inline')}>Logout</span>
+              </button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right" className="hidden lg:block">Logout</TooltipContent>
+            )}
+          </Tooltip>
+        </div>
 
         {/* Collapse Toggle — desktop only */}
         <div className="hidden border-t border-zinc-800 p-2 lg:block">

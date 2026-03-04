@@ -29,8 +29,14 @@ export function useConfig() {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newConfig));
   }, []);
 
+  const clearConfig = useCallback(() => {
+    setConfigState({ projectId: '', token: '' });
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem('flowsync-use-mock');
+  }, []);
+
   const isConfigured =
     loaded && config.projectId.length > 0 && config.token.length > 0;
 
-  return { config, setConfig, isConfigured, loaded };
+  return { config, setConfig, clearConfig, isConfigured, loaded };
 }
