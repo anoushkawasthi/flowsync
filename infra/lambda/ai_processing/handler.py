@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 # Model and embedding configuration
 MODEL_ID = "us.amazon.nova-pro-v1:0"
-EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"
+EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"  # Using v1 for compatibility with existing embeddings
 
 # DynamoDB table names (set via environment variables or hardcoded for prototype)
 CONTEXT_TABLE = os.environ.get("CONTEXT_TABLE", "flowsync-context")

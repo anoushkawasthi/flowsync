@@ -10,7 +10,7 @@ from decimal import Decimal
 
 
 # Model configuration
-EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"
+EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"  # Using v1 for compatibility with existing embeddings
 MODEL_ID = "us.amazon.nova-pro-v1:0"
 
 
@@ -182,10 +182,16 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
         }, indent=2))
         
         sources.append({
+            'eventId': record.get('eventId'),
+            'contextId': record.get('contextId'),
+            'branch': record.get('branch'),
+            'timestamp': record.get('timestamp'),
             'commitHash': record.get('commitHash'),
             'feature': record.get('feature'),
+            'stage': record.get('stage'),
             'extractedAt': record.get('extractedAt'),
-            'relevanceScore': round(score, 4)
+            'snippet': f"{record.get('feature', 'N/A')} - {record.get('decision', 'N/A')[:100]}...",
+            'relevance': round(score, 4)
         })
     
     system_prompt = (

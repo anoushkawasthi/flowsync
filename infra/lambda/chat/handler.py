@@ -28,7 +28,7 @@ PROJECT_TABLE = os.environ['PROJECT_TABLE_NAME']
 
 # Model Configuration - Nova Lite for cost-effective conversational AI
 CHAT_MODEL_ID = "us.amazon.nova-lite-v1:0"  # 75% cheaper than Nova Pro
-EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v2:0"
+EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"  # Using v1 for compatibility with existing embeddings
 
 # Session Configuration
 SESSION_TTL_MINUTES = 30
@@ -36,12 +36,14 @@ MAX_HISTORY_MESSAGES = 10
 
 # Import shared helpers (RAG pipeline, embeddings, etc.)
 import sys
+import re
 sys.path.insert(0, '/opt/python')
 try:
     from flowsync_common.helpers import (
         call_titan_embedding,
         cosine_similarity,
-        convert_decimals
+        convert_decimals,
+        search_context_rag
     )
 except ImportError:
     # Fallback: define stub functions if module not available
@@ -56,6 +58,53 @@ except ImportError:
     def convert_decimals(obj):
         """Stub: Convert Decimal objects"""
         return obj
+    
+    def search_context_rag(*args, **kwargs):
+        """Stub: RAG pipeline"""
+        raise NotImplementedError("flowsync_common.helpers not available")
+
+
+def needs_factual_answer(message: str) -> bool:
+    """
+    Detect if a question needs factual/grounded answer from RAG pipeline.
+    
+    Returns True for questions that need project-specific facts (developers, 
+    timeline, decisions, implementations). Returns False for conversational 
+    requests (help, suggestions, guidance).
+    """
+    message_lower = message.lower().strip()
+    
+    # Factual question patterns
+    factual_patterns = [
+        r'^(what|when|where|who|which|how many)\s',  # Question words
+        r'\b(explain|describe|tell me about|show me)\b',  # Explanation requests
+        r'\b(history of|timeline|happened|was implemented|were added)\b',  # Historical
+        r'\b(decision|decisions|chose|why did)\b',  # Design decisions
+        r'\b(developer|developers|author|authors|contributor|contributors)\b',  # People
+        r'\b(feature|features|commit|commits|change|changes)\b',  # Project artifacts
+        r'\b(list|enumerate|identify)\b',  # Listing requests
+    ]
+    
+    # Conversational patterns (override factual)
+    conversational_patterns = [
+        r'^(can you|could you|would you|please|help me)\s',  # Requests for help
+        r'\b(how do i|how should i|should i|can i)\b',  # How-to questions
+        r'\b(suggest|recommend|idea|ideas|thought|thoughts)\b',  # Suggestions
+        r'^(write|create|generate|build|implement)\s',  # Creation requests
+    ]
+    
+    # Check conversational first (higher priority)
+    for pattern in conversational_patterns:
+        if re.search(pattern, message_lower):
+            return False
+    
+    # Check factual patterns
+    for pattern in factual_patterns:
+        if re.search(pattern, message_lower):
+            return True
+    
+    # Default to conversational for ambiguous cases
+    return False
 
 
 def lambda_handler(event, context):
@@ -68,6 +117,7 @@ def lambda_handler(event, context):
         project_id = body.get('projectId') or event.get('pathParameters', {}).get('projectId')
         message = body.get('message', '').strip()
         session_id = body.get('sessionId')
+        branch = body.get('branch')  # Optional branch filter for RAG
         
         # Validate inputs
         if not project_id:
@@ -85,12 +135,13 @@ def lambda_handler(event, context):
         # Get conversation history
         history = session.get('messages', [])[-MAX_HISTORY_MESSAGES:]
         
-        # Generate conversational response
+        # Generate conversational response (hybrid: uses RAG for factual questions)
         response_data = generate_chat_response(
             project_id=project_id,
             message=message,
             context=relevant_context,
-            history=history
+            history=history,
+            branch=branch
         )
         
         # Update session with new messages
@@ -107,7 +158,9 @@ def lambda_handler(event, context):
                 'reply': response_data['reply'],
                 'sources': response_data['sources'],
                 'sessionId': session_id,
-                'timestamp': datetime.now(timezone.utc).isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'ragUsed': response_data.get('ragUsed', False),
+                'answerGrounded': response_data.get('answerGrounded', False)
             })
         }
         
@@ -227,8 +280,107 @@ def retrieve_relevant_context(project_id: str, query: str) -> List[Dict]:
         return []
 
 
-def generate_chat_response(project_id: str, message: str, context: List[Dict], history: List[Dict]) -> Dict:
-    """Generate conversational response using Nova Lite"""
+def generate_chat_response(project_id: str, message: str, context: List[Dict], history: List[Dict], branch: Optional[str] = None) -> Dict:
+    """
+    Generate conversational response using hybrid approach:
+    - Factual questions: Use Nova Pro RAG for grounded answers, then Nova Lite for conversational presentation
+    - Conversational questions: Use Nova Lite directly with context
+    """
+    
+    # Detect if this is a factual question
+    is_factual = needs_factual_answer(message)
+    
+    if is_factual and context:
+        # HYBRID APPROACH: Use RAG pipeline for factual grounding
+        logger.info(f"Detected factual question, using RAG pipeline (Nova Pro)")
+        
+        try:
+            # Call RAG pipeline (Nova Pro with strict grounding)
+            rag_result = search_context_rag(
+                project_id=project_id,
+                query=message,
+                branch=branch,
+                bedrock_client=bedrock,
+                dynamodb=dynamodb,
+                context_table_name=CONTEXT_TABLE
+            )
+            
+            # Check if RAG found a grounded answer
+            if rag_result.get('answerGrounded'):
+                factual_answer = rag_result['answer']
+                rag_sources = rag_result.get('sources', [])
+                
+                logger.info(f"RAG pipeline returned grounded answer, converting to conversational tone")
+                
+                # Build conversational prompt with factual answer
+                system_prompt = """You are a helpful AI assistant having a natural conversation with a developer.
+
+Your task: Take the factual answer provided and present it in a conversational, friendly way that fits the conversation context.
+
+Guidelines:
+- Keep all factual information and specifics from the provided answer
+- Make it sound natural and conversational (not robotic or formal)
+- Reference the conversation history if relevant
+- Maintain accuracy - don't add or remove facts
+- Keep the same level of technical detail
+- If sources/commits are mentioned, keep those references"""
+
+                # Build conversation with factual context
+                messages = []
+                
+                # Add recent history for context
+                for msg in history[-3:]:  # Only last 3 to keep tokens down
+                    messages.append({
+                        'role': msg['role'],
+                        'content': [{'text': msg['content']}]
+                    })
+                
+                # Add current user message with instruction
+                conversational_prompt = f"""User question: {message}
+
+Factual answer from project database:
+{factual_answer}
+
+Present this factual information conversationally while maintaining all the specific details."""
+
+                messages.append({
+                    'role': 'user',
+                    'content': [{'text': conversational_prompt}]
+                })
+                
+                # Call Nova Lite for conversational presentation
+                response = bedrock.converse(
+                    modelId=CHAT_MODEL_ID,
+                    messages=messages,
+                    system=[{'text': system_prompt}],
+                    inferenceConfig={
+                        'maxTokens': 2000,
+                        'temperature': 0.7,
+                        'topP': 0.9
+                    }
+                )
+                
+                conversational_reply = response['output']['message']['content'][0]['text']
+                
+                logger.info(f"Generated conversational response from RAG answer")
+                
+                return {
+                    'reply': conversational_reply,
+                    'sources': rag_sources,
+                    'ragUsed': True,
+                    'answerGrounded': True
+                }
+            
+            else:
+                # RAG couldn't answer, fall back to conversational
+                logger.info(f"RAG pipeline couldn't ground answer, falling back to conversational")
+                
+        except Exception as e:
+            logger.error(f"Error in RAG pipeline: {str(e)}", exc_info=True)
+            # Fall through to conversational approach
+    
+    # CONVERSATIONAL APPROACH: Direct Nova Lite with context
+    logger.info(f"Using conversational approach (direct Nova Lite)")
     
     # Build system prompt for conversational AI
     system_prompt = build_system_prompt(context)
@@ -272,14 +424,18 @@ def generate_chat_response(project_id: str, message: str, context: List[Dict], h
         
         return {
             'reply': reply,
-            'sources': sources
+            'sources': sources,
+            'ragUsed': False,
+            'answerGrounded': False
         }
         
     except Exception as e:
         logger.error(f"Error calling Nova Lite: {str(e)}", exc_info=True)
         return {
             'reply': "I apologize, but I encountered an error generating a response. Please try again.",
-            'sources': []
+            'sources': [],
+            'ragUsed': False,
+            'answerGrounded': False
         }
 
 

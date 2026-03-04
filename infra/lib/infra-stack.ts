@@ -133,7 +133,9 @@ export class InfraStack extends cdk.Stack {
         // Nova Lite for chat (cost-effective conversational AI)
         `arn:aws:bedrock:us-east-1:357229249502:inference-profile/us.amazon.nova-lite-v1:0`,
         `arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0`,
-        // Titan embeddings
+        // Titan embeddings v2 (currently used by all Lambdas)
+        `arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0`,
+        // Titan embeddings v1 (legacy support for old records)
         `arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v1`,
       ],
     });
