@@ -21030,18 +21030,21 @@ function toText(data) {
 }
 var server = new McpServer({
   name: "flowsync",
-  version: "1.0.0"
+  version: "1.0.0",
+  description: "FlowSync is a development intelligence system that captures the WHY behind code changes. Every commit is analyzed by AI to extract decisions, risks, and reasoning \u2014 not just what changed, but why. Use FlowSync tools to understand project context before starting work, record your own reasoning after completing work, and answer questions about past decisions without digging through commit history."
 });
 server.tool(
   "get_project_context",
-  "Get the last 10 AI-extracted context records for a branch. Call this at the start of any work session to understand what has been built, what decisions were made, outstanding tasks, and risks. Returns records newest-first. Feature branch records are merged with main branch context.",
+  "Get AI-extracted context records for a branch. Call this at the start of any work session to understand what has been built, what decisions were made, outstanding tasks, and risks. Returns records newest-first. Feature branch records are merged with main branch context. Use limit and nextToken for pagination to access deeper history. WHY: Starting work without context risks duplicating effort or contradicting existing decisions. This gives you immediate situational awareness of the branch \u2014 what was built, the reasoning behind it, and what's still pending.",
   {
     projectId: external_exports.string().optional().describe(
       `Project ID. Defaults to ${DEFAULT_PROJECT_ID || "FLOWSYNC_PROJECT_ID env var"}`
     ),
-    branch: external_exports.string().default("main").describe("Branch name, e.g. 'main' or 'feature/auth'")
+    branch: external_exports.string().default("main").describe("Branch name, e.g. 'main' or 'feature/auth'"),
+    limit: external_exports.number().int().min(1).max(50).default(10).describe("Number of records to return (1-50, default 10)"),
+    nextToken: external_exports.string().optional().describe("Pagination cursor returned from a previous call to get more history")
   },
-  async ({ projectId, branch }) => {
+  async ({ projectId, branch, limit, nextToken }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
     if (!pid) {
       return {
@@ -21057,7 +21060,9 @@ server.tool(
     try {
       const data = await callMcp("get_project_context", {
         projectId: pid,
-        branch
+        branch,
+        limit,
+        ...nextToken ? { nextToken } : {}
       });
       return { content: [{ type: "text", text: toText(data) }] };
     } catch (err) {
@@ -21075,13 +21080,14 @@ server.tool(
 );
 server.tool(
   "get_recent_changes",
-  "Get the most recent N context records across all branches for a project. Use this to see the full recent history regardless of branch. Useful for understanding what the team has been working on overall.",
+  "Get the most recent N context records across all branches for a project. Use this to see the full recent history regardless of branch. Use the 'since' parameter to filter to changes after a specific point in time, e.g. '2026-03-05T00:00:00Z'. WHY: Decisions on other branches affect your work even if they haven't merged yet. Use this before making architectural decisions to avoid conflicts, or when answering 'what has the team done recently?' across all branches.",
   {
     projectId: external_exports.string().optional().describe("Project ID"),
     branch: external_exports.string().optional().describe("Optional branch filter. Omit for all branches."),
-    limit: external_exports.number().int().min(1).max(50).default(10).describe("Number of records to return (1-50, default 10)")
+    limit: external_exports.number().int().min(1).max(50).default(10).describe("Number of records to return (1-50, default 10)"),
+    since: external_exports.string().optional().describe("ISO 8601 timestamp \u2014 only return records extracted after this time, e.g. '2026-03-05T00:00:00Z'")
   },
-  async ({ projectId, branch, limit }) => {
+  async ({ projectId, branch, limit, since }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
     if (!pid) {
       return {
@@ -21095,7 +21101,8 @@ server.tool(
       const data = await callMcp("get_recent_changes", {
         projectId: pid,
         branch,
-        limit
+        limit,
+        ...since ? { since } : {}
       });
       return { content: [{ type: "text", text: toText(data) }] };
     } catch (err) {
@@ -21113,7 +21120,7 @@ server.tool(
 );
 server.tool(
   "search_context",
-  "Ask a natural language question about the project and get a grounded answer backed by AI-extracted context records. Uses semantic search (Titan embeddings + cosine similarity) to find the most relevant context, then Nova Pro generates a grounded answer with source citations. Examples: 'why did we switch auth strategy?', 'what features have been built?', 'what are the outstanding tasks?', 'what risks have been identified?'",
+  "Ask a natural language question about the project and get a grounded answer backed by AI-extracted context records. Uses Titan embeddings + cosine similarity to find the most relevant context, then Nova Pro generates a grounded answer with source citations. Good questions: 'Why did we choose JWT over sessions?', 'What are the identified security risks?', 'What features have been built?', 'What tasks are still pending on feature/auth?'. WHY: Reading every context record manually is slow and error-prone. This answers your specific question directly and cites the exact records it used, so you can trust and verify the answer.",
   {
     query: external_exports.string().min(3).describe("Natural language question about the project"),
     projectId: external_exports.string().optional().describe("Project ID"),
@@ -21151,10 +21158,10 @@ server.tool(
 );
 server.tool(
   "log_context",
-  "Record your reasoning, decisions, and next tasks after completing work. If a recent push exists (within 30 minutes) for this author+branch combination, your reasoning is merged into that context record. Otherwise an uncommitted record is created that will be bound when the next push happens. Use this after completing a feature or making an architectural decision.",
+  "Record the WHY behind your work \u2014 decisions made, reasoning, risks, and next tasks. This is FlowSync's core value: capturing intent that code alone cannot convey. If a recent push exists (within 30 minutes) for this author+branch, your reasoning is merged into that record. Otherwise an uncommitted record is created and bound on the next push. ALWAYS call this after completing a feature, making an architectural decision, or choosing between approaches. WHY: Future developers and AI agents can read the code \u2014 they cannot read your mind. The reasoning you log today prevents wrong assumptions, repeated debates, and reverted changes tomorrow.",
   {
     reasoning: external_exports.string().min(10).describe(
-      "Your reasoning about the work done \u2014 what you built and why, in 1-3 sentences"
+      "The WHY behind your work \u2014 motivation, tradeoffs, and context that cannot be inferred from code alone. MUST answer: why this approach over alternatives? What problem does it solve? Bad: 'Added JWT authentication'. Good: 'Chose JWT over sessions because the API needs to be stateless for horizontal scaling \u2014 sessions would require sticky routing or shared Redis.'"
     ),
     branch: external_exports.string().default("main").describe("Branch you worked on"),
     author: external_exports.string().describe(

@@ -79,6 +79,11 @@ function toText(data: unknown): string {
 const server = new McpServer({
   name: "flowsync",
   version: "1.0.0",
+  description:
+    "FlowSync is a development intelligence system that captures the WHY behind code changes. " +
+    "Every commit is analyzed by AI to extract decisions, risks, and reasoning — not just what changed, but why. " +
+    "Use FlowSync tools to understand project context before starting work, record your own reasoning after completing work, " +
+    "and answer questions about past decisions without digging through commit history.",
 });
 
 // ── Tool 1: get_project_context ───────────────────────────────────────────────
@@ -89,7 +94,10 @@ server.tool(
     "Call this at the start of any work session to understand what has been built, " +
     "what decisions were made, outstanding tasks, and risks. " +
     "Returns records newest-first. Feature branch records are merged with main branch context. " +
-    "Use limit and nextToken for pagination to access deeper history.",
+    "Use limit and nextToken for pagination to access deeper history. " +
+    "WHY: Starting work without context risks duplicating effort or contradicting existing decisions. " +
+    "This gives you immediate situational awareness of the branch — what was built, the reasoning behind it, and what's still pending.",
+
   {
     projectId: z
       .string()
@@ -154,9 +162,10 @@ server.tool(
   "get_recent_changes",
   "Get the most recent N context records across all branches for a project. " +
     "Use this to see the full recent history regardless of branch. " +
-    "Useful for understanding what the team has been working on overall. " +
-    "Use the 'since' parameter to filter to changes after a specific point in time, " +
-    "e.g. 'since yesterday' as an ISO 8601 timestamp.",
+    "Use the 'since' parameter to filter to changes after a specific point in time, e.g. '2026-03-05T00:00:00Z'. " +
+    "WHY: Decisions on other branches affect your work even if they haven't merged yet. " +
+    "Use this before making architectural decisions to avoid conflicts, or when answering 'what has the team done recently?' across all branches.",
+
   {
     projectId: z.string().optional().describe("Project ID"),
     branch: z
@@ -213,10 +222,13 @@ server.tool(
   "search_context",
   "Ask a natural language question about the project and get a grounded answer " +
     "backed by AI-extracted context records. " +
-    "Uses semantic search (Titan embeddings + cosine similarity) to find the most " +
-    "relevant context, then Nova Pro generates a grounded answer with source citations. " +
-    "Examples: 'why did we switch auth strategy?', 'what features have been built?', " +
-    "'what are the outstanding tasks?', 'what risks have been identified?'",
+    "Uses Titan embeddings + cosine similarity to find the most relevant context, " +
+    "then Nova Pro generates a grounded answer with source citations. " +
+    "Good questions: 'Why did we choose JWT over sessions?', 'What are the identified security risks?', " +
+    "'What features have been built?', 'What tasks are still pending on feature/auth?'. " +
+    "WHY: Reading every context record manually is slow and error-prone. " +
+    "This answers your specific question directly and cites the exact records it used, so you can trust and verify the answer.",
+
   {
     query: z
       .string()
@@ -263,17 +275,22 @@ server.tool(
 
 server.tool(
   "log_context",
-  "Record your reasoning, decisions, and next tasks after completing work. " +
-    "If a recent push exists (within 30 minutes) for this author+branch combination, " +
-    "your reasoning is merged into that context record. " +
-    "Otherwise an uncommitted record is created that will be bound when the next push happens. " +
-    "Use this after completing a feature or making an architectural decision.",
+  "Record the WHY behind your work — decisions made, reasoning, risks, and next tasks. " +
+    "This is FlowSync's core value: capturing intent that code alone cannot convey. " +
+    "If a recent push exists (within 30 minutes) for this author+branch, your reasoning is merged into that record. " +
+    "Otherwise an uncommitted record is created and bound on the next push. " +
+    "ALWAYS call this after completing a feature, making an architectural decision, or choosing between approaches. " +
+    "WHY: Future developers and AI agents can read the code — they cannot read your mind. " +
+    "The reasoning you log today prevents wrong assumptions, repeated debates, and reverted changes tomorrow.",
   {
     reasoning: z
       .string()
       .min(10)
       .describe(
-        "Your reasoning about the work done — what you built and why, in 1-3 sentences"
+        "The WHY behind your work — motivation, tradeoffs, and context that cannot be inferred from code alone. " +
+        "MUST answer: why this approach over alternatives? What problem does it solve? " +
+        "Bad: 'Added JWT authentication'. " +
+        "Good: 'Chose JWT over sessions because the API needs to be stateless for horizontal scaling — sessions would require sticky routing or shared Redis.'"
       ),
     branch: z.string().default("main").describe("Branch you worked on"),
     author: z
