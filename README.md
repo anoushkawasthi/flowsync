@@ -1,6 +1,6 @@
 # FlowSync — AI-Native Project Development System
 
-> **AI for Bharat Hackathon** | Powered by AWS
+> **AI for Bharat Hackathon** | Powered by Amazon Bedrock
 > Team **Vanta** — Aahil Khan, Anoushka Awasthi, Maulik Dang, Sanyam Wadhwa
 
 ---
@@ -31,7 +31,7 @@ When developers write code, the *reasoning* behind that code is often lost in ch
 A lightweight **VS Code Extension** quietly captures development events (file saves, Git commits, active window changes) in the background with zero developer friction.
 
 ### 2. 🤔 It Thinks — *AI Processing*
-Raw event data is sent to **AWS Bedrock (Claude Models)**, which analyzes code diffs and commits to extract developer *intent* — e.g., *"This commit fixes a bug in the login system"* or *"This adds a new payment feature."*
+Raw event data is processed by **Amazon Bedrock (Nova Pro + Nova Lite + Titan Embeddings)**, which analyzes code diffs and commits to extract developer *intent* — e.g., *"This commit fixes a bug in the login system"* or *"This adds a new payment feature."*
 
 ### 3. 🧩 It Remembers — *Knowledge Graph*
 Extracted intelligence is saved into a **"Project Brain"** — a persistent, structured Knowledge Graph in DynamoDB — connecting features, files, and decisions. Unlike a chatbot, this brain remembers the *entire project history forever*.
@@ -62,27 +62,27 @@ The system returns instant, accurate, source-cited answers.
 ```
 CLIENT LAYER                        BACKEND LAYER (AWS)
 ─────────────────────────────────────────────────────────────────
-VS Code Extension                   API Gateway (AWS)
+VS Code Extension (VSIX)            Amazon API Gateway
   ├── Git commits          ──►         ├── Event Ingestion (Lambda)
-  ├── File changes                     │     └── Validates, assigns IDs, stores to DB
-  └── Developer notes                  │
-                                       ├── Event Queue (SQS)
-Web Dashboard (React)    ◄──           │     └── Decouples high-freq ingestion from AI
-  ├── Project overview                 │
-  ├── Feature timeline                 ├── AI Processing (Lambda + Bedrock)
-  ├── Event logs                       │     └── Extracts context, infers intent,
-  └── Activity graphs                  │         maps to features
+  ├── File saves                       │     └── Validates, stores to DynamoDB
+  └── MCP Tool calls                   │
+                                       ├── AI Processing (Lambda + Nova Pro)
+MCP Server (stdio)       ◄──►          │     └── Extracts intent, features, decisions
+  ├── get_project_context              │         Embeds with Titan Embeddings
+  ├── get_recent_changes               │
+  ├── search_context (RAG)             ├── MCP Handler (Lambda)
+  └── log_context                      │     └── Routes 4 MCP tool calls
                                        │
-                                       ├── State Engine (Lambda)
-                                       │     └── Updates project state, links features
-                                       │
-                                       └── Query Interface (Lambda + Bedrock)
-                                             └── Natural language, contextual answers
+Web Dashboard (Next.js)  ◄──           ├── Query (Lambda + Nova Lite)
+  ├── Project summary                  │     └── Natural language Q&A, RAG pipeline
+  ├── Feature timeline                 │
+  ├── Branch compare                   └── Chat (Lambda + Nova Lite)
+  └── Conversational chat                    └── Hybrid RAG conversational interface
 
-STORAGE
-  ├── Events DB      — DynamoDB
-  ├── Project State  — DynamoDB
-  └── Event Archive  — Amazon S3
+STORAGE & DELIVERY
+  ├── Context DB     — DynamoDB (events, embeddings, project metadata)
+  ├── VSIX & Assets  — Amazon S3
+  └── Dashboard CDN  — Amazon CloudFront
 ```
 
 ---
@@ -114,13 +114,15 @@ STORAGE
 | Layer | Technology |
 |-------|-----------|
 | IDE Extension | TypeScript / Node.js (VS Code) |
-| API & Security | Amazon API Gateway (TLS 1.3, Bearer tokens, Rate limiting) |
-| Event Queuing | Amazon SQS |
-| Serverless Compute | AWS Lambda |
-| AI / LLM | Amazon Bedrock (Claude 3 Sonnet) |
+| MCP Server | TypeScript, `@modelcontextprotocol/sdk`, stdio transport |
+| API & Security | Amazon API Gateway (TLS 1.3, Bearer tokens, rate limiting) |
+| Serverless Compute | AWS Lambda (Python 3.12) |
+| AI / LLM | Amazon Bedrock — Nova Pro (intent extraction), Nova Lite (chat/Q&A) |
+| Embeddings | Amazon Titan Text Embeddings v1 |
 | Database | Amazon DynamoDB |
-| Archival Storage | Amazon S3 |
-| Frontend Dashboard | React, HTML5, CSS3 |
+| Asset Storage | Amazon S3 |
+| Frontend Dashboard | Next.js 14, React 18, Tailwind CSS, shadcn/ui |
+| CDN | Amazon CloudFront |
 
 ---
 
@@ -128,13 +130,15 @@ STORAGE
 
 | Component | AWS Service | Monthly Cost |
 |-----------|-------------|--------------|
-| AI Intelligence | AWS Bedrock (Claude 3 Sonnet) | ~₹1,680 ($20.00) |
+| Intent Extraction | Amazon Bedrock (Nova Pro) | ~₹420 ($5.00) |
+| Chat & Q&A | Amazon Bedrock (Nova Lite) | ~₹85 ($1.00) |
+| Embeddings | Amazon Titan Embeddings | ~₹84 ($1.00) |
 | Compute | AWS Lambda | <₹170 ($2.00) |
-| Storage | Amazon DynamoDB | ~₹480 ($5.00) |
-| API & Network | Amazon API Gateway | ~₹265 ($3.00) |
-| **Total** | | **~₹2,595 ($30.00) / month** |
+| Storage | Amazon DynamoDB | ~₹420 ($5.00) |
+| API, CDN & Network | API Gateway + CloudFront | ~₹265 ($3.15) |
+| **Total** | | **~₹1,445 ($17.15) / month** |
 
-> **~₹650 ($7.50) per developer per month**
+> **~₹360 ($4.30) per developer per month** (4-person team)
 
 ### Why it's cost-effective:
 - **Zero Idle Cost** — Serverless architecture means you pay ₹0 when the team isn't coding
@@ -166,15 +170,19 @@ STORAGE
 
 ## 🗺️ Roadmap
 
-- [x] Core VS Code Extension
-- [x] AWS Bedrock intent extraction pipeline
-- [x] DynamoDB Knowledge Graph
-- [x] Web Dashboard (React)
-- [x] Natural Language Q&A Interface
+- [x] Core VS Code Extension (VSIX)
+- [x] Amazon Bedrock intent extraction (Nova Pro)
+- [x] DynamoDB Knowledge Graph with vector embeddings
+- [x] Web Dashboard (Next.js + CloudFront)
+- [x] Natural Language Q&A Interface (Nova Lite RAG)
+- [x] MCP Server — 4 tools for GitHub Copilot integration
+- [x] Conversational Chat with hybrid RAG
+- [x] Pagination & timestamp filtering for MCP tools
 - [ ] Mobile View *(coming soon)*
 - [ ] Multi-IDE support (JetBrains, Neovim)
 - [ ] GitHub / GitLab deep integration
 - [ ] Team analytics & productivity insights
+- [ ] Branch merge history propagation
 
 ---
 
@@ -189,4 +197,4 @@ STORAGE
 
 ---
 
-*Built with ❤️ for the **AI for Bharat Hackathon** powered by AWS*
+*Built with ❤️ for the **AI for Bharat Hackathon***

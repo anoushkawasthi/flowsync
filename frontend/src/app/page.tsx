@@ -241,7 +241,7 @@ export default function LandingPage() {
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-medium text-teal-400">
               <Zap className="h-3 w-3" />
-              Built for AWS MCP Hackathon 2026
+              Built for AI for Bharat Hackathon
             </div>
             <h1 className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
               Your codebase's{' '}
@@ -393,7 +393,7 @@ export default function LandingPage() {
             <Zap className="h-3.5 w-3.5 text-teal-600" />
             <span>FlowSync</span>
           </div>
-          <span>Built for AWS MCP Hackathon 2026</span>
+          <span>Built for AI for Bharat Hackathon</span>
           <span>Powered by AWS Bedrock + DynamoDB</span>
         </div>
       </footer>
