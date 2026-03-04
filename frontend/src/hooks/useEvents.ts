@@ -5,13 +5,21 @@ import type { ContextRecord } from '@/types';
 import { getEvents } from '@/lib/api';
 import { POLLING_INTERVAL_MS } from '@/lib/constants';
 
+/**
+ * Return the newest `extractedAt` from an array of events (newest-first order).
+ * Falls back to null when empty.
+ */
+function newestTimestamp(events: ContextRecord[]): string | null {
+  return events.length > 0 ? events[0].extractedAt : null;
+}
+
 export function useEvents(
   projectId: string,
   token: string,
   branch?: string
 ) {
   const [events, setEvents] = useState<ContextRecord[]>([]);
-  const [lastTimestamp, setLastTimestamp] = useState<string | null>(null);
+  const [sinceTimestamp, setSinceTimestamp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -23,7 +31,8 @@ export function useEvents(
     try {
       const data = await getEvents(projectId, token, branch, undefined, 50);
       setEvents(data.events);
-      setLastTimestamp(data.lastTimestamp);
+      // Use the newest event's timestamp for subsequent polling
+      setSinceTimestamp(newestTimestamp(data.events));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Failed to fetch events';
@@ -34,23 +43,29 @@ export function useEvents(
   }, [projectId, token, branch]);
 
   const poll = useCallback(async () => {
-    if (!projectId || !token || !lastTimestamp) return;
+    if (!projectId || !token || !sinceTimestamp) return;
     try {
       const data = await getEvents(
         projectId,
         token,
         branch,
-        lastTimestamp,
+        sinceTimestamp,
         50
       );
       if (data.events.length > 0) {
-        setEvents((prev) => [...data.events, ...prev]);
-        setLastTimestamp(data.lastTimestamp);
+        setEvents((prev) => {
+          // Deduplicate by eventId to guard against overlap
+          const existingIds = new Set(prev.map((e) => e.eventId));
+          const newEvents = data.events.filter((e) => !existingIds.has(e.eventId));
+          if (newEvents.length === 0) return prev; // stable reference
+          return [...newEvents, ...prev];
+        });
+        setSinceTimestamp(newestTimestamp(data.events));
       }
     } catch {
       // Silently fail on polling; don't overwrite existing data
     }
-  }, [projectId, token, branch, lastTimestamp]);
+  }, [projectId, token, branch, sinceTimestamp]);
 
   // Initial fetch
   useEffect(() => {

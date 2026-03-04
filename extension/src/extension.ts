@@ -8,6 +8,7 @@ import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
 import { FlowSyncPanel } from "./panels/FlowSyncPanel";
 import { initLogger, log } from "./logger";
+import { registerCatchMeUpCommand, checkAndAutoTriggerCatchMeUp, runCatchMeUp } from "./commands/catchMeUp";
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = initLogger();
@@ -43,6 +44,16 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Register "Catch Me Up" command
+  registerCatchMeUpCommand(context, context.extensionUri);
+  
+  // Register "View Recent Activity" command (force recent even if no new changes)
+  context.subscriptions.push(
+    vscode.commands.registerCommand("flowsync.viewRecentActivity", async () => {
+      await runCatchMeUp(context, context.extensionUri, false, true);
+    })
+  );
+
   // Register the chat command
   context.subscriptions.push(
     vscode.commands.registerCommand("flowsync.openChat", () => {
@@ -58,6 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
   if (config) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
     initializeForProject(context, config);
+    // Auto-trigger "Catch Me Up" if >4 hours since last seen
+    checkAndAutoTriggerCatchMeUp(context, context.extensionUri);
   } else {
     log.info("activate", "no .flowsync.json — open FlowSync dashboard to initialize or join a project");
   }
@@ -131,7 +144,7 @@ function updateHookPort(port: number): void {
 }
 
 async function handlePushEvent(
-  _context: vscode.ExtensionContext,
+  context: vscode.ExtensionContext,
   projectId: string,
   backendUrl: string,
   defaultBranch: string,
@@ -181,6 +194,9 @@ async function handlePushEvent(
     const result = await transmitEvent(backendUrl, apiToken, event);
     log.ok("handlePushEvent", `event transmitted successfully — response: ${JSON.stringify(result)}`);
     vscode.window.showInformationMessage(`FlowSync: push captured (${commitInfo.commitHash.slice(0, 8)})`);
+    
+    // Update "last seen" timestamp after successful push
+    await context.globalState.update("flowsync.lastSeenTimestamp", new Date().toISOString());
   } catch (err) {
     log.error("handlePushEvent", `transmit failed after all retries: ${err instanceof Error ? err.message : String(err)}`);
     vscode.window.showWarningMessage("FlowSync: could not send push data to backend. Check Output panel.");

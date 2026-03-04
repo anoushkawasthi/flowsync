@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { readConfig, writeConfig, getWorkspaceRoot, BASE_PORT } from "../config";
 import { findAvailablePort } from "../hookListener";
 import { writeMcpConfig } from "../commands/initProject";
+import { detectAll } from "../autoDetect";
 import { log } from "../logger";
 
 const BACKEND_URL =
@@ -66,6 +67,22 @@ export class FlowSyncPanel {
 
   public navigateTo(view: string): void {
     this._panel.webview.postMessage({ type: "navigate", view });
+  }
+
+  public sendCatchUpData(data: unknown): void {
+    this._panel.webview.postMessage({ type: "catchUpData", data });
+  }
+
+  private _sendAutoDetect(): void {
+    const workspaceRoot = getWorkspaceRoot();
+    if (!workspaceRoot) { return; }
+    try {
+      const detected = detectAll(workspaceRoot);
+      log.step("autoDetect", `root=${workspaceRoot} name=${detected.name} langs=${JSON.stringify(detected.languages)} branch=${detected.defaultBranch}`);
+      this._panel.webview.postMessage({ type: "autoDetect", data: detected });
+    } catch (err) {
+      log.error("FlowSyncPanel:autoDetect", `detection failed: ${err}`);
+    }
   }
 
   public dispose(): void {
@@ -172,6 +189,13 @@ export class FlowSyncPanel {
         vscode.commands.executeCommand(
           "workbench.action.output.toggleOutput"
         );
+        break;
+      case "requestAutoDetect":
+        this._sendAutoDetect();
+        break;
+      case "requestRecentActivity":
+        // User wants to see recent activity even though there are no new changes
+        vscode.commands.executeCommand("flowsync.viewRecentActivity");
         break;
     }
   }

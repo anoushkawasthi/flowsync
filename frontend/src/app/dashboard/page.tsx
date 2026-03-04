@@ -1,15 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { useAppContext } from '@/hooks/useAppContext';
 import { Timeline } from '@/components/dashboard/Timeline';
+import { ProjectSummary } from '@/components/dashboard/ProjectSummary';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingCards } from '@/components/shared/LoadingSpinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { GitCommitHorizontal } from 'lucide-react';
+import { GitCommitHorizontal, LayoutDashboard, List } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type Tab = 'summary' | 'timeline';
 
 export default function DashboardPage() {
   const { events, eventsLoading, eventsError, refetchEvents } = useAppContext();
+  const [tab, setTab] = useState<Tab>('summary');
 
   if (eventsLoading && events.length === 0) {
     return <LoadingCards count={4} />;
@@ -42,5 +48,42 @@ export default function DashboardPage() {
     );
   }
 
-  return <Timeline events={events} />;
+  return (
+    <div className="space-y-4">
+      {/* Tab switcher */}
+      <div className="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 p-1 w-fit">
+        <button
+          onClick={() => setTab('summary')}
+          className={cn(
+            'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            tab === 'summary'
+              ? 'bg-zinc-800 text-zinc-100'
+              : 'text-zinc-400 hover:text-zinc-200'
+          )}
+        >
+          <LayoutDashboard className="h-3.5 w-3.5" />
+          Summary
+        </button>
+        <button
+          onClick={() => setTab('timeline')}
+          className={cn(
+            'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            tab === 'timeline'
+              ? 'bg-zinc-800 text-zinc-100'
+              : 'text-zinc-400 hover:text-zinc-200'
+          )}
+        >
+          <List className="h-3.5 w-3.5" />
+          Timeline
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {tab === 'summary' ? (
+        <ProjectSummary events={events} />
+      ) : (
+        <Timeline events={events} />
+      )}
+    </div>
+  );
 }

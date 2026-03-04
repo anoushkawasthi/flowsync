@@ -14,7 +14,7 @@ export function StatsCards({ events }: StatsCardsProps) {
   const avgConfidence =
     events.length > 0
       ? Math.round(
-          events.reduce((sum, e) => sum + e.confidence, 0) / events.length
+          (events.reduce((sum, e) => sum + e.confidence, 0) / events.length) * 100
         )
       : 0;
 

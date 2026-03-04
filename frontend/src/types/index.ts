@@ -13,7 +13,7 @@ export interface ContextRecord {
     | 'Testing'
     | 'Documentation';
   risk: string | null;
-  confidence: number;
+  confidence: number; // 0.0 to 1.0 decimal (backend format), display as percentage
   entities: string[];
   author: string;
   commitHash: string;
