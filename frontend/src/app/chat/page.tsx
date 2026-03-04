@@ -932,7 +932,7 @@ export default function ChatPage() {
               </Button>
             </div>
             <p className="text-xs text-zinc-500 mt-2 hidden sm:block">
-              Press Enter to send, Shift+Enter for new line
+              Press Enter to send
             </p>
           </div>
         </Card>

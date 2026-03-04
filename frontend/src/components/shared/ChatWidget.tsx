@@ -332,7 +332,7 @@ export function ChatWidget({ projectId, onSendMessage }: ChatWidgetProps) {
             </Button>
           </div>
           <p className="text-xs text-zinc-500 mt-2">
-            Press Enter to send, Shift+Enter for new line
+            Press Enter to send
           </p>
         </div>
       </Card>
