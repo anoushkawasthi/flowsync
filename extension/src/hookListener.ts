@@ -2,7 +2,7 @@ import * as http from "http";
 import * as net from "net";
 import { log } from "./logger";
 
-type HookCallback = (branch: string) => void;
+type HookCallback = (branch: string, remoteRef?: string) => void;
 
 let server: http.Server | null = null;
 let activePort: number | null = null;
@@ -50,8 +50,8 @@ export async function startHookListener(
         try {
           const parsed = JSON.parse(body);
           if ((parsed.event === "push" || parsed.event === "post-push") && parsed.branch) {
-            log.ok("hookListener", `valid push signal — branch=${parsed.branch}`);
-            onPush(parsed.branch);
+            log.ok("hookListener", `valid push signal — branch=${parsed.branch} remoteRef=${parsed.remoteRef ?? "none"}`);
+            onPush(parsed.branch, parsed.remoteRef);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ status: "received" }));
           } else {

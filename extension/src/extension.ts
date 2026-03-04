@@ -113,7 +113,7 @@ async function initializeForProject(
 
   log.step("initializeForProject", `starting hook listener on preferred port ${preferredPort}`);
   const actualPort = await startHookListener(
-    (branch: string) => handlePushEvent(context, projectId, backendUrl, defaultBranch, apiToken, branch),
+    (branch: string, remoteRef?: string) => handlePushEvent(context, projectId, backendUrl, defaultBranch, apiToken, branch, remoteRef),
     preferredPort
   );
 
@@ -138,7 +138,7 @@ function updateHookPort(port: number): void {
   if (!fs.existsSync(hooksDir)) {
     fs.mkdirSync(hooksDir, { recursive: true });
   }
-  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\ncat > /dev/null  # consume stdin (required by pre-push hook protocol)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &\n`;
+  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\nREMOTE_SHA=""\nwhile read local_ref local_sha remote_ref remote_sha; do\n  REMOTE_SHA="$remote_sha"\ndone\nBRANCH=$(git branch --show-current)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$BRANCH\\",\\"remoteRef\\":\\"$REMOTE_SHA\\"}" &\n`;
   fs.writeFileSync(hookPath, content, { mode: 0o755 });
   log.ok("updateHookPort", `hook script ${existed ? "updated" : "created"} at ${hookPath} for port ${port}`);
 }
@@ -149,13 +149,14 @@ async function handlePushEvent(
   backendUrl: string,
   defaultBranch: string,
   apiToken: string,
-  branch: string
+  branch: string,
+  remoteRef?: string
 ): Promise<void> {
   log.sep();
-  log.step("handlePushEvent", `push signal received on branch=${branch}`);
+  log.step("handlePushEvent", `push signal received on branch=${branch} remoteRef=${remoteRef ?? "none"}`);
 
-  log.step("handlePushEvent", "running git diff HEAD~1 HEAD");
-  const diff = getDiff();
+  log.step("handlePushEvent", "computing diff");
+  const diff = getDiff(remoteRef);
   log.step("handlePushEvent", "running git log for commit info");
   const commitInfo = getLastCommitInfo();
   const gitUserName = getGitUserName();

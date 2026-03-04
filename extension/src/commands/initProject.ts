@@ -344,14 +344,21 @@ function injectPostPushHook(workspaceRoot: string, port: number): void {
     fs.mkdirSync(hooksDir, { recursive: true });
   }
 
-  // pre-push receives lines on stdin — we must consume them or git hangs.
-  // Fire curl in background (&) so the push is not delayed.
+  // pre-push receives the push range on stdin:
+  //   <local_ref> <local_sha> <remote_ref> <remote_sha>
+  // We read it to get the old remote SHA, then fire curl in the background
+  // so the push is not delayed. The remoteRef lets getDiff() capture the
+  // full range of commits being pushed, not just the tip.
   const hookPath = path.join(hooksDir, "pre-push");
   const hookContent = `#!/bin/sh
 # FlowSync — notify local listener of push
-cat > /dev/null
+REMOTE_SHA=""
+while read local_ref local_sha remote_ref remote_sha; do
+  REMOTE_SHA="$remote_sha"
+done
+BRANCH=$(git branch --show-current)
 curl -s http://localhost:${port}/flowsync-hook \\
-  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &
+  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$BRANCH\\",\\"remoteRef\\":\\"$REMOTE_SHA\\"}" &
 `;
 
   fs.writeFileSync(hookPath, hookContent, { mode: 0o755 });

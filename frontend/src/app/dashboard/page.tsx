@@ -8,13 +8,14 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingCards } from '@/components/shared/LoadingSpinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { GitCommitHorizontal, LayoutDashboard, List } from 'lucide-react';
+import { GitBranch, GitCommitHorizontal, LayoutDashboard, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BranchCompare } from '@/components/dashboard/BranchCompare';
 
-type Tab = 'summary' | 'timeline';
+type Tab = 'summary' | 'timeline' | 'compare';
 
 export default function DashboardPage() {
-  const { events, eventsLoading, eventsError, refetchEvents } = useAppContext();
+  const { events, eventsLoading, eventsError, refetchEvents, config, branches } = useAppContext();
   const [tab, setTab] = useState<Tab>('summary');
 
   if (eventsLoading && events.length === 0) {
