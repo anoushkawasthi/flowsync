@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Search,
+  MessageSquare,
   BarChart3,
   Settings,
   ChevronLeft,
@@ -17,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Search, label: 'Search', href: '/search' },
+  { icon: MessageSquare, label: 'Chat', href: '/chat' },
   { icon: BarChart3, label: 'Analytics', href: '/analytics' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
