@@ -138,7 +138,7 @@ function updateHookPort(port: number): void {
   if (!fs.existsSync(hooksDir)) {
     fs.mkdirSync(hooksDir, { recursive: true });
   }
-  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\ncat > /dev/null  # consume stdin (required by pre-push hook protocol)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &\n`;
+  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\ncat > /dev/null  # consume stdin (required by pre-push hook protocol)\nBRANCH=$(git branch --show-current)\nBRANCH=\${BRANCH:-HEAD}\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$BRANCH\\"}" &\n`;
   fs.writeFileSync(hookPath, content, { mode: 0o755 });
   log.ok("updateHookPort", `hook script ${existed ? "updated" : "created"} at ${hookPath} for port ${port}`);
 }
