@@ -190,7 +190,7 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
             'feature': record.get('feature'),
             'stage': record.get('stage'),
             'extractedAt': record.get('extractedAt'),
-            'snippet': f"{record.get('feature', 'N/A')} - {record.get('decision', 'N/A')[:100]}...",
+            'snippet': f"{record.get('feature') or 'N/A'} - {(record.get('decision') or 'N/A')[:100]}...",
             'relevance': round(score, 4)
         })
     

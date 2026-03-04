@@ -8,7 +8,7 @@ import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
 import { FlowSyncPanel } from "./panels/FlowSyncPanel";
 import { initLogger, log } from "./logger";
-import { registerCatchMeUpCommand, checkAndAutoTriggerCatchMeUp, runCatchMeUp } from "./commands/catchMeUp";
+import { registerCatchMeUpCommand, checkAndAutoTriggerCatchMeUp } from "./commands/catchMeUp";
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = initLogger();
@@ -46,13 +46,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register "Catch Me Up" command
   registerCatchMeUpCommand(context, context.extensionUri);
-  
-  // Register "View Recent Activity" command (force recent even if no new changes)
-  context.subscriptions.push(
-    vscode.commands.registerCommand("flowsync.viewRecentActivity", async () => {
-      await runCatchMeUp(context, context.extensionUri, false, true);
-    })
-  );
 
   // Register the chat command
   context.subscriptions.push(

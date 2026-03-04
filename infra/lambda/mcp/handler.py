@@ -7,6 +7,7 @@ Provides 4 tools: get_project_context, get_recent_changes, search_context, log_c
 import json
 import boto3
 import os
+import base64
 from datetime import datetime, timedelta
 from decimal import Decimal
 from flowsync_common.helpers import respond, strip_embeddings, search_context_rag, convert_floats_to_decimal
@@ -40,35 +41,50 @@ def publish_metric(metric_name, value, project_id):
 
 def get_project_context(params):
     """
-    Tool 1: Get last 10 context records for a branch with parent branch inheritance.
+    Tool 1: Get context records for a branch with parent branch inheritance.
     
     Params:
       - projectId (required)
       - branch (required)
+      - limit (optional, default 10, max 50)
+      - nextToken (optional, pagination cursor from previous response)
     
-    Returns: {recentContext: [...]}
+    Returns: {recentContext: [...], nextToken?: string}
     """
     project_id = params.get('projectId')
     branch = params.get('branch', 'main')
+    limit = min(int(params.get('limit', 10)), 50)
+    next_token = params.get('nextToken')
     
     if not project_id:
         return respond(400, {'error': 'bad_request', 'message': 'Missing projectId'})
     
     table = dynamodb.Table(CONTEXT_TABLE)
     
-    # Query branch-specific context
-    response = table.query(
-        IndexName='BranchContextIndex',
-        KeyConditionExpression='projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
-        ExpressionAttributeValues={
+    # Build query kwargs
+    query_kwargs = {
+        'IndexName': 'BranchContextIndex',
+        'KeyConditionExpression': 'projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
+        'ExpressionAttributeValues': {
             ':pk': project_id,
             ':prefix': f'{branch}#'
         },
-        ScanIndexForward=False,  # Newest first
-        Limit=10
-    )
+        'ScanIndexForward': False,
+        'Limit': limit
+    }
     
+    if next_token:
+        query_kwargs['ExclusiveStartKey'] = json.loads(base64.b64decode(next_token).decode())
+    
+    response = table.query(**query_kwargs)
     branch_records = response.get('Items', [])
+    
+    # Encode next page token if more results exist
+    next_token_out = None
+    if 'LastEvaluatedKey' in response:
+        next_token_out = base64.b64encode(
+            json.dumps(response['LastEvaluatedKey']).encode()
+        ).decode()
     
     # If not main branch, also fetch main branch context for inheritance
     all_records = branch_records
@@ -81,7 +97,7 @@ def get_project_context(params):
                 ':prefix': 'main#'
             },
             ScanIndexForward=False,
-            Limit=10
+            Limit=limit
         )
         
         main_records = main_response.get('Items', [])
@@ -93,13 +109,17 @@ def get_project_context(params):
             if feature not in branch_features:
                 all_records.append(main_record)
         
-        # Limit to 10 most recent
-        all_records = sorted(all_records, key=lambda x: x['extractedAt'], reverse=True)[:10]
+        # Sort and limit to requested page size
+        all_records = sorted(all_records, key=lambda x: x['extractedAt'], reverse=True)[:limit]
     
     # Strip embeddings
     all_records = strip_embeddings(all_records)
     
-    return respond(200, {'recentContext': all_records})
+    result = {'recentContext': all_records}
+    if next_token_out:
+        result['nextToken'] = next_token_out
+    
+    return respond(200, result)
 
 
 def get_recent_changes(params):
@@ -110,40 +130,47 @@ def get_recent_changes(params):
       - projectId (required)
       - branch (optional)
       - limit (optional, default 10, max 50)
+      - since (optional, ISO 8601 timestamp — return only records after this time)
     
     Returns: {changes: [...]}
     """
     project_id = params.get('projectId')
     branch = params.get('branch')
     limit = min(int(params.get('limit', 10)), 50)
+    since = params.get('since')  # ISO 8601 timestamp filter
     
     if not project_id:
         return respond(400, {'error': 'bad_request', 'message': 'Missing projectId'})
     
     table = dynamodb.Table(CONTEXT_TABLE)
     
-    if branch:
-        # Query BranchContextIndex for specific branch
-        response = table.query(
-            IndexName='BranchContextIndex',
-            KeyConditionExpression='projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
-            ExpressionAttributeValues={
-                ':pk': project_id,
-                ':prefix': f'{branch}#'
-            },
-            ScanIndexForward=False,
-            Limit=limit
-        )
-    else:
-        # Query ProjectContextIndex for all branches
-        response = table.query(
-            IndexName='ProjectContextIndex',
-            KeyConditionExpression='projectId = :pk',
-            ExpressionAttributeValues={':pk': project_id},
-            ScanIndexForward=False,
-            Limit=limit
-        )
+    # Build expression values and optional filter
+    expr_values = {':pk': project_id}
+    if since:
+        expr_values[':since'] = since
     
+    if branch:
+        expr_values[':prefix'] = f'{branch}#'
+        query_kwargs = {
+            'IndexName': 'BranchContextIndex',
+            'KeyConditionExpression': 'projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
+            'ExpressionAttributeValues': expr_values,
+            'ScanIndexForward': False,
+            'Limit': limit
+        }
+    else:
+        query_kwargs = {
+            'IndexName': 'ProjectContextIndex',
+            'KeyConditionExpression': 'projectId = :pk',
+            'ExpressionAttributeValues': expr_values,
+            'ScanIndexForward': False,
+            'Limit': limit
+        }
+    
+    if since:
+        query_kwargs['FilterExpression'] = 'extractedAt >= :since'
+    
+    response = table.query(**query_kwargs)
     records = response.get('Items', [])
     records = strip_embeddings(records)
     

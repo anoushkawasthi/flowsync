@@ -42,14 +42,14 @@
 }
 
 .welcome-title {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--text);
 }
 
 .welcome-subtitle {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
   max-width: 380px;
   line-height: 1.65;
@@ -105,27 +105,27 @@
 }
 
 .card-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text);
 }
 
 .card-description {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   line-height: 1.55;
   color: var(--text-muted);
   flex: 1;
 }
 
 .card-action {
-  font-size: 0.83rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--accent);
 }
 
 .welcome-footer {
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   color: var(--text-dim);
   padding-top: 0.25rem;
 }
@@ -149,7 +149,7 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-family: inherit;
   padding: 0.25rem 0;
   transition: color 0.15s;
@@ -167,16 +167,16 @@
 
 .form-header h1 {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
 }
 
 .form-header p {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-muted);
 }
 
 .auto-detect-notice {
-  font-size: 0.83rem;
+  font-size: 0.9rem;
   padding: 0.625rem 0.875rem;
   border-radius: var(--radius);
   background: var(--accent-bg);
@@ -198,7 +198,7 @@
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -211,7 +211,7 @@
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.5;
   transition: border-color 0.15s;
   resize: vertical;
@@ -240,12 +240,12 @@
 }
 
 .field-error {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--danger);
 }
 
 .field-hint {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--text-dim);
 }
 
@@ -261,7 +261,7 @@
   align-items: center;
   padding: 0.3rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -297,7 +297,7 @@
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
@@ -346,12 +346,12 @@
 
 .btn-sm {
   padding: 0.3rem 0.65rem;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
 }
 
 .btn-lg {
   padding: 0.625rem 1.5rem;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   border-radius: var(--radius);
 }
 
@@ -395,7 +395,7 @@
   border: 1px solid var(--danger-border);
   border-radius: var(--radius);
   color: var(--danger);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 /* ===== Success View ===== */
@@ -421,7 +421,7 @@
 }
 
 .success-message {
-  font-size: 0.92rem;
+  font-size: 1rem;
   max-width: 400px;
   color: var(--text-muted);
 }
@@ -437,7 +437,7 @@
 }
 
 .token-display label {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-muted);
   text-align: left;
@@ -455,7 +455,7 @@
 
 .token-box code {
   flex: 1;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   word-break: break-all;
   background: none;
   padding: 0;
@@ -463,7 +463,7 @@
 }
 
 .token-warning {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   color: var(--warn);
   text-align: left;
 }
@@ -488,12 +488,12 @@
 .info-callout strong {
   display: block;
   margin-bottom: 0.2rem;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--text);
 }
 
 .info-callout p {
-  font-size: 0.83rem;
+  font-size: 0.9rem;
   margin: 0;
   color: var(--text-muted);
 }
@@ -516,14 +516,14 @@
 }
 
 .dashboard-header h1 {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
 }
 
 .dashboard-header > p {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-muted);
 }
 
@@ -531,7 +531,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.73rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -578,7 +578,7 @@
 }
 
 .stat-label {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -586,7 +586,7 @@
 }
 
 .stat-value {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text);
   word-break: break-all;
@@ -594,12 +594,12 @@
 
 .stat-value.mono {
   font-family: "SF Mono", "Fira Code", Consolas, monospace;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   color: var(--accent);
 }
 
 .stat-value.small {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
 }
 
 /* ===== Dashboard Sections ===== */
@@ -610,7 +610,7 @@
 }
 
 .dashboard-section h2 {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -641,7 +641,7 @@
   border-radius: 50%;
   background: var(--accent-bg);
   color: var(--accent);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   flex-shrink: 0;
   border: 1px solid var(--accent-border);
@@ -656,13 +656,13 @@
 }
 
 .step-content strong {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text);
 }
 
 .step-content p {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   margin: 0;
   color: var(--text-muted);
 }
@@ -683,7 +683,7 @@
   gap: 1rem;
   min-height: 60vh;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .empty-state {
@@ -696,12 +696,12 @@
 }
 
 .empty-state h2 {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   color: var(--text);
 }
 
 .empty-state p {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
   max-width: 340px;
 }
@@ -724,14 +724,14 @@
 }
 
 .decision-card-text {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--text);
   margin-bottom: 0.4rem;
   line-height: 1.55;
 }
 
 .decision-card-meta {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   display: flex;
   gap: 1rem;
@@ -760,7 +760,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--text);
 }
 

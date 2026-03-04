@@ -196,10 +196,6 @@ export class FlowSyncPanel {
       case "requestAutoDetect":
         this._sendAutoDetect();
         break;
-      case "requestRecentActivity":
-        // User wants to see recent activity even though there are no new changes
-        vscode.commands.executeCommand("flowsync.viewRecentActivity");
-        break;
       case "ready":
         // Webview finished mounting — respond with pending navigation immediately
         if (this._pendingView) {

@@ -63,10 +63,11 @@ const server = new McpServer({
     version: "1.0.0",
 });
 // ── Tool 1: get_project_context ───────────────────────────────────────────────
-server.tool("get_project_context", "Get the last 10 AI-extracted context records for a branch. " +
+server.tool("get_project_context", "Get AI-extracted context records for a branch. " +
     "Call this at the start of any work session to understand what has been built, " +
     "what decisions were made, outstanding tasks, and risks. " +
-    "Returns records newest-first. Feature branch records are merged with main branch context.", {
+    "Returns records newest-first. Feature branch records are merged with main branch context. " +
+    "Use limit and nextToken for pagination to access deeper history.", {
     projectId: z
         .string()
         .optional()
@@ -75,7 +76,18 @@ server.tool("get_project_context", "Get the last 10 AI-extracted context records
         .string()
         .default("main")
         .describe("Branch name, e.g. 'main' or 'feature/auth'"),
-}, async ({ projectId, branch }) => {
+    limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .default(10)
+        .describe("Number of records to return (1-50, default 10)"),
+    nextToken: z
+        .string()
+        .optional()
+        .describe("Pagination cursor returned from a previous call to get more history"),
+}, async ({ projectId, branch, limit, nextToken }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
     if (!pid) {
         return {
@@ -92,6 +104,8 @@ server.tool("get_project_context", "Get the last 10 AI-extracted context records
         const data = await callMcp("get_project_context", {
             projectId: pid,
             branch,
+            limit,
+            ...(nextToken ? { nextToken } : {}),
         });
         return { content: [{ type: "text", text: toText(data) }] };
     }
@@ -110,7 +124,9 @@ server.tool("get_project_context", "Get the last 10 AI-extracted context records
 // ── Tool 2: get_recent_changes ────────────────────────────────────────────────
 server.tool("get_recent_changes", "Get the most recent N context records across all branches for a project. " +
     "Use this to see the full recent history regardless of branch. " +
-    "Useful for understanding what the team has been working on overall.", {
+    "Useful for understanding what the team has been working on overall. " +
+    "Use the 'since' parameter to filter to changes after a specific point in time, " +
+    "e.g. 'since yesterday' as an ISO 8601 timestamp.", {
     projectId: z.string().optional().describe("Project ID"),
     branch: z
         .string()
@@ -123,7 +139,11 @@ server.tool("get_recent_changes", "Get the most recent N context records across 
         .max(50)
         .default(10)
         .describe("Number of records to return (1-50, default 10)"),
-}, async ({ projectId, branch, limit }) => {
+    since: z
+        .string()
+        .optional()
+        .describe("ISO 8601 timestamp — only return records extracted after this time, e.g. '2026-03-05T00:00:00Z'"),
+}, async ({ projectId, branch, limit, since }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
     if (!pid) {
         return {
@@ -138,6 +158,7 @@ server.tool("get_recent_changes", "Get the most recent N context records across 
             projectId: pid,
             branch,
             limit,
+            ...(since ? { since } : {}),
         });
         return { content: [{ type: "text", text: toText(data) }] };
     }
