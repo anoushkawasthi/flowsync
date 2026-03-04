@@ -329,15 +329,17 @@ def format_sources(context: List[Dict]) -> List[Dict]:
     """Format context records as source citations for UI"""
     sources = []
     for record in context:
+        feature = record.get('feature') or 'N/A'
+        decision = record.get('decision') or 'N/A'
         sources.append({
             'eventId': record.get('eventId'),
             'contextId': record.get('contextId'),
             'branch': record.get('branch'),
             'timestamp': record.get('timestamp'),
-            'feature': record.get('feature'),
+            'feature': feature,
             'stage': record.get('stage'),
             'relevance': float(record.get('relevance', 0)),
-            'snippet': f"{record.get('feature', 'N/A')} - {record.get('decision', 'N/A')[:100]}..."
+            'snippet': f"{feature} - {decision[:100]}..."
         })
     return sources
 

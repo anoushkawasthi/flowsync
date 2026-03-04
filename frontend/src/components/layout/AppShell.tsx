@@ -5,8 +5,6 @@ import { AppProvider, useAppContext } from '@/hooks/useAppContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ConfigModal } from '@/components/shared/ConfigModal';
-import { ChatWidget } from '@/components/shared/ChatWidget';
-import { sendChatMessage } from '@/lib/api';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -37,10 +35,6 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const handleSendMessage = async (message: string, sessionId: string | null) => {
-    return await sendChatMessage(config.projectId, message, config.token, sessionId);
-  };
-
   return (
     <>
       <ConfigModal open={!isConfigured} onSave={setConfig} />
@@ -61,9 +55,6 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
         </div>
       </div>
-      {isConfigured && (
-        <ChatWidget projectId={config.projectId} onSendMessage={handleSendMessage} />
-      )}
     </>
   );
 }
