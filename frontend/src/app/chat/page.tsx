@@ -59,17 +59,105 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Generate a smart title from user message
+  const generateTitle = (message: string): string => {
+    // Remove extra whitespace and newlines
+    let title = message.replace(/\s+/g, ' ').trim();
+    
+    // Common question words/phrases to extract key topics
+    const questionPrefixes = [
+      'what is', 'what are', 'how do', 'how to', 'can you', 'could you',
+      'tell me', 'explain', 'describe', 'show me', 'help me', 'why is',
+      'when should', 'where is', 'who is'
+    ];
+    
+    // Try to extract the core question/topic
+    const lowerTitle = title.toLowerCase();
+    for (const prefix of questionPrefixes) {
+      if (lowerTitle.startsWith(prefix)) {
+        title = title.substring(prefix.length).trim();
+        // Capitalize first letter
+        title = title.charAt(0).toUpperCase() + title.slice(1);
+        break;
+      }
+    }
+    
+    // Remove trailing punctuation for ellipsis
+    title = title.replace(/[?.!]+$/, '');
+    
+    // Truncate smartly - try to end at a word boundary
+    const maxLength = 40;
+    if (title.length > maxLength) {
+      // Find last space before maxLength
+      const truncated = title.substring(0, maxLength);
+      const lastSpace = truncated.lastIndexOf(' ');
+      if (lastSpace > maxLength * 0.6) {
+        title = truncated.substring(0, lastSpace) + '...';
+      } else {
+        title = truncated + '...';
+      }
+    }
+    
+    // Ensure first letter is capitalized
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    
+    return title;
+  };
+
+  // Set initial sidebar state based on screen size
+  useEffect(() => {
+    setShowSidebar(window.innerWidth >= 768);
+    
+    // Handle window resize
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setShowSidebar(true);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Load all sessions from localStorage
   useEffect(() => {
     const storedSessions = localStorage.getItem(`chat-sessions-${config.projectId}`);
     if (storedSessions) {
       try {
         const parsed = JSON.parse(storedSessions) as ChatSession[];
-        setSessions(parsed);
+        
+        // Migrate old session titles to new format
+        let needsUpdate = false;
+        const migrated = parsed.map(session => {
+          // If session has messages and title looks like it needs updating
+          if (session.messages.length > 0 && session.title !== 'New Chat') {
+            // Check if title needs cleaning (has quotes, too long, etc.)
+            const firstUserMessage = session.messages.find(m => m.role === 'user')?.content;
+            if (firstUserMessage) {
+              const potentialNewTitle = generateTitle(firstUserMessage);
+              // Only update if it would be different (avoid unnecessary updates)
+              if (potentialNewTitle !== session.title) {
+                needsUpdate = true;
+                return { ...session, title: potentialNewTitle };
+              }
+            }
+          }
+          return session;
+        });
+        
+        setSessions(migrated);
+        
+        // Save migrated data back to localStorage
+        if (needsUpdate) {
+          localStorage.setItem(
+            `chat-sessions-${config.projectId}`,
+            JSON.stringify(migrated)
+          );
+        }
         
         // Load the most recent session
-        if (parsed.length > 0) {
-          const latest = parsed[0];
+        if (migrated.length > 0) {
+          const latest = migrated[0];
           setCurrentSessionId(latest.id);
           setMessages(latest.messages);
           setContextValue(latest.context || '');
@@ -168,7 +256,7 @@ export default function ChatPage() {
           // Auto-generate title from first user message
           const title =
             newMessages.length > 0 && session.title === 'New Chat'
-              ? newMessages[0].content.slice(0, 50) + (newMessages[0].content.length > 50 ? '...' : '')
+              ? generateTitle(newMessages[0].content)
               : session.title;
           
           return {
@@ -241,7 +329,7 @@ export default function ChatPage() {
           if (session.id === currentSessionId) {
             const title =
               finalMessages.length > 0 && session.title === 'New Chat'
-                ? finalMessages[0].content.slice(0, 50) + (finalMessages[0].content.length > 50 ? '...' : '')
+                ? generateTitle(finalMessages[0].content)
                 : session.title;
             
             return {
@@ -341,9 +429,9 @@ export default function ChatPage() {
       {/* Session History Sidebar */}
       <div className={`${
         showSidebar 
-          ? 'translate-x-0 md:w-64' 
-          : '-translate-x-full md:translate-x-0 md:w-0'
-      } fixed md:relative top-0 left-0 h-full w-72 md:w-auto z-50 md:z-0 transition-all duration-300 ease-in-out`}>
+          ? 'translate-x-0 w-72 md:w-64' 
+          : '-translate-x-full md:-translate-x-0 w-72 md:w-0'
+      } fixed md:relative top-0 left-0 h-full z-50 md:z-0 transition-all duration-300 ease-in-out overflow-hidden`}>
         <Card className="h-full border-zinc-800 bg-zinc-900/95 md:bg-zinc-900/50 backdrop-blur-md md:backdrop-blur-none flex flex-col shadow-2xl md:shadow-none">
           <div className="p-4 border-b border-zinc-800">
             <div className="flex items-center justify-between mb-3 md:mb-0 md:hidden">
@@ -377,33 +465,40 @@ export default function ChatPage() {
                 sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`group relative rounded-lg p-3 cursor-pointer transition-colors ${
+                    className={`group relative rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                       session.id === currentSessionId
-                        ? 'bg-teal-500/10 border border-teal-500/30'
-                        : 'hover:bg-zinc-800 border border-transparent'
+                        ? 'bg-teal-500/10 border border-teal-500/30 shadow-sm'
+                        : 'hover:bg-zinc-800 border border-transparent hover:border-zinc-700/50'
                     }`}
                     onClick={() => switchSession(session.id)}
+                    title={session.title}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-200 truncate">
+                        <p className="text-sm font-medium text-zinc-200 truncate leading-snug">
                           {session.title}
                         </p>
-                        <p className="text-xs text-zinc-500 mt-1">
-                          {session.messages.length} message{session.messages.length !== 1 ? 's' : ''}
-                        </p>
-                        <p className="text-xs text-zinc-600 mt-0.5">
-                          {new Date(session.updatedAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <p className="text-xs text-zinc-500">
+                            {session.messages.length} {session.messages.length === 1 ? 'message' : 'messages'}
+                          </p>
+                          <span className="text-zinc-700">•</span>
+                          <p className="text-xs text-zinc-600">
+                            {new Date(session.updatedAt).toLocaleDateString(undefined, { 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </p>
+                        </div>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteSession(session.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all flex-shrink-0"
                       >
-                        <Trash2 className="h-3 w-3 text-red-400" />
+                        <Trash2 className="h-3.5 w-3.5 text-red-400" />
                       </button>
                     </div>
                   </div>
