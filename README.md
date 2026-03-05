@@ -1,5 +1,7 @@
 # FlowSync — AI-Native Project Development System
 
+> *Code Collaboration, Reimagined.*
+
 > **AI for Bharat Hackathon** | Powered by Amazon Bedrock
 > Team **Vanta** — Aahil Khan, Anoushka Awasthi, Maulik Dang, Sanyam Wadhwa
 

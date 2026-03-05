@@ -1,5 +1,7 @@
 # FlowSync
 
+*Code Collaboration, Reimagined.*
+
 **AI-powered context layer for AI-assisted development teams.**
 
 Every time your team pushes code, FlowSync automatically captures *what* was built, *why* it was decided, and *what risks* were introduced — and makes that knowledge queryable by both humans and AI agents.

@@ -1,5 +1,7 @@
 # FlowSync — Infrastructure (AWS CDK)
 
+*Code Collaboration, Reimagined.*
+
 AWS CDK TypeScript stack that provisions all backend resources for FlowSync.
 
 ---
