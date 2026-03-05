@@ -284,7 +284,24 @@ async function ingestEvent(headers, body) {
     }));
   } catch (err) { console.error('[non-fatal] AI invoke failed:', err.message); }
 
-  // ── Non-fatal: audit record ──
+  // ── Non-fatal: Branch merge propagation (fire-and-forget) ──
+  // When a merge commit is pushed, copy all source-branch context records to the target branch.
+  if (event.payload?.isMerge && event.payload?.sourceBranch) {
+    try {
+      await lambda.send(new InvokeCommand({
+        FunctionName: AI_FUNCTION,
+        InvocationType: 'Event',
+        Payload: Buffer.from(JSON.stringify({
+          propagate:    true,
+          projectId:    event.projectId,
+          sourceBranch: event.payload.sourceBranch,
+          targetBranch: event.branch,
+          timestamp:    event.timestamp,
+        })),
+      }));
+      console.log(`[merge-propagate] queued propagation: ${event.payload.sourceBranch} → ${event.branch}`);
+    } catch (err) { console.error('[non-fatal] Merge propagation invoke failed:', err.message); }
+  }
   try {
     await dynamo.send(new PutCommand({
       TableName: AUDIT_TABLE,

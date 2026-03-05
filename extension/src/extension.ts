@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { readConfig, writeConfig, getWorkspaceRoot } from "./config";
 import { startHookListener, stopHookListener } from "./hookListener";
-import { getDiff, getLastCommitInfo, getGitUserName } from "./gitUtils";
+import { getDiff, getLastCommitInfo, getGitUserName, getMergeInfo } from "./gitUtils";
 import { transmitEvent, CapturedEvent } from "./eventTransmitter";
 import { showPostPushNotification } from "./notifications";
 import { FlowSyncPanel } from "./panels/FlowSyncPanel";
@@ -150,6 +150,10 @@ async function handlePushEvent(
 
   log.step("handlePushEvent", "computing diff");
   const diff = getDiff(remoteRef);
+  const mergeInfo = getMergeInfo();
+  if (mergeInfo.isMerge) {
+    log.ok("handlePushEvent", `merge commit — sourceBranch=${mergeInfo.sourceBranch ?? "unknown"} → ${branch}`);
+  }
   log.step("handlePushEvent", "running git log for commit info");
   const commitInfo = getLastCommitInfo();
   const gitUserName = getGitUserName();
@@ -179,6 +183,8 @@ async function handlePushEvent(
       diff,
       author: commitInfo.author,
       parentBranch: defaultBranch !== branch ? defaultBranch : undefined,
+      isMerge: mergeInfo.isMerge || undefined,
+      sourceBranch: mergeInfo.isMerge && mergeInfo.sourceBranch ? mergeInfo.sourceBranch : undefined,
     },
   };
 

@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 from botocore.exceptions import ClientError
@@ -223,10 +224,65 @@ def publish_cloudwatch_metric(metric_name, value, project_id):
     except Exception as e:
         print(f"Failed to publish CloudWatch metric: {str(e)}")
 
+def propagate_branch_context(project_id, source_branch, target_branch, timestamp):
+    """Copy all completed context records from source_branch to target_branch on merge."""
+    table = dynamodb.Table(CONTEXT_TABLE)
+
+    all_records = []
+    kwargs = {
+        'IndexName': 'BranchContextIndex',
+        'KeyConditionExpression': 'projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
+        'ExpressionAttributeValues': {
+            ':pk': project_id,
+            ':prefix': f'{source_branch}#'
+        }
+    }
+    while True:
+        response = table.query(**kwargs)
+        # Only propagate non-failed records
+        all_records.extend(r for r in response.get('Items', []) if r.get('status') != 'failed')
+        last_key = response.get('LastEvaluatedKey')
+        if not last_key:
+            break
+        kwargs['ExclusiveStartKey'] = last_key
+
+    if not all_records:
+        print(f"[propagate] No records for branch '{source_branch}' — nothing to propagate")
+        return 0
+
+    for record in all_records:
+        new_record = dict(record)
+        new_record['eventId']           = str(uuid.uuid4())
+        new_record['branch']            = target_branch
+        new_record['branchExtractedAt'] = f"{target_branch}#{timestamp}"
+        new_record['mergedFrom']        = source_branch
+        new_record['extractedAt']       = timestamp
+        table.put_item(Item=new_record)
+
+    print(f"[propagate] Copied {len(all_records)} records: '{source_branch}' → '{target_branch}'")
+    return len(all_records)
+
+
 def handler(event, context):
     print("AI Processing Lambda invoked", json.dumps(event))
     project_id = event.get("projectId", "test-project")
-    
+
+    # ── Branch merge propagation path ──
+    # Triggered by Ingestion Lambda when a merge commit is detected.
+    if event.get('propagate'):
+        source_branch = event.get('sourceBranch')
+        target_branch = event.get('targetBranch')
+        timestamp     = event.get('timestamp', datetime.utcnow().isoformat() + 'Z')
+        if not source_branch or not target_branch:
+            return {'statusCode': 400, 'body': json.dumps({'error': 'sourceBranch and targetBranch required'})}
+        try:
+            count = propagate_branch_context(project_id, source_branch, target_branch, timestamp)
+            update_project_activity(project_id, timestamp)
+            return {'statusCode': 200, 'body': json.dumps({'propagated': count, 'from': source_branch, 'to': target_branch})}
+        except Exception as e:
+            print(f"[propagate] Error: {e}")
+            return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+
     try:
         # Day 1: Use hardcoded diff for initial test
         # Extract all fields from the event payload (forwarded by Ingestion Lambda)

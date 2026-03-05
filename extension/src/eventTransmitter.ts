@@ -17,6 +17,8 @@ export interface PushPayload {
   diff: string;
   author: string;
   parentBranch?: string;
+  isMerge?: boolean;
+  sourceBranch?: string;
 }
 
 export async function transmitEvent(

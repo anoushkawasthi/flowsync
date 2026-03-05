@@ -105,6 +105,35 @@ export function getCurrentBranch(): string | null {
   return git("branch --show-current");
 }
 
+export function getMergeInfo(): { isMerge: boolean; sourceBranch: string | null } {
+  const parentsLine = git("rev-list --parents -n 1 HEAD");
+  const parts = parentsLine ? parentsLine.trim().split(" ") : [];
+  const parentCount = parts.length - 1;
+
+  if (parentCount < 2) {
+    return { isMerge: false, sourceBranch: null };
+  }
+
+  // Second parent hash = tip of the branch being merged in
+  const parent2Hash = parts[2] ?? null;
+  let sourceBranch: string | null = null;
+
+  if (parent2Hash) {
+    const rawName = git(`name-rev --name-only ${parent2Hash}`);
+    if (rawName && rawName !== "undefined") {
+      // Normalise: strip remotes/origin/ prefix and ~N / ^N suffixes
+      sourceBranch = rawName
+        .replace(/^remotes\/(?:origin\/)?/, "")
+        .replace(/^origin\//, "")
+        .replace(/[~^]\d*$/, "")
+        .trim() || null;
+    }
+  }
+
+  log.ok("getMergeInfo", `merge commit detected — source branch: ${sourceBranch ?? "unknown"}`);
+  return { isMerge: true, sourceBranch };
+}
+
 export function getParentBranch(defaultBranch: string): string | null {
   return git(`merge-base --fork-point ${defaultBranch} HEAD`);
 }
