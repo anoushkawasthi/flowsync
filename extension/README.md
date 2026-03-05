@@ -4,7 +4,7 @@
 
 Every time your team pushes code, FlowSync automatically captures *what* was built, *why* it was decided, and *what risks* were introduced — and makes that knowledge queryable by both humans and AI agents.
 
-Built for the **AI for Bharat 2026** · Powered by **AWS Bedrock** (Nova Pro + Titan Embeddings) + **DynamoDB**
+Built for the **AI for Bharat Hackathon 2026** · Powered by **AWS Bedrock** (Nova Pro + Titan Embeddings) + **DynamoDB**
 
 ---
 

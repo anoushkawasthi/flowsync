@@ -388,7 +388,7 @@ export default function LandingPage() {
             <img src="/logo.png" alt="" className="h-8 w-8" />
             <span>FlowSync</span>
           </div>
-          <span>AI for Bharat 2026</span>
+          <span>AI for Bharat Hackathon 2026</span>
           <span>Powered by AWS Bedrock + DynamoDB</span>
         </div>
       </footer>
