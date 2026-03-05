@@ -2,6 +2,7 @@ import json
 import boto3
 import os
 import uuid
+import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from botocore.exceptions import ClientError
@@ -69,14 +70,18 @@ Rules for 'decision' field:
 Extract only factual information present in the diff and message. Do not invent or assume."""
 
     # Bedrock Converse API — works with Nova Pro and all Amazon/Meta models
+    t0 = time.time()
     response = bedrock_client.converse(
         modelId=MODEL_ID,
         system=[{"text": system_prompt}],
         messages=[{"role": "user", "content": [{"text": user_prompt}]}],
         inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 1}
     )
+    bedrock_duration_ms = int((time.time() - t0) * 1000)
 
-    print(f"Bedrock response metadata: {json.dumps(response.get('usage', {}), default=str)}")
+    usage = response.get('usage', {})
+    print(f"BEDROCK_TIMING input_tokens={usage.get('inputTokens', 0)} output_tokens={usage.get('outputTokens', 0)} duration_ms={bedrock_duration_ms}")
+    print(f"Bedrock response metadata: {json.dumps(usage, default=str)}")
 
     # Converse API response format: output.message.content[0].text
     try:
@@ -91,6 +96,7 @@ Extract only factual information present in the diff and message. Do not invent 
         output_text = output_text.split('```')[1].split('```')[0].strip()
 
     result = json.loads(output_text)
+    result['_bedrock_duration_ms'] = bedrock_duration_ms
     return result
 
 def validate_extraction_schema(data):
@@ -116,6 +122,7 @@ def convert_floats_to_decimal(obj):
 
 def call_titan_embedding(text):
     """Call Titan Embeddings to generate a vector for the given text."""
+    t0 = time.time()
     response = bedrock_client.invoke_model(
         modelId=EMBEDDING_MODEL_ID,
         contentType="application/json",
@@ -126,7 +133,9 @@ def call_titan_embedding(text):
     embedding = result.get("embedding")
     if not embedding or len(embedding) != 1536:
         raise ValueError("Titan embedding output shape invalid.")
-    return embedding
+    embedding_duration_ms = int((time.time() - t0) * 1000)
+    print(f"EMBEDDING_TIMING duration_ms={embedding_duration_ms} dims={len(embedding)}")
+    return embedding, embedding_duration_ms
 
 def write_context_record(context_record):
     """Write the context record to DynamoDB."""
@@ -332,12 +341,15 @@ def handler(event, context):
                 }
 
         # Call Bedrock for extraction
+        t_handler_start = time.time()
         extraction = call_bedrock(event_data)
+        bedrock_ms = extraction.pop('_bedrock_duration_ms', 0)
         validate_extraction_schema(extraction)
 
         # Generate Titan embedding
         embedding_input = json.dumps(extraction)
-        embedding = call_titan_embedding(embedding_input)
+        embedding, embedding_ms = call_titan_embedding(embedding_input)
+        total_ms = int((time.time() - t_handler_start) * 1000)
 
         # Build context record — matches flowsync-context schema exactly
         context_record = {
@@ -360,9 +372,28 @@ def handler(event, context):
             "modelVersion":       MODEL_ID,
             "embedding":          embedding,
             "extractedAt":        timestamp,
-            "processingDuration": 0
+            "processingDuration": total_ms
         }
         write_context_record(context_record)
+
+        # Emit structured benchmark log — parsed by the benchmark agent
+        print(json.dumps({
+            "BENCHMARK_LOG": True,
+            "eventId":        context_record["eventId"],
+            "projectId":      project_id,
+            "branch":         branch,
+            "author":         author,
+            "bedrock_ms":     bedrock_ms,
+            "embedding_ms":   embedding_ms,
+            "total_ms":       total_ms,
+            "diff_chars":     len(diff),
+            "confidence":     float(extraction["confidence"]),
+            "has_decision":   extraction["decision"] is not None,
+            "has_risk":       extraction["risk"] is not None,
+            "tasks_count":    len(extraction["tasks"]),
+            "entities_count": len(extraction["entities"]),
+            "timestamp":      timestamp
+        }))
 
         # Write audit record
         audit_record = {
