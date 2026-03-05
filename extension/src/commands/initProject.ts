@@ -114,6 +114,15 @@ export function registerInitCommand(
       return;
     }
 
+    // Require a git repo at the workspace root before doing anything
+    if (!fs.existsSync(path.join(workspaceRoot, ".git"))) {
+      vscode.window.showErrorMessage(
+        "FlowSync: no Git repository found in the workspace root. " +
+        "Run `git init` (or clone a repo) in this folder, then try again."
+      );
+      return;
+    }
+
     // Check if already initialized
     if (fs.existsSync(path.join(workspaceRoot, ".flowsync.json"))) {
       vscode.window.showWarningMessage(
