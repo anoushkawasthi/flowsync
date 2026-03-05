@@ -96,41 +96,47 @@ def convert_floats_to_decimal(obj):
 def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, context_table_name):
     """
     RAG pipeline for semantic search + answer generation.
-    
+
     Steps:
     1. Embed query using Titan
-    2. Fetch all context records for project
-    3. Compute cosine similarity between query and each record
+    2. Fetch all context records for project (paginated)
+    3. Compute cosine similarity; apply branch-affinity boost if branch requested
     4. Take top 5 results
     5. Feed top 5 to Nova Pro for answer generation
     6. Return answer + source citations
     """
     # Step 1: Embed query
     query_embedding = call_titan_embedding(query, bedrock_client)
-    
-    # Step 2: Fetch context records
+
+    # Step 2: Fetch context records (paginate to get ALL records, not just first DDB page)
     table = dynamodb.Table(context_table_name)
-    
-    # Determine which index to use
+    records = []
+
     if branch:
         # Query BranchContextIndex for specific branch
-        response = table.query(
-            IndexName='BranchContextIndex',
-            KeyConditionExpression='projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
-            ExpressionAttributeValues={
+        kwargs = {
+            'IndexName': 'BranchContextIndex',
+            'KeyConditionExpression': 'projectId = :pk AND begins_with(branchExtractedAt, :prefix)',
+            'ExpressionAttributeValues': {
                 ':pk': project_id,
                 ':prefix': f'{branch}#'
             }
-        )
+        }
     else:
         # Query ProjectContextIndex for all branches
-        response = table.query(
-            IndexName='ProjectContextIndex',
-            KeyConditionExpression='projectId = :pk',
-            ExpressionAttributeValues={':pk': project_id}
-        )
-    
-    records = response.get('Items', [])
+        kwargs = {
+            'IndexName': 'ProjectContextIndex',
+            'KeyConditionExpression': 'projectId = :pk',
+            'ExpressionAttributeValues': {':pk': project_id}
+        }
+
+    while True:
+        response = table.query(**kwargs)
+        records.extend(response.get('Items', []))
+        last_key = response.get('LastEvaluatedKey')
+        if not last_key:
+            break
+        kwargs['ExclusiveStartKey'] = last_key
     
     if not records:
         return {
@@ -140,12 +146,11 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
         }
     
     # Step 3: Compute similarities (convert Decimal embeddings to float)
+    # When no branch is specified, apply a 0.85× score penalty to non-main records
+    # to prevent cross-branch pollution from dominating results.
+    CROSS_BRANCH_PENALTY = 0.85
     similarities = []
     for record in records:
-        # Critical: DynamoDB stores embeddings as Decimal, must convert to float.
-        # Must check for None explicitly — orphaned (uncommitted) records store
-        # embedding as DynamoDB null, which boto3 deserializes as Python None.
-        # .get('embedding', []) returns None (not []) when null is present.
         raw_embedding = record.get('embedding')
         if not raw_embedding:
             continue
@@ -153,6 +158,11 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
         if len(embedding) != 1536:
             continue
         score = cosine_similarity(query_embedding, embedding)
+        # Apply branch affinity: penalise records not on the requested/main branch
+        if not branch:
+            rec_branch = record.get('branch', 'main')
+            if rec_branch != 'main':
+                score *= CROSS_BRANCH_PENALTY
         similarities.append((record, score))
     
     # Step 4: Top 5 results by similarity

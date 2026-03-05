@@ -20989,9 +20989,19 @@ var StdioServerTransport = class {
 };
 
 // src/index.ts
+import { execSync } from "child_process";
 var API_URL = process.env.FLOWSYNC_API_URL ?? "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
 var DEFAULT_PROJECT_ID = process.env.FLOWSYNC_PROJECT_ID ?? "";
 var TOKEN = process.env.FLOWSYNC_TOKEN ?? "";
+function detectCurrentBranch() {
+  if (process.env.FLOWSYNC_BRANCH) return process.env.FLOWSYNC_BRANCH;
+  try {
+    return execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+  } catch {
+    return "main";
+  }
+}
+var DEFAULT_BRANCH = detectCurrentBranch();
 async function callMcp(tool, params) {
   const res = await fetch(`${API_URL}/mcp`, {
     method: "POST",
@@ -21120,11 +21130,13 @@ server.tool(
 );
 server.tool(
   "search_context",
-  "Ask a natural language question about the project and get a grounded answer backed by AI-extracted context records. Uses Titan embeddings + cosine similarity to find the most relevant context, then Nova Pro generates a grounded answer with source citations. Good questions: 'Why did we choose JWT over sessions?', 'What are the identified security risks?', 'What features have been built?', 'What tasks are still pending on feature/auth?'. WHY: Reading every context record manually is slow and error-prone. This answers your specific question directly and cites the exact records it used, so you can trust and verify the answer.",
+  `Ask a natural language question about the project and get a grounded answer backed by AI-extracted context records. Uses Titan embeddings + cosine similarity to find the most relevant context, then Nova Pro generates a grounded answer with source citations. Good questions: 'Why did we choose JWT over sessions?', 'What are the identified security risks?', 'What features have been built?', 'What tasks are still pending on feature/auth?'. Searches branch '${DEFAULT_BRANCH}' by default (current git branch) \u2014 pass branch='all' to search across all branches. WHY: Reading every context record manually is slow and error-prone. This answers your specific question directly and cites the exact records it used, so you can trust and verify the answer.`,
   {
     query: external_exports.string().min(3).describe("Natural language question about the project"),
     projectId: external_exports.string().optional().describe("Project ID"),
-    branch: external_exports.string().optional().describe("Optional branch filter for the search context")
+    branch: external_exports.string().optional().describe(
+      `Branch to search within. Defaults to '${DEFAULT_BRANCH}' (current git branch). Pass 'all' to search across all branches.`
+    )
   },
   async ({ query, projectId, branch }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
@@ -21136,11 +21148,12 @@ server.tool(
         ]
       };
     }
+    const effectiveBranch = branch === "all" ? void 0 : branch ?? DEFAULT_BRANCH;
     try {
       const data = await callMcp("search_context", {
         projectId: pid,
         query,
-        branch
+        branch: effectiveBranch
       });
       return { content: [{ type: "text", text: toText(data) }] };
     } catch (err) {

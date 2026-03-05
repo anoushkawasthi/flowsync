@@ -14,6 +14,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { execSync } from "child_process";
 import { z } from "zod";
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -24,6 +25,19 @@ const API_URL =
 
 const DEFAULT_PROJECT_ID = process.env.FLOWSYNC_PROJECT_ID ?? "";
 const TOKEN = process.env.FLOWSYNC_TOKEN ?? "";
+
+/** Current git branch — used as the default branch filter for search_context
+ *  so queries stay scoped to what the user is working on right now.
+ *  Falls back to FLOWSYNC_BRANCH env var, then 'main'. */
+function detectCurrentBranch(): string {
+  if (process.env.FLOWSYNC_BRANCH) return process.env.FLOWSYNC_BRANCH;
+  try {
+    return execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+  } catch {
+    return "main";
+  }
+}
+const DEFAULT_BRANCH = detectCurrentBranch();
 
 // ── HTTP helper ───────────────────────────────────────────────────────────────
 
@@ -226,6 +240,7 @@ server.tool(
     "then Nova Pro generates a grounded answer with source citations. " +
     "Good questions: 'Why did we choose JWT over sessions?', 'What are the identified security risks?', " +
     "'What features have been built?', 'What tasks are still pending on feature/auth?'. " +
+    `Searches branch '${DEFAULT_BRANCH}' by default (current git branch) — pass branch='all' to search across all branches. ` +
     "WHY: Reading every context record manually is slow and error-prone. " +
     "This answers your specific question directly and cites the exact records it used, so you can trust and verify the answer.",
 
@@ -238,7 +253,10 @@ server.tool(
     branch: z
       .string()
       .optional()
-      .describe("Optional branch filter for the search context"),
+      .describe(
+        `Branch to search within. Defaults to '${DEFAULT_BRANCH}' (current git branch). ` +
+        "Pass 'all' to search across all branches."
+      ),
   },
   async ({ query, projectId, branch }) => {
     const pid = projectId ?? DEFAULT_PROJECT_ID;
@@ -250,11 +268,14 @@ server.tool(
         ],
       };
     }
+    // Hard branch filter: default to the current git branch so results stay
+    // scoped to what the user is working on. Pass branch='all' to opt out.
+    const effectiveBranch = branch === "all" ? undefined : (branch ?? DEFAULT_BRANCH);
     try {
       const data = await callMcp("search_context", {
         projectId: pid,
         query,
-        branch,
+        branch: effectiveBranch,
       });
       return { content: [{ type: "text" as const, text: toText(data) }] };
     } catch (err) {

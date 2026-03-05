@@ -10,7 +10,7 @@ import os
 import base64
 from datetime import datetime, timedelta
 from decimal import Decimal
-from flowsync_common.helpers import respond, strip_embeddings, search_context_rag, convert_floats_to_decimal
+from flowsync_common.helpers import respond, strip_embeddings, search_context_rag, convert_floats_to_decimal, call_titan_embedding
 
 # Environment variables
 CONTEXT_TABLE = os.environ.get("CONTEXT_TABLE", "flowsync-context")
@@ -293,7 +293,28 @@ def log_context(params):
                 UpdateExpression=update_expr,
                 ExpressionAttributeValues=expr_values
             )
-            
+
+            # Re-embed after enrichment so RAG search sees the updated content
+            try:
+                updated = table.get_item(Key={'eventId': event_id}).get('Item', {})
+                embed_text = json.dumps({
+                    'feature':        updated.get('feature', ''),
+                    'decision':       updated.get('decision', ''),
+                    'risk':           updated.get('risk', ''),
+                    'tasks':          updated.get('tasks', []),
+                    'agentReasoning': reasoning,
+                })
+                new_embedding = call_titan_embedding(embed_text, bedrock_client)
+                table.update_item(
+                    Key={'eventId': event_id},
+                    UpdateExpression='SET embedding = :emb',
+                    ExpressionAttributeValues={':emb': convert_floats_to_decimal(new_embedding)}
+                )
+                print(f'[log_context] Re-embedded record {event_id} after enrichment')
+            except Exception as emb_err:
+                # Non-fatal: enrichment was written successfully; only search ranking is affected
+                print(f'[log_context] WARNING: re-embed failed for {event_id}: {emb_err}')
+
             # Write audit record
             audit_table = dynamodb.Table(AUDIT_TABLE)
             audit_table.put_item(Item={

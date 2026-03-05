@@ -52,7 +52,6 @@ Return ONLY a valid JSON object with this exact structure:
   "tasks": ["specific remaining task inferred from TODOs, partial implementations, or stub functions — empty array if none visible"],
   "stage": "one of: Setup | Feature Development | Refactoring | Bug Fix | Testing | Documentation",
   "risk": "a concrete risk visible in the diff (e.g. 'No error handling on DB write', 'Token logged in plaintext', 'No input validation') — null if none",
-  "confidence": 0.85,
   "entities": ["every function name, class name, or filename directly modified in this diff"]
 }}
 
@@ -102,12 +101,35 @@ Extract only factual information present in the diff and message. Do not invent 
 def validate_extraction_schema(data):
     """Validate Bedrock output against expected schema."""
     required_fields = [
-        "feature", "decision", "tasks", "stage", "risk", "confidence", "entities"
+        "feature", "decision", "tasks", "stage", "risk", "entities"
     ]
     for field in required_fields:
         if field not in data:
             raise ValueError(f"Missing required field: {field}")
     return True
+
+
+def compute_confidence(extraction):
+    """
+    Deterministic confidence score based on extraction completeness.
+    Replaces the flat 0.85 default the model was producing.
+      0.55  base  — feature was identified
+     +0.15  decision populated
+     +0.15  risk populated
+     +0.10  at least one task inferred
+     +0.05  2+ entities extracted
+    Max: 1.0
+    """
+    score = 0.55
+    if extraction.get('decision'):
+        score += 0.15
+    if extraction.get('risk'):
+        score += 0.15
+    if extraction.get('tasks'):
+        score += 0.10
+    if len(extraction.get('entities', [])) >= 2:
+        score += 0.05
+    return round(min(score, 1.0), 2)
 
 def convert_floats_to_decimal(obj):
     """Convert all float values to Decimal for DynamoDB compatibility."""
@@ -345,6 +367,7 @@ def handler(event, context):
         extraction = call_bedrock(event_data)
         bedrock_ms = extraction.pop('_bedrock_duration_ms', 0)
         validate_extraction_schema(extraction)
+        extraction['confidence'] = compute_confidence(extraction)
 
         # Generate Titan embedding
         embedding_input = json.dumps(extraction)
