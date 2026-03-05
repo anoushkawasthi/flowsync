@@ -4,16 +4,16 @@
 
 Every time your team pushes code, FlowSync automatically captures *what* was built, *why* it was decided, and *what risks* were introduced — and makes that knowledge queryable by both humans and AI agents.
 
-Built for the **AI for Bharat Hackathon 2026** · Powered by **AWS Bedrock** (Nova Pro + Titan Embeddings) + **DynamoDB**
+Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pro + Titan Embeddings) + **DynamoDB**
 
 ---
 
 ## Features
 
 - **Zero-config context capture** — a post-push git hook is installed automatically; every `git push` sends the diff to the AI backend without any manual input
-- **AI-powered extraction** — Claude (Nova Pro) analyses each diff and extracts: feature summary, decisions made, risks introduced, pending tasks, and affected files
-- **Vector search via MCP** — Titan Embeddings index all context records; AI coding agents can query your project history over the Model Context Protocol
-- **Catch Me Up** — run one command to see a human-readable summary of everything your teammates pushed while you were away, with smart deduplication
+- **AI-powered extraction** — AWS Bedrock Nova Pro analyses each diff and extracts: feature summary, decisions made, risks introduced, pending tasks, and affected files
+- **Vector search via MCP** — Titan Embeddings index all context records; AI coding agents can query your project history over the Model Context Protocol using 5 built-in tools
+- **Catch Me Up** — one command summarises everything your teammates pushed since you last checked, with deduplication across authors and branches
 - **Merge propagation** — when a branch is merged, all context records are automatically copied to the target branch so history is never lost
 - **Team memory** — team leads generate a shared API token; all teammates push context to the same project, building a living knowledge base
 
@@ -24,70 +24,84 @@ Built for the **AI for Bharat Hackathon 2026** · Powered by **AWS Bedrock** (No
 ### Team lead — initialize a new project
 
 1. Open the repo folder in VS Code
-2. Press `Ctrl+Shift+P` → **FlowSync: Initialize Project**
-3. Enter project name, description, primary language, and default branch
-4. Copy the generated API token and share it with your team securely
-5. Commit `.flowsync.json` and `.github/copilot-instructions.md` to the repo
-6. Push — FlowSync captures your first context record automatically
+2. Press `Ctrl+Shift+P` → **FlowSync: Open Dashboard**
+3. Click **Initialize Project** in the panel
+4. Enter project name, description, primary language, and default branch
+5. Copy the generated API token and share it with your team securely
+6. Commit `.flowsync.json` and `.github/copilot-instructions.md` to the repo
+7. Push — FlowSync captures your first context record automatically
 
 ### Team members — join an existing project
 
 1. Clone the repo (`.flowsync.json` is already there)
-2. Press `Ctrl+Shift+P` → **FlowSync: Join Project**
-3. Paste the API token from your team lead
+2. Press `Ctrl+Shift+P` → **FlowSync: Open Dashboard**
+3. Click **Join Project** and paste the API token from your team lead
 4. Push normally — your context is captured from now on
 
 ---
 
 ## Commands
 
+The extension registers two commands in the Command Palette (`Ctrl+Shift+P`):
+
 | Command | Description |
 |---|---|
-| `FlowSync: Initialize Project` | Create a new FlowSync project and generate a team API token |
-| `FlowSync: Join Project` | Join an existing project using a shared API token |
-| `FlowSync: Catch Me Up` | Summarize everything pushed by teammates since you last checked |
-| `FlowSync: Open Dashboard` | Open the web dashboard for your project |
-| `FlowSync: Show Status` | Display current project config and connection status |
+| `FlowSync: Open Dashboard` | Opens the FlowSync panel — initialize, join, view context, and chat |
+| `FlowSync: Catch Me Up` | Summarizes all teammate pushes since you last checked |
+
+Project initialization and joining are done inside the **Open Dashboard** panel UI, not as separate commands.
 
 ---
 
 ## MCP Integration
 
-FlowSync exposes an MCP server so your AI coding agent can query project context directly.
+The MCP server is **bundled inside the extension** and exposes 5 tools to GitHub Copilot and other MCP-compatible agents.
 
-Add this to your MCP client config (e.g. Claude Desktop, Copilot agent mode):
+### VS Code (Copilot agent mode)
 
-```json
+Add a `.vscode/mcp.json` to your workspace:
+
+```jsonc
 {
-  "mcpServers": {
+  "inputs": [
+    {
+      "id": "flowsync-token",
+      "type": "promptString",
+      "description": "FlowSync API token — find it in .flowsync.json",
+      "password": true
+    }
+  ],
+  "servers": {
     "flowsync": {
-      "command": "npx",
-      "args": ["-y", "flowsync-mcp"],
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/mcp-server/dist/index.js"],
       "env": {
+        "FLOWSYNC_API_URL": "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod",
         "FLOWSYNC_PROJECT_ID": "<your-project-id>",
-        "FLOWSYNC_TOKEN": "<your-api-token>"
+        "FLOWSYNC_TOKEN": "${input:flowsync-token}"
       }
     }
   }
 }
 ```
 
-Your agent can then ask questions like:
+### Available MCP tools
+
+| Tool | Description |
+|---|---|
+| `get_project_context` | Get AI-extracted context records for a branch (paginated) |
+| `get_recent_changes` | Get the most recent records across all branches, with optional `since` filter |
+| `search_context` | Ask a natural language question — RAG search via Titan Embeddings + Nova Pro |
+| `log_context` | Record the WHY behind your work: decisions, risks, and reasoning |
+| `get_events` | Fetch raw context records from the dashboard API (requires token) |
+
+### Example agent queries
+
 - *"What did we decide about authentication?"*
 - *"What risks were introduced in the payments branch?"*
 - *"Summarize what the team built last week"*
-
----
-
-## Extension Settings
-
-| Setting | Default | Description |
-|---|---|---|
-| `flowsync.apiUrl` | `https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod` | Backend API endpoint |
-| `flowsync.projectId` | *(from `.flowsync.json`)* | Your project's unique ID |
-| `flowsync.token` | *(stored in Secret Storage)* | API token for authentication |
-
-Settings are typically auto-populated from `.flowsync.json` in your repo — manual configuration is rarely needed.
+- *"Log my decision: chose JWT over sessions for stateless horizontal scaling"*
 
 ---
 
@@ -102,15 +116,14 @@ Settings are typically auto-populated from `.flowsync.json` in your repo — man
 
 ## Release Notes
 
-### 1.2.0
-- Merge propagation: context records automatically copied to target branch on merge
-- Workspace root auto-detection: walks up the directory tree to find `.git`
-- Catch Me Up timestamp fix: checkpoint only advances when you view the summary
-
-### 1.1.0
-- Catch Me Up command with AI-powered diff summarization
-- MCP tools: `query_context`, `get_recent_context`, `get_project_summary`
+### 0.0.1
+- Initial prototype release for AI for Bharat Hackathon
+- Project init and team join via webview panel UI
+- Automatic context capture on every `git push` via post-push hook
+- AI extraction via AWS Bedrock Nova Pro: feature, decision, risk, tasks, affected files
+- Titan Embeddings for vector search
+- Catch Me Up command — summarises teammate pushes since last checkpoint
+- 5 MCP tools: `get_project_context`, `get_recent_changes`, `search_context`, `log_context`, `get_events`
+- Merge propagation: context copied to target branch on merge
+- Workspace root auto-detection via `.git` directory walk
 - Merge visual badge on dashboard context cards
-
-### 1.0.0
-- Initial release: project init, team join, automatic context capture on push, AI extraction via AWS Bedrock Nova Pro

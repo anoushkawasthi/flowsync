@@ -1,11 +1,48 @@
-# React + TypeScript + Vite
+# FlowSync Extension — Webview UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite app that runs inside the VS Code extension panel (webview).
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Views
+
+| View | Description |
+|---|---|
+| `Welcome` | Default screen — shown when no `.flowsync.json` is found |
+| `InitProject` | Multi-step form to initialize a new FlowSync project |
+| `JoinProject` | Form to join an existing project using a shared API token |
+| `Dashboard` | Context timeline for the current branch |
+| `CatchMeUp` | Summary of teammate changes since last checkpoint |
+| `Chat` | Conversational interface over project context |
+
+---
+
+## Dev setup
+
+```bash
+cd extension/webview-ui
+npm install
+npm run dev      # Vite dev server at http://localhost:5173
+```
+
+> In dev mode the webview communicates via `window.acquireVsCodeApi()` mock. Run the full extension via `F5` in VS Code to test in the real panel.
+
+## Build
+
+```bash
+npm run build    # outputs to webview-ui/build/ — consumed by the extension
+```
+
+The extension's webpack config copies the built output into the VSIX. Always run `npm run build` before packaging the extension with `npm run vsix` (from the parent `extension/` directory).
+
+---
+
+## Tech stack
+
+- **React 19** + **TypeScript**
+- **Vite 7** for bundling
+- **CSS Modules** for styling (custom dark theme matching VS Code)
+- VS Code webview messaging via `vscode.postMessage` / `window.addEventListener('message', ...)`
 
 ## React Compiler
 

@@ -63,26 +63,28 @@ The system returns instant, accurate, source-cited answers.
 CLIENT LAYER                        BACKEND LAYER (AWS)
 ─────────────────────────────────────────────────────────────────
 VS Code Extension (VSIX)            Amazon API Gateway
-  ├── Git commits          ──►         ├── Event Ingestion (Lambda)
-  ├── File saves                       │     └── Validates, stores to DynamoDB
-  └── MCP Tool calls                   │
-                                       ├── AI Processing (Lambda + Nova Pro)
-MCP Server (stdio)       ◄──►          │     └── Extracts intent, features, decisions
-  ├── get_project_context              │         Embeds with Titan Embeddings
-  ├── get_recent_changes               │
-  ├── search_context (RAG)             ├── MCP Handler (Lambda)
-  └── log_context                      │     └── Routes 4 MCP tool calls
-                                       │
-Web Dashboard (Next.js)  ◄──           ├── Query (Lambda + Nova Lite)
-  ├── Project summary                  │     └── Natural language Q&A, RAG pipeline
-  ├── Feature timeline                 │
-  ├── Branch compare                   └── Chat (Lambda + Nova Lite)
-  └── Conversational chat                    └── Hybrid RAG conversational interface
+  ├── Git push hook         ──►         ├── Ingestion (Lambda)
+  └── MCP Tool calls                    │     └── Validates, stores to DynamoDB
+                                        │         Invokes AI processing async
+                                        │
+MCP Server (stdio)       ◄──►           ├── AI Processing (Lambda + Nova Pro)
+  ├── get_project_context               │     └── Extracts context, embeddings,
+  ├── get_recent_changes                │         merge propagation
+  ├── search_context                    │
+  ├── log_context                       ├── MCP Handler (Lambda)
+  └── get_events                        │     └── Routes 5 MCP tool calls
+                                        │
+Web Dashboard (Next.js)  ◄──            ├── Query (Lambda + Nova Pro)
+  (deployed to Vercel)                  │     └── Natural language Q&A, RAG
+                                        │
+                                        └── Chat (Lambda + Nova Lite)
+                                              └── Conversational interface
 
-STORAGE & DELIVERY
-  ├── Context DB     — DynamoDB (events, embeddings, project metadata)
-  ├── VSIX & Assets  — Amazon S3
-  └── Dashboard CDN  — Amazon CloudFront
+STORAGE
+  ├── flowsync-projects  — DynamoDB (project metadata + API tokens)
+  ├── flowsync-events    — DynamoDB (raw push events)
+  ├── flowsync-context   — DynamoDB (AI-extracted context + embeddings)
+  └── flowsync-raw-*     — S3 (raw event archive)
 ```
 
 ---
@@ -121,8 +123,7 @@ STORAGE & DELIVERY
 | Embeddings | Amazon Titan Text Embeddings v1 |
 | Database | Amazon DynamoDB |
 | Asset Storage | Amazon S3 |
-| Frontend Dashboard | Next.js 14, React 18, Tailwind CSS, shadcn/ui |
-| CDN | Amazon CloudFront |
+| Frontend Dashboard | Next.js 14, React 18, Tailwind CSS, shadcn/ui (deployed to Vercel) |
 
 ---
 
@@ -135,10 +136,10 @@ STORAGE & DELIVERY
 | Embeddings | Amazon Titan Embeddings | ~₹84 ($1.00) |
 | Compute | AWS Lambda | <₹170 ($2.00) |
 | Storage | Amazon DynamoDB | ~₹420 ($5.00) |
-| API, CDN & Network | API Gateway + CloudFront | ~₹265 ($3.15) |
-| **Total** | | **~₹1,445 ($17.15) / month** |
+| API & Network | Amazon API Gateway | ~₹170 ($2.00) |
+| **Total** | | **~₹1,349 ($16.00) / month** |
 
-> **~₹360 ($4.30) per developer per month** (4-person team)
+> **~₹337 ($4.00) per developer per month** (4-person team)
 
 ### Why it's cost-effective:
 - **Zero Idle Cost** — Serverless architecture means you pay ₹0 when the team isn't coding
