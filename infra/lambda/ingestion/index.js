@@ -235,8 +235,7 @@ async function ingestEvent(headers, body) {
   if (errors.length) return respond(400, { error: 'validation_failed', details: errors });
 
   const receivedAt = new Date().toISOString();
-
-  // Build event record
+  const t_ingestion_start = Date.now();
   // timestampEventId  → SK for flowsync-events (chronological order within project)
   // branchTimestamp   → SK for BranchIndex GSI  (CDK defines this as a separate attribute)
   const record = {
@@ -321,6 +320,8 @@ async function ingestEvent(headers, body) {
   } catch (err) { console.error('[non-fatal] Audit write failed:', err.message); }
 
   // ── 200 response — within 500 ms SLA ──
+  const ingestion_ms = Date.now() - t_ingestion_start;
+  console.log(JSON.stringify({ INGESTION_TIMING: true, eventId: event.eventId, ingestion_ms, receivedAt }));
   return respond(200, {
     eventId:   event.eventId,
     projectId: event.projectId,
