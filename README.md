@@ -168,24 +168,6 @@ STORAGE & DELIVERY
 
 ---
 
-## 🗺️ Roadmap
-
-- [x] Core VS Code Extension (VSIX)
-- [x] Amazon Bedrock intent extraction (Nova Pro)
-- [x] DynamoDB Knowledge Graph with vector embeddings
-- [x] Web Dashboard (Next.js + CloudFront)
-- [x] Natural Language Q&A Interface (Nova Lite RAG)
-- [x] MCP Server — 4 tools for GitHub Copilot integration
-- [x] Conversational Chat with hybrid RAG
-- [x] Pagination & timestamp filtering for MCP tools
-- [ ] Mobile View *(coming soon)*
-- [ ] Multi-IDE support (JetBrains, Neovim)
-- [ ] GitHub / GitLab deep integration
-- [ ] Team analytics & productivity insights
-- [ ] Branch merge history propagation
-
----
-
 ## 👥 Team
 
 | Name | Role |

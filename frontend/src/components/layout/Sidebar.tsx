@@ -9,7 +9,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Zap,
   X,
   LogOut,
 } from 'lucide-react';
@@ -55,7 +54,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         {/* Logo */}
         <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-4">
           <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 shrink-0 text-teal-500" />
+            <img src="/logo.png" alt="FlowSync" className="h-6 w-6 shrink-0 rounded" />
             {(!collapsed || mobileOpen) && (
               <span className="text-lg font-bold text-zinc-100">
                 FlowSync

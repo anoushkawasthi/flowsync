@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Zap,
   GitBranch,
   Brain,
   Users,
@@ -187,7 +186,7 @@ function LoginForm() {
         className="mt-3 w-full text-sm text-zinc-300 border-zinc-700 hover:border-teal-500/50 hover:text-teal-400"
         onClick={handleMockLogin}
       >
-        <Zap className="mr-2 h-3.5 w-3.5 text-teal-500" />
+        <img src="/logo.png" alt="" className="mr-2 h-6 w-6" />
         Try Demo Project
         <span className="ml-auto text-[10px] text-zinc-500 font-normal">(preloaded data)</span>
       </Button>
@@ -204,7 +203,7 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-teal-500" />
+            <img src="/logo.png" alt="FlowSync" className="h-8 w-8" />
             <span className="text-base font-bold">FlowSync</span>
           </div>
           <div className="flex items-center gap-2">
@@ -239,10 +238,6 @@ export default function LandingPage() {
         <div className="relative grid gap-12 lg:grid-cols-2 lg:items-center">
           {/* Left: copy */}
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-medium text-teal-400">
-              <Zap className="h-3 w-3" />
-              Built for AI for Bharat Hackathon
-            </div>
             <h1 className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
               Your codebase's{' '}
               <span className="text-teal-400">memory layer</span>
@@ -361,7 +356,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-zinc-800/60">
         <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-8 text-center">
-          <Zap className="mx-auto mb-4 h-8 w-8 text-teal-400" />
+          <img src="/logo.png" alt="FlowSync" className="mx-auto mb-4 h-20 w-20" />
           <h2 className="mb-2 text-2xl font-bold">Ready to remember everything?</h2>
           <p className="mb-6 text-zinc-400">
             Install the extension and push a commit. FlowSync captures the rest.
@@ -390,10 +385,10 @@ export default function LandingPage() {
       <footer className="border-t border-zinc-800/60 py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-600">
           <div className="flex items-center gap-2">
-            <Zap className="h-3.5 w-3.5 text-teal-600" />
+            <img src="/logo.png" alt="" className="h-8 w-8" />
             <span>FlowSync</span>
           </div>
-          <span>Built for AI for Bharat Hackathon</span>
+          <span>AI for Bharat 2026</span>
           <span>Powered by AWS Bedrock + DynamoDB</span>
         </div>
       </footer>

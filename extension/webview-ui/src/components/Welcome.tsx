@@ -1,4 +1,5 @@
 import { vscode } from "../utilities/vscode";
+import logo from '../assets/logo.png';
 
 interface WelcomeProps {
   onNavigate: (view: string) => void;
@@ -8,17 +9,7 @@ export function Welcome({ onNavigate }: WelcomeProps) {
   return (
     <div className="welcome-container">
       <div className="welcome-header">
-        <div className="logo-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M14 24L20 30L34 16"
-              stroke="#F0FDFA"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
+        <img src={logo} alt="FlowSync" className="welcome-logo" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'contain' }} />
         <h1 className="welcome-title">FlowSync</h1>
         <p className="welcome-subtitle">
           AI-powered context layer for AI-assisted development teams
