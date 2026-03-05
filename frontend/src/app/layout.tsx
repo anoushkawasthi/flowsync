@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'FlowSync Dashboard',
   description: 'Project intelligence dashboard for FlowSync',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
