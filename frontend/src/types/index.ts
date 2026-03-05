@@ -18,6 +18,7 @@ export interface ContextRecord {
   author: string;
   commitHash: string;
   extractedAt: string;
+  mergedFrom?: string; // source branch if this record was propagated on merge
   agentReasoning?: {
     reasoning: string;
     decision: string;

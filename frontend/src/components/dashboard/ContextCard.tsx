@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { Lightbulb, AlertTriangle } from 'lucide-react';
+import { Lightbulb, AlertTriangle, GitMerge } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { StageBadge } from './StageBadge';
 import type { ContextRecord } from '@/types';
@@ -20,6 +20,12 @@ export function ContextCard({ event }: ContextCardProps) {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <StageBadge stage={event.stage} />
+        {event.mergedFrom && (
+          <div className="flex items-center gap-1 rounded bg-violet-500/20 px-2 py-1 border border-violet-500/30">
+            <GitMerge className="h-3 w-3 text-violet-400" />
+            <span className="text-xs text-violet-300 font-medium">merged from {event.mergedFrom}</span>
+          </div>
+        )}
         <span className="text-xs sm:text-sm text-zinc-300">{event.author}</span>
         <span className="text-xs text-zinc-500">{relativeTime}</span>
         <span className="ml-auto font-mono text-xs text-zinc-500">
