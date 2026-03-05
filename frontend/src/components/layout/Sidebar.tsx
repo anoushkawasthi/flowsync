@@ -54,7 +54,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         {/* Logo */}
         <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="FlowSync" className="h-6 w-6 shrink-0 rounded" />
+            <img src="/logo.png?v=1" alt="FlowSync" className="h-6 w-6 shrink-0 rounded" />
             {(!collapsed || mobileOpen) && (
               <span className="text-lg font-bold text-zinc-100">
                 FlowSync

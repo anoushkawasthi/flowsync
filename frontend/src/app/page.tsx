@@ -186,7 +186,7 @@ function LoginForm() {
         className="mt-3 w-full text-sm text-zinc-300 border-zinc-700 hover:border-teal-500/50 hover:text-teal-400"
         onClick={handleMockLogin}
       >
-        <img src="/logo.png" alt="" className="mr-2 h-6 w-6" />
+        <img src="/logo.png?v=1" alt="" className="mr-2 h-6 w-6" />
         Try Demo Project
         <span className="ml-auto text-[10px] text-zinc-500 font-normal">(preloaded data)</span>
       </Button>
@@ -203,7 +203,7 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="FlowSync" className="h-8 w-8" />
+            <img src="/logo.png?v=1" alt="FlowSync" className="h-8 w-8" />
             <span className="text-base font-bold">FlowSync</span>
           </div>
           <div className="flex items-center gap-2">
@@ -356,7 +356,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-zinc-800/60">
         <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-8 text-center">
-          <img src="/logo.png" alt="FlowSync" className="mx-auto mb-4 h-20 w-20" />
+          <img src="/logo.png?v=1" alt="FlowSync" className="mx-auto mb-4 h-20 w-20" />
           <h2 className="mb-2 text-2xl font-bold">Ready to remember everything?</h2>
           <p className="mb-6 text-zinc-400">
             Install the extension and push a commit. FlowSync captures the rest.
@@ -385,7 +385,7 @@ export default function LandingPage() {
       <footer className="border-t border-zinc-800/60 py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-600">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="" className="h-8 w-8" />
+            <img src="/logo.png?v=1" alt="" className="h-8 w-8" />
             <span>FlowSync</span>
           </div>
           <span>AI for Bharat Hackathon 2026</span>
