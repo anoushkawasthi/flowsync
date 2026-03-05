@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'FlowSync Dashboard',
   description: 'Project intelligence dashboard for FlowSync',
   icons: {
-    icon: '/logo.png?v=1',
+    icon: '/logo.png',
   },
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -54,7 +55,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         {/* Logo */}
         <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.png?v=1" alt="FlowSync" className="h-6 w-6 shrink-0 rounded" />
+            <Image src="/logo.png" alt="FlowSync" width={24} height={24} className="h-6 w-6 shrink-0 rounded" />
             {(!collapsed || mobileOpen) && (
               <span className="text-lg font-bold text-zinc-100">
                 FlowSync
