@@ -23,7 +23,6 @@ export const log = {
       ? `[${ts()}] INFO  ${msg} ${data.map((d) => JSON.stringify(d, null, 0)).join(" ")}`
       : `[${ts()}] INFO  ${msg}`;
     channel?.appendLine(line);
-    console.log(line);
   },
 
   warn(msg: string, ...data: unknown[]): void {
@@ -31,7 +30,6 @@ export const log = {
       ? `[${ts()}] WARN  ${msg} ${data.map((d) => JSON.stringify(d, null, 0)).join(" ")}`
       : `[${ts()}] WARN  ${msg}`;
     channel?.appendLine(line);
-    console.warn(line);
   },
 
   error(msg: string, ...data: unknown[]): void {
@@ -39,7 +37,6 @@ export const log = {
       ? `[${ts()}] ERROR ${msg} ${data.map((d) => (d instanceof Error ? d.stack ?? d.message : JSON.stringify(d, null, 0))).join(" ")}`
       : `[${ts()}] ERROR ${msg}`;
     channel?.appendLine(line);
-    console.error(line);
   },
 
   step(step: string, detail?: string): void {
@@ -47,7 +44,6 @@ export const log = {
       ? `[${ts()}] STEP  ▶ ${step} — ${detail}`
       : `[${ts()}] STEP  ▶ ${step}`;
     channel?.appendLine(line);
-    console.log(line);
   },
 
   ok(step: string, detail?: string): void {
@@ -55,12 +51,10 @@ export const log = {
       ? `[${ts()}] OK    ✓ ${step} — ${detail}`
       : `[${ts()}] OK    ✓ ${step}`;
     channel?.appendLine(line);
-    console.log(line);
   },
 
   sep(): void {
     const line = `[${ts()}] ${"─".repeat(60)}`;
     channel?.appendLine(line);
-    console.log(line);
   },
 };
