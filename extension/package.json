@@ -1,14 +1,35 @@
 {
   "name": "flowsync",
   "displayName": "FlowSync",
-  "description": "AI-powered context layer for AI-assisted development teams",
+  "description": "FlowSync — Capture, understand, and query your team's dev context with AI",
   "version": "0.0.1",
+  "publisher": "vanta-thapar",
+  "icon": "assets/logo.png",
+  "galleryBanner": {
+    "color": "#0f0f0f",
+    "theme": "dark"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "git",
+    "productivity",
+    "team",
+    "copilot",
+    "mcp",
+    "knowledge"
+  ],
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anoushkawasthi/flowsync"
+  },
   "engines": {
     "vscode": "^1.109.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "workspaceContains:.flowsync.json"
   ],
