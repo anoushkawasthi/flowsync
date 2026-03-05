@@ -194,9 +194,6 @@ async function handlePushEvent(
     const result = await transmitEvent(backendUrl, apiToken, event);
     log.ok("handlePushEvent", `event transmitted successfully — response: ${JSON.stringify(result)}`);
     vscode.window.showInformationMessage(`FlowSync: push captured (${commitInfo.commitHash.slice(0, 8)})`);
-    
-    // Update "last seen" timestamp after successful push
-    await context.globalState.update("flowsync.lastSeenTimestamp", new Date().toISOString());
   } catch (err) {
     log.error("handlePushEvent", `transmit failed after all retries: ${err instanceof Error ? err.message : String(err)}`);
     vscode.window.showWarningMessage("FlowSync: could not send push data to backend. Check Output panel.");
