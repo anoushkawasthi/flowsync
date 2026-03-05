@@ -65,14 +65,36 @@ export function writeConfig(config: FlowSyncConfig): void {
 }
 
 /**
- * Returns the root path of the first workspace folder, or null.
+ * Returns the Git repository root by walking up the directory tree.
+ * Looks for .git directory or .flowsync.json file.
+ * Falls back to first workspace folder if neither found.
  */
 export function getWorkspaceRoot(): string | null {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
     return null;
   }
-  return folders[0].uri.fsPath;
+
+  const startPath = folders[0].uri.fsPath;
+  let current = startPath;
+
+  // Walk up looking for .git (Git root) or .flowsync.json
+  while (current !== path.dirname(current)) {
+    const gitPath = path.join(current, '.git');
+    const configPath = path.join(current, '.flowsync.json');
+
+    if (fs.existsSync(gitPath)) {
+      return current;
+    }
+    if (fs.existsSync(configPath)) {
+      return current;
+    }
+
+    current = path.dirname(current);
+  }
+
+  // Fallback to opened workspace folder if no Git root found
+  return startPath;
 }
 
 export { BASE_PORT };
