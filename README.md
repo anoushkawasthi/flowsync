@@ -77,7 +77,7 @@ MCP Server (stdio)       ◄──►           ├── AI Processing (Lambda 
   └── get_events                        │     └── Routes 5 MCP tool calls
                                         │
 Web Dashboard (Next.js)  ◄──            ├── Query (Lambda + Nova Pro)
-  (deployed to Vercel)                  │     └── Natural language Q&A, RAG
+  (hosted on S3 + CloudFront)             │     └── Natural language Q&A, RAG
                                         │
                                         └── Chat (Lambda + Nova Lite)
                                               └── Conversational interface
@@ -86,6 +86,7 @@ STORAGE
   ├── flowsync-projects  — DynamoDB (project metadata + API tokens)
   ├── flowsync-events    — DynamoDB (raw push events)
   ├── flowsync-context   — DynamoDB (AI-extracted context + embeddings)
+  ├── flowsync-cache     — DynamoDB (RAG response cache, 1-hr TTL)
   └── flowsync-raw-*     — S3 (raw event archive)
 ```
 
@@ -125,7 +126,7 @@ STORAGE
 | Embeddings | Amazon Titan Text Embeddings v1 |
 | Database | Amazon DynamoDB |
 | Asset Storage | Amazon S3 |
-| Frontend Dashboard | Next.js 14, React 18, Tailwind CSS, shadcn/ui (deployed to Vercel) |
+| Frontend Dashboard | Next.js 14, React 18, Tailwind CSS, shadcn/ui — hosted on AWS S3 + CloudFront |
 
 ---
 
@@ -150,7 +151,35 @@ STORAGE
 
 ---
 
-## 🆚 FlowSync vs. Alternatives
+## �️ Why This Architecture
+
+### DynamoDB over RDS
+FlowSync ingests unpredictable bursts of developer events — spiky, bursty, schema-light workloads that would thrash a relational DB. DynamoDB delivers **single-digit millisecond reads** at any scale, and PAY_PER_REQUEST means **₹0 idle cost** overnight when teams aren't coding. A JOIN-heavy RDS instance would sit idle burning reserved capacity.
+
+### Lambda over EC2 / ECS
+There is no sustained load — events arrive in bursts during working hours then go silent. Lambda scales to **zero between events** and to **hundreds of concurrent executions** during a commit storm. EC2 or ECS would require capacity planning, health checks, and a baseline bill even at rest.
+
+### Model Tiering — Nova Pro → Nova Lite
+`us.amazon.nova-pro-v1:0` is used only for **high-value, once-per-commit intent extraction** where accuracy matters. `us.amazon.nova-lite-v1:0` handles **interactive chat and Q&A** where latency matters. This splits cost and latency: Pro costs ~4× more; routing cheaper queries to Lite cuts the AI bill by ~60% for typical usage.
+
+### Async Ingestion Pipeline
+The ingestion Lambda stores the raw event to DynamoDB immediately (200 ms latency), then fires `invokeAsync` to the AI processing Lambda. The developer's push hook gets an instant `200 OK` and is never blocked waiting on Bedrock. AI processing happens in the background within seconds.
+
+### S3 Archival for Query Audit
+Every raw event payload is also archived to S3 (`flowsync-raw-*`). This provides a **full audit trail** for debugging, compliance, and potential future ML training — at roughly ₹1.7/GB/month with no compute cost.
+
+### API Gateway over ALB
+API Gateway provides **built-in rate limiting, per-client API keys, request validation, and TLS termination** — all configured with a single CDK resource. An ALB would require a separate WAF, custom auth Lambda, and manual cert rotation.
+
+### Titan Embeddings for RAG
+Amazon Titan Text Embeddings v1 is **natively integrated** with Bedrock, requires no external vector DB, and stores 1,536-dimension embedding arrays directly in DynamoDB beside the context item. This eliminates the operational overhead of running a separate Pinecone or pgvector instance.
+
+### Scrypt over Bcrypt for Token Hashing
+Project API tokens are hashed with `scrypt` (N=16384, r=8, p=1). Scrypt is **memory-hard** (not just CPU-hard like bcrypt), making GPU-based brute-force attacks ~100× more expensive for an attacker, with no observable difference to the user.
+
+---
+
+## �🆚 FlowSync vs. Alternatives
 
 | | FlowSync | Git Logs | Documentation | AI Assistants |
 |--|---------|----------|---------------|---------------|
@@ -171,7 +200,51 @@ STORAGE
 
 ---
 
-## 👥 Team
+## � Quick Start
+
+### Prerequisites
+- AWS CLI configured (`aws configure`) with Bedrock access enabled in `us-east-1`
+- Node.js 20+, Python 3.12+, AWS CDK v2 (`npm i -g aws-cdk`)
+- VS Code 1.85+
+
+### 1. Deploy Backend
+```bash
+git clone https://github.com/your-org/flowsync
+cd flowsync/frontend && npm install && npm run build     # produces frontend/out/
+cd ../infra && npm install
+cdk bootstrap   # first time only
+cdk deploy      # deploys all Lambda, DynamoDB, API Gateway, CloudFront
+```
+> After deploy, CDK prints `ApiUrl` and `FrontendUrl` — copy both.
+
+### 2. Install VS Code Extension
+```bash
+code --install-extension extension/flowsync-1.0.0.vsix
+```
+Open Command Palette → **FlowSync: Initialize Project** — paste your `ApiUrl` and project token.
+
+### 3. Configure MCP Server (optional, for Claude/Cursor)
+Add to your MCP client config:
+```json
+{
+  "mcpServers": {
+    "flowsync": {
+      "command": "node",
+      "args": ["path/to/flowsync/mcp-server/dist/index.js"],
+      "env": { "FLOWSYNC_API_URL": "<ApiUrl>", "FLOWSYNC_TOKEN": "<token>" }
+    }
+  }
+}
+```
+
+### 4. Open Dashboard
+Visit the `FrontendUrl` printed by CDK — sign in with your project token.
+
+> **Note:** `DEMO_TOKEN` (`demo-token-123`) is an intentional demo credential wired to the hosted demo. Remove it in production by deleting the `demo-projects` seeding in the ingestion Lambda.
+
+---
+
+## �👥 Team
 
 | Name | Role |
 |------|------|

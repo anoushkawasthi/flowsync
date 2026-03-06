@@ -17,14 +17,17 @@ from typing import Dict, List, Any, Optional
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# AWS Clients
+# AWS Clients with Bedrock adaptive retry — handles ThrottlingException (429) automatically
+from botocore.config import Config as BotoConfig
+_bedrock_retry_config = BotoConfig(retries={'max_attempts': 3, 'mode': 'adaptive'})
 dynamodb = boto3.resource('dynamodb')
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+bedrock = boto3.client('bedrock-runtime', region_name='us-east-1', config=_bedrock_retry_config)
 
 # Environment variables
 CONTEXT_TABLE = os.environ['CONTEXT_TABLE_NAME']
 SESSIONS_TABLE = os.environ.get('SESSIONS_TABLE_NAME', 'flowsync-chat-sessions')
 PROJECT_TABLE = os.environ['PROJECT_TABLE_NAME']
+CACHE_TABLE = os.environ.get('CACHE_TABLE_NAME', '')
 
 # Model Configuration - Nova Lite for cost-effective conversational AI
 CHAT_MODEL_ID = "us.amazon.nova-lite-v1:0"  # 75% cheaper than Nova Pro
@@ -302,7 +305,8 @@ def generate_chat_response(project_id: str, message: str, context: List[Dict], h
                 branch=branch,
                 bedrock_client=bedrock,
                 dynamodb=dynamodb,
-                context_table_name=CONTEXT_TABLE
+                context_table_name=CONTEXT_TABLE,
+                cache_table_name=CACHE_TABLE or None
             )
             
             # Check if RAG found a grounded answer

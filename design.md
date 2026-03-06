@@ -333,7 +333,7 @@ GSI: ProcessingStatusIndex
 
 ### AI Processing Layer
 
-**Technology**: AWS Lambda (Python), AWS Bedrock (Claude), DynamoDB
+**Technology**: AWS Lambda (Python 3.12), AWS Bedrock (Amazon Nova Pro, Nova Lite, Titan Embeddings), DynamoDB
 
 **Processing Pipeline**:
 1. Receive event from SQS queue
@@ -348,7 +348,7 @@ GSI: ProcessingStatusIndex
 **Bedrock Configuration for Determinism**:
 ```python
 bedrock_params = {
-    "modelId": "anthropic.claude-3-sonnet-20240229",
+    "modelId": "us.amazon.nova-pro-v1:0",
     "temperature": 0.0,  # Deterministic
     "top_p": 1.0,
     "max_tokens": 2000
@@ -1316,13 +1316,13 @@ test('identical events produce identical context', async () => {
 - WebSocket for real-time updates
 
 **Backend**:
-- AWS Lambda (Node.js 20 for API, Python 3.11 for AI processing)
+- AWS Lambda (Node.js 20 for API, Python 3.12 for AI processing)
 - API Gateway for HTTP endpoints
 - DynamoDB for data storage
 - SQS for async processing queues
 - SNS for pub/sub notifications
 - S3 for backups and exports
-- AWS Bedrock (Claude 3 Sonnet) for AI processing
+- AWS Bedrock (Amazon Nova Pro for extraction, Nova Lite for chat, Titan Embeddings for vectors)
 
 **VS Code Extension**:
 - TypeScript with VS Code Extension API

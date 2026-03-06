@@ -70,11 +70,11 @@ public/
 
 ## Deployment
 
-The dashboard is deployed to **Vercel**. Push to `main` triggers an automatic build and deploy.
+The dashboard is hosted on **AWS S3 + CloudFront** (static export). Deployed automatically via CDK from the `frontend/out/` directory.
 
 ```bash
-npm run build    # Builds Next.js static + server output
-npm run start    # Runs the production server locally
+npm run build    # Builds Next.js static export → out/
+# Then: cd ../infra && cdk deploy  (uploads out/ to S3 + invalidates CloudFront)
 npm run lint     # ESLint
 ```
 

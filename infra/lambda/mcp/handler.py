@@ -10,15 +10,18 @@ import os
 import base64
 from datetime import datetime, timedelta
 from decimal import Decimal
+from botocore.config import Config as BotoConfig
 from flowsync_common.helpers import respond, strip_embeddings, search_context_rag, convert_floats_to_decimal, call_titan_embedding
 
 # Environment variables
 CONTEXT_TABLE = os.environ.get("CONTEXT_TABLE", "flowsync-context")
 PROJECTS_TABLE = os.environ.get("PROJECTS_TABLE", "flowsync-projects")
 AUDIT_TABLE = os.environ.get("AUDIT_TABLE", "flowsync-audit")
+CACHE_TABLE = os.environ.get("CACHE_TABLE", "")
 
-# AWS clients
-bedrock_client = boto3.client("bedrock-runtime")
+# AWS clients — Bedrock with adaptive retry (handles ThrottlingException automatically)
+_bedrock_retry_config = BotoConfig(retries={'max_attempts': 3, 'mode': 'adaptive'})
+bedrock_client = boto3.client("bedrock-runtime", config=_bedrock_retry_config)
 dynamodb = boto3.resource("dynamodb")
 cloudwatch = boto3.client("cloudwatch")
 
@@ -205,7 +208,8 @@ def search_context(params):
             branch=branch,
             bedrock_client=bedrock_client,
             dynamodb=dynamodb,
-            context_table_name=CONTEXT_TABLE
+            context_table_name=CONTEXT_TABLE,
+            cache_table_name=CACHE_TABLE or None
         )
         return respond(200, result)
     except Exception as e:

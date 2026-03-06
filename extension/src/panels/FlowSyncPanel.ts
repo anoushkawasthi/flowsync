@@ -54,9 +54,13 @@ export class FlowSyncPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.joinPath(extensionUri, "webview-ui", "build"),
+          vscode.Uri.joinPath(extensionUri, "assets"),
         ],
       }
     );
+
+    // Set the tab icon
+    panel.iconPath = vscode.Uri.joinPath(extensionUri, "assets", "logo.png");
 
     FlowSyncPanel.currentPanel = new FlowSyncPanel(
       panel,
@@ -79,12 +83,15 @@ export class FlowSyncPanel {
   private _sendAutoDetect(): void {
     const workspaceRoot = getWorkspaceRoot();
     if (!workspaceRoot) { return; }
+    const hasGit = fs.existsSync(path.join(workspaceRoot, ".git"));
     try {
       const detected = detectAll(workspaceRoot);
-      log.step("autoDetect", `root=${workspaceRoot} name=${detected.name} langs=${JSON.stringify(detected.languages)} branch=${detected.defaultBranch}`);
-      this._panel.webview.postMessage({ type: "autoDetect", data: detected });
+      log.step("autoDetect", `root=${workspaceRoot} name=${detected.name} langs=${JSON.stringify(detected.languages)} branch=${detected.defaultBranch} hasGit=${hasGit}`);
+      this._panel.webview.postMessage({ type: "autoDetect", data: { ...detected, hasGit } });
     } catch (err) {
       log.error("FlowSyncPanel:autoDetect", `detection failed: ${err}`);
+      // Still send hasGit so the UI can block correctly
+      this._panel.webview.postMessage({ type: "autoDetect", data: { hasGit } });
     }
   }
 
@@ -142,6 +149,9 @@ export class FlowSyncPanel {
     const styleUri = webview.asWebviewUri(
       vscode.Uri.joinPath(buildUri, "assets", "index.css")
     );
+    const logoUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "assets", "logo.png")
+    );
 
     const nonce = getNonce();
 
@@ -158,6 +168,7 @@ export class FlowSyncPanel {
                font-src ${webview.cspSource};
                img-src ${webview.cspSource} data:;">
     <link rel="stylesheet" href="${styleUri}">
+    <script nonce="${nonce}">window.__FLOWSYNC_LOGO__ = "${logoUri}";</script>
     <title>FlowSync</title>
   </head>
   <body>
@@ -221,6 +232,11 @@ export class FlowSyncPanel {
     const workspaceRoot = getWorkspaceRoot();
     if (!workspaceRoot) {
       this._sendInitResult(false, "Open a workspace folder first.");
+      return;
+    }
+
+    if (!fs.existsSync(path.join(workspaceRoot, ".git"))) {
+      this._sendInitResult(false, "No git repository found. Run `git init` in your workspace root first.");
       return;
     }
 

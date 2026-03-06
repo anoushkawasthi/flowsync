@@ -3,6 +3,9 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -80,7 +83,16 @@ export class InfraStack extends cdk.Stack {
       timeToLiveAttribute: 'ttl', // auto-cleanup old sessions
     });
 
-    const allTables = [projectsTable, eventsTable, contextTable, auditTable, chatSessionsTable];
+    // RAG response cache — avoids re-running Bedrock for identical queries (1-hour TTL)
+    const cacheTable = new dynamodb.Table(this, 'FlowSyncCache', {
+      tableName: 'flowsync-cache',
+      partitionKey: { name: 'cacheKey', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'expiresAt', // auto-expire cache entries after 1 hour
+    });
+
+    const allTables = [projectsTable, eventsTable, contextTable, auditTable, chatSessionsTable, cacheTable];
 
     // ─────────────────────────────────────────────
     // S3 BUCKETS
@@ -159,6 +171,7 @@ export class InfraStack extends cdk.Stack {
         EVENTS_TABLE: eventsTable.tableName,
         CONTEXT_TABLE: contextTable.tableName,
         AUDIT_TABLE: auditTable.tableName,
+        FALLBACK_MODEL_ID: 'us.amazon.nova-lite-v1:0',
       },
     });
     aiProcessingFn.addToRolePolicy(bedrockPolicy);
@@ -175,6 +188,8 @@ export class InfraStack extends cdk.Stack {
         PROJECTS_TABLE: projectsTable.tableName,
         CONTEXT_TABLE: contextTable.tableName,
         AUDIT_TABLE: auditTable.tableName,
+        FALLBACK_MODEL_ID: 'us.amazon.nova-lite-v1:0',
+        CACHE_TABLE: cacheTable.tableName,
       },
     });
     mcpFn.addToRolePolicy(bedrockPolicy); // needed for search_context answer generation
@@ -190,6 +205,8 @@ export class InfraStack extends cdk.Stack {
       environment: {
         PROJECTS_TABLE: projectsTable.tableName,
         CONTEXT_TABLE: contextTable.tableName,
+        FALLBACK_MODEL_ID: 'us.amazon.nova-lite-v1:0',
+        CACHE_TABLE: cacheTable.tableName,
       },
     });
     queryFn.addToRolePolicy(bedrockPolicy);
@@ -206,6 +223,8 @@ export class InfraStack extends cdk.Stack {
         PROJECT_TABLE_NAME: projectsTable.tableName,
         CONTEXT_TABLE_NAME: contextTable.tableName,
         SESSIONS_TABLE_NAME: chatSessionsTable.tableName,
+        FALLBACK_MODEL_ID: 'us.amazon.nova-lite-v1:0',
+        CACHE_TABLE_NAME: cacheTable.tableName,
       },
     });
     chatFn.addToRolePolicy(bedrockPolicy);
@@ -278,6 +297,73 @@ export class InfraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'RawEventsBucket', {
       value: rawEventsBucket.bucketName,
+    });
+
+    // ─────────────────────────────────────────────
+    // FRONTEND — S3 + CLOUDFRONT STATIC HOSTING
+    // ─────────────────────────────────────────────
+
+    const frontendBucket = new s3.Bucket(this, 'FlowSyncFrontend', {
+      bucketName: `flowsync-frontend-${this.account}-${this.region}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    const oac = new cloudfront.CfnOriginAccessControl(this, 'FrontendOAC', {
+      originAccessControlConfig: {
+        name: 'flowsync-frontend-oac',
+        originAccessControlOriginType: 's3',
+        signingBehavior: 'always',
+        signingProtocol: 'sigv4',
+      },
+    });
+
+    const distribution = new cloudfront.Distribution(this, 'FlowSyncCFN', {
+      defaultBehavior: {
+        origin: new origins.S3Origin(frontendBucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
+      defaultRootObject: 'index.html',
+      errorResponses: [
+        { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
+        { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
+      ],
+    });
+
+    // Attach OAC to the S3 origin and grant bucket policy
+    const cfnDistribution = distribution.node.defaultChild as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.Origins.0.OriginAccessControlId',
+      oac.attrId,
+    );
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity',
+      '',
+    );
+
+    frontendBucket.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      resources: [frontendBucket.arnForObjects('*')],
+      conditions: {
+        StringEquals: {
+          'AWS:SourceArn': `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
+        },
+      },
+    }));
+
+    new s3deploy.BucketDeployment(this, 'FrontendDeploy', {
+      sources: [s3deploy.Source.asset(path.join(__dirname, '../../frontend/out'))],
+      destinationBucket: frontendBucket,
+      distribution,
+      distributionPaths: ['/*'],
+    });
+
+    new cdk.CfnOutput(this, 'FrontendUrl', {
+      value: `https://${distribution.distributionDomainName}`,
+      description: 'CloudFront URL for FlowSync frontend',
     });
 
   }

@@ -1,15 +1,19 @@
 import { vscode } from "../utilities/vscode";
-import logo from '../assets/logo.png';
 
 interface WelcomeProps {
   onNavigate: (view: string) => void;
 }
 
+declare global {
+  interface Window { __FLOWSYNC_LOGO__?: string; }
+}
+
 export function Welcome({ onNavigate }: WelcomeProps) {
+  const logo = window.__FLOWSYNC_LOGO__ ?? '';
   return (
     <div className="welcome-container">
       <div className="welcome-header">
-        <img src={logo} alt="FlowSync" className="welcome-logo" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'contain' }} />
+        {logo && <img src={logo} alt="FlowSync" className="welcome-logo" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'contain' }} />}
         <h1 className="welcome-title">FlowSync</h1>
         <p className="welcome-subtitle">
           AI-powered context layer for AI-assisted development teams

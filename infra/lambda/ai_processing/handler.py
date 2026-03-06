@@ -6,17 +6,21 @@ import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from botocore.exceptions import ClientError
+from botocore.config import Config as BotoConfig
 
 # Model and embedding configuration
 MODEL_ID = "us.amazon.nova-pro-v1:0"
 EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"  # Using v1 for compatibility with existing embeddings
+FALLBACK_MODEL_ID = os.environ.get("FALLBACK_MODEL_ID", "us.amazon.nova-lite-v1:0")
 
 # DynamoDB table names (set via environment variables or hardcoded for prototype)
 CONTEXT_TABLE = os.environ.get("CONTEXT_TABLE", "flowsync-context")
 AUDIT_TABLE = os.environ.get("AUDIT_TABLE", "flowsync-audit")
 PROJECTS_TABLE = os.environ.get("PROJECTS_TABLE", "flowsync-projects")
 
-bedrock_client = boto3.client("bedrock-runtime")
+# Bedrock client with adaptive retry — handles ThrottlingException (429) with exponential backoff
+_bedrock_retry_config = BotoConfig(retries={'max_attempts': 3, 'mode': 'adaptive'})
+bedrock_client = boto3.client("bedrock-runtime", config=_bedrock_retry_config)
 dynamodb = boto3.resource("dynamodb")
 cloudwatch = boto3.client("cloudwatch")
 
@@ -69,13 +73,29 @@ Rules for 'decision' field:
 Extract only factual information present in the diff and message. Do not invent or assume."""
 
     # Bedrock Converse API — works with Nova Pro and all Amazon/Meta models
+    # Falls back to FALLBACK_MODEL_ID (Nova Lite) if Nova Pro throttles
     t0 = time.time()
-    response = bedrock_client.converse(
-        modelId=MODEL_ID,
-        system=[{"text": system_prompt}],
-        messages=[{"role": "user", "content": [{"text": user_prompt}]}],
-        inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 1}
-    )
+    model_used = MODEL_ID
+    try:
+        response = bedrock_client.converse(
+            modelId=MODEL_ID,
+            system=[{"text": system_prompt}],
+            messages=[{"role": "user", "content": [{"text": user_prompt}]}],
+            inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 1}
+        )
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code in ('ThrottlingException', 'ModelTimeoutException', 'ServiceUnavailableException'):
+            print(f"Nova Pro throttled ({error_code}), falling back to {FALLBACK_MODEL_ID}")
+            model_used = FALLBACK_MODEL_ID
+            response = bedrock_client.converse(
+                modelId=FALLBACK_MODEL_ID,
+                system=[{"text": system_prompt}],
+                messages=[{"role": "user", "content": [{"text": user_prompt}]}],
+                inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 1}
+            )
+        else:
+            raise
     bedrock_duration_ms = int((time.time() - t0) * 1000)
 
     usage = response.get('usage', {})

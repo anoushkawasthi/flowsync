@@ -35,6 +35,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [autoDetected, setAutoDetected] = useState(false);
+  const [hasGit, setHasGit] = useState<boolean | null>(null);
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
@@ -93,6 +94,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
         setResult(message);
       } else if (message.type === "autoDetect") {
         const d = message.data;
+        setHasGit(d.hasGit === true);
         if (d.name)                        setName(d.name);
         if (d.description)                 setDescription(d.description);
         if (d.languages?.length > 0)       setLanguages(d.languages);
@@ -103,6 +105,40 @@ export function InitProject({ onNavigate }: InitProjectProps) {
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, []);
+
+  // Show blocker before the form if no git repo is detected
+  if (hasGit === false) {
+    return (
+      <div className="form-container">
+        <button className="back-button" onClick={() => onNavigate("welcome")}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
+        </button>
+        <div className="no-git-view">
+          <div className="no-git-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M12 7v5M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <h2>No Git repository found</h2>
+          <p>FlowSync requires a git repository in your workspace root. Initialise one first, then come back.</p>
+          <div className="no-git-command">
+            <code>git init</code>
+          </div>
+          <p className="no-git-hint">Open a terminal in your workspace and run the command above, then click Retry.</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => vscode.postMessage({ type: "requestAutoDetect" })}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (result?.success) {
     return (

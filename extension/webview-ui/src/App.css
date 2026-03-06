@@ -408,6 +408,59 @@
   padding: 2.5rem 0;
 }
 
+/* ===== No Git View ===== */
+.no-git-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2.5rem 0;
+}
+
+.no-git-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--error-bg, rgba(255,80,80,0.1));
+  border: 1px solid var(--error-border, rgba(255,80,80,0.25));
+  color: var(--error, #f87171);
+}
+
+.no-git-view h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.no-git-view p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 380px;
+}
+
+.no-git-command {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  margin: 0.25rem 0;
+}
+
+.no-git-command code {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 1rem;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.no-git-hint {
+  font-size: 0.8rem !important;
+  opacity: 0.65;
+}
+
 .success-icon {
   display: flex;
   align-items: center;

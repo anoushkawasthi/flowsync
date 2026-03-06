@@ -4,6 +4,8 @@ Reusable functions for MCP and Query Lambda functions.
 """
 
 import json
+import os
+import hashlib
 import boto3
 import math
 from decimal import Decimal
@@ -12,6 +14,7 @@ from decimal import Decimal
 # Model configuration
 EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"  # Using v1 for compatibility with existing embeddings
 MODEL_ID = "us.amazon.nova-pro-v1:0"
+FALLBACK_MODEL_ID = os.environ.get("FALLBACK_MODEL_ID", "us.amazon.nova-lite-v1:0")
 
 
 def convert_decimals(obj):
@@ -93,22 +96,61 @@ def convert_floats_to_decimal(obj):
         return obj
 
 
-def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, context_table_name):
+def check_cache(dynamodb, cache_table_name, cache_key):
+    """Check DynamoDB cache for a RAG response. Returns cached response dict or None."""
+    try:
+        table = dynamodb.Table(cache_table_name)
+        item = table.get_item(Key={'cacheKey': cache_key}).get('Item')
+        if item:
+            print(f"Cache HIT: {cache_key[:16]}...")
+            return convert_decimals(dict(item.get('response', {})))
+    except Exception as e:
+        print(f"Cache check failed (non-fatal): {str(e)}")
+    return None
+
+
+def write_cache(dynamodb, cache_table_name, cache_key, response, ttl_seconds=3600):
+    """Write a RAG response to the DynamoDB cache with 1-hour TTL."""
+    import time
+    try:
+        table = dynamodb.Table(cache_table_name)
+        table.put_item(Item={
+            'cacheKey': cache_key,
+            'response': convert_floats_to_decimal(response),
+            'expiresAt': int(time.time()) + ttl_seconds,
+        })
+        print(f"Cache WRITE: {cache_key[:16]}...")
+    except Exception as e:
+        print(f"Cache write failed (non-fatal): {str(e)}")
+
+
+def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, context_table_name, cache_table_name=None):
     """
     RAG pipeline for semantic search + answer generation.
 
     Steps:
-    1. Embed query using Titan
-    2. Fetch all context records for project (paginated)
-    3. Compute cosine similarity; apply branch-affinity boost if branch requested
-    4. Take top 5 results
-    5. Feed top 5 to Nova Pro for answer generation
-    6. Return answer + source citations
+    1. Check DynamoDB cache (if cache_table_name provided)
+    2. Embed query using Titan
+    3. Fetch all context records for project (paginated)
+    4. Compute cosine similarity; apply branch-affinity boost if branch requested
+    5. Take top 5 results
+    6. Feed top 5 to Nova Pro for answer generation (falls back to FALLBACK_MODEL_ID on throttle)
+    7. Write result to cache
+    8. Return answer + source citations
     """
-    # Step 1: Embed query
+    # Step 1: Check cache before running the expensive pipeline
+    cache_key = None
+    if cache_table_name:
+        cache_key = hashlib.sha256(f"{project_id}:{query}:{branch or 'all'}".encode()).hexdigest()
+        cached = check_cache(dynamodb, cache_table_name, cache_key)
+        if cached:
+            cached['cached'] = True
+            return cached
+
+    # Step 2: Embed query
     query_embedding = call_titan_embedding(query, bedrock_client)
 
-    # Step 2: Fetch context records (paginate to get ALL records, not just first DDB page)
+    # Step 3: Fetch context records (paginate to get ALL records, not just first DDB page)
     table = dynamodb.Table(context_table_name)
     records = []
 
@@ -145,7 +187,7 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
             'sources': []
         }
     
-    # Step 3: Compute similarities (convert Decimal embeddings to float)
+    # Step 4: Compute similarities (convert Decimal embeddings to float)
     # When no branch is specified, apply a 0.85× score penalty to non-main records
     # to prevent cross-branch pollution from dominating results.
     CROSS_BRANCH_PENALTY = 0.85
@@ -165,7 +207,7 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
                 score *= CROSS_BRANCH_PENALTY
         similarities.append((record, score))
     
-    # Step 4: Top 5 results by similarity
+    # Step 5: Top 5 results by similarity
     top_results = sorted(similarities, key=lambda x: x[1], reverse=True)[:5]
     
     if not top_results:
@@ -175,7 +217,7 @@ def search_context_rag(project_id, query, branch, bedrock_client, dynamodb, cont
             'sources': []
         }
     
-    # Step 5: Build RAG prompt and call Nova Pro
+    # Step 6: Build RAG prompt and call Nova Pro (with fallback to FALLBACK_MODEL_ID on throttle)
     context_text = []
     sources = []
     
@@ -223,14 +265,30 @@ Return a JSON object with this exact structure:
   "citedSources": [array of commitHash values you referenced, empty if none]
 }}"""
     
-    # Call Nova Pro via Converse API
+    # Call Nova Pro via Converse API; fall back to FALLBACK_MODEL_ID on throttling
     try:
-        response = bedrock_client.converse(
-            modelId=MODEL_ID,
-            system=[{"text": system_prompt}],
-            messages=[{"role": "user", "content": [{"text": user_prompt}]}],
-            inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 1}
-        )
+        try:
+            response = bedrock_client.converse(
+                modelId=MODEL_ID,
+                system=[{"text": system_prompt}],
+                messages=[{"role": "user", "content": [{"text": user_prompt}]}],
+                inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 1}
+            )
+        except Exception as throttle_err:
+            err_code = getattr(getattr(throttle_err, 'response', {}).get('Error', {}), 'get', lambda k, d=None: d)('Code', '')
+            # botocore ClientError stores error code in response dict
+            if hasattr(throttle_err, 'response') and throttle_err.response.get('Error', {}).get('Code', '') in (
+                'ThrottlingException', 'ModelTimeoutException', 'ServiceUnavailableException'
+            ):
+                print(f"Nova Pro throttled, falling back to {FALLBACK_MODEL_ID}")
+                response = bedrock_client.converse(
+                    modelId=FALLBACK_MODEL_ID,
+                    system=[{"text": system_prompt}],
+                    messages=[{"role": "user", "content": [{"text": user_prompt}]}],
+                    inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 1}
+                )
+            else:
+                raise
         
         output_text = response['output']['message']['content'][0]['text'].strip()
         
@@ -242,12 +300,15 @@ Return a JSON object with this exact structure:
         
         result = json.loads(output_text)
         
-        # Return with sources
-        return {
+        # Step 7: Build final response and write to cache
+        final_response = {
             'answer': result.get('answer', 'Unable to generate answer.'),
             'answerGrounded': result.get('answerGrounded', False),
             'sources': sources
         }
+        if cache_key and cache_table_name:
+            write_cache(dynamodb, cache_table_name, cache_key, final_response)
+        return final_response
     except Exception as e:
         print(f"Error calling Nova Pro for RAG: {str(e)}")
         return {

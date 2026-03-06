@@ -125,7 +125,10 @@ async function initializeForProject(
 function updateHookPort(port: number): void {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) { return; }
-  const hooksDir = path.join(workspaceRoot, ".git", "hooks");
+  // Never create a .git directory — only update if it already exists
+  const gitDir = path.join(workspaceRoot, ".git");
+  if (!fs.existsSync(gitDir)) { return; }
+  const hooksDir = path.join(gitDir, "hooks");
   const hookPath = path.join(hooksDir, "pre-push");
   const existed = fs.existsSync(hookPath);
   if (!fs.existsSync(hooksDir)) {
