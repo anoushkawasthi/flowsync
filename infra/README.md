@@ -1,6 +1,6 @@
 # FlowSync — Infrastructure (AWS CDK)
 
-*Code Collaboration, Reimagined.*
+*Persistent Memory for AI Coding Agents.*
 
 AWS CDK TypeScript stack that provisions all backend resources for FlowSync.
 

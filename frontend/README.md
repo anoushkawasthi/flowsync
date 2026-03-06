@@ -1,6 +1,6 @@
 # FlowSync Dashboard (Frontend)
 
-Next.js 14 web dashboard for viewing, searching, and chatting with your team's AI-extracted development context.
+Next.js 14 web dashboard for viewing, searching, and chatting with your project's AI-captured development context — logged by AI agents via MCP tools, or auto-captured from git pushes.
 
 ---
 

@@ -13,6 +13,20 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export async function getProjectInfo(
+  projectId: string,
+  token: string
+): Promise<{ name: string; description?: string; defaultBranch?: string } | null> {
+  try {
+    const response = await api.get(`/api/v1/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
 export async function getEvents(
   projectId: string,
   token: string,

@@ -23,6 +23,7 @@ interface TopBarProps {
   selectedBranch: string;
   onBranchChange: (branch: string) => void;
   onMenuClick?: () => void;
+  projectName?: string;
 }
 
 export function TopBar({
@@ -30,6 +31,7 @@ export function TopBar({
   selectedBranch,
   onBranchChange,
   onMenuClick,
+  projectName,
 }: TopBarProps) {
   const pathname = usePathname();
   const title = pageTitles[pathname] || 'FlowSync';
@@ -45,6 +47,11 @@ export function TopBar({
           <Menu className="h-5 w-5" />
         </button>
         <h1 className="truncate text-lg font-semibold text-zinc-100">{title}</h1>
+        {projectName && (
+          <span className="hidden sm:inline shrink-0 text-xs font-medium text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-full">
+            {projectName}
+          </span>
+        )}
       </div>
 
       {pathname !== '/settings' && branches.length > 0 && (

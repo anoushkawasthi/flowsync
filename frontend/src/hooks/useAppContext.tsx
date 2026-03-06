@@ -1,9 +1,10 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useConfig } from '@/hooks/useConfig';
 import { useEvents } from '@/hooks/useEvents';
 import { useBranches } from '@/hooks/useBranches';
+import { getProjectInfo } from '@/lib/api';
 import type { ProjectConfig, ContextRecord } from '@/types';
 
 interface AppContextValue {
@@ -12,6 +13,7 @@ interface AppContextValue {
   clearConfig: () => void;
   isConfigured: boolean;
   loaded: boolean;
+  projectName: string;
   events: ContextRecord[];
   eventsLoading: boolean;
   eventsError: string | null;
@@ -32,6 +34,15 @@ export function useAppContext() {
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { config, setConfig, clearConfig, isConfigured, loaded } = useConfig();
   const [selectedBranch, setSelectedBranch] = useState('main');
+  const [projectName, setProjectName] = useState('');
+
+  // Fetch project name once when configured
+  useEffect(() => {
+    if (!isConfigured) { setProjectName(''); return; }
+    getProjectInfo(config.projectId, config.token)
+      .then((info) => { if (info?.name) setProjectName(info.name); })
+      .catch(() => {});
+  }, [isConfigured, config.projectId, config.token]);
 
   // Fetch all events (no branch filter) — for branch list
   const {
@@ -63,6 +74,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearConfig,
         isConfigured,
         loaded,
+        projectName,
         events,
         eventsLoading,
         eventsError,

@@ -39,33 +39,33 @@ export function StageChart({ events }: StageChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={90}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {data.map((entry) => (
-                <Cell
-                  key={entry.name}
-                  fill={CHART_COLORS[entry.name] || '#71717A'}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#18181B',
-                border: '1px solid #27272A',
-                borderRadius: '8px',
-                color: '#F4F4F5',
-              }}
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={55}
+          outerRadius={90}
+          paddingAngle={3}
+          dataKey="value"
+        >
+          {data.map((entry) => (
+            <Cell
+          key={entry.name}
+          fill={CHART_COLORS[entry.name] || '#71717A'}
             />
-            <Legend
-              wrapperStyle={{ fontSize: '12px', color: '#A1A1AA' }}
-            />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#18181B',
+            border: '1px solid #27272A',
+            borderRadius: '8px',
+            color: '#FFFFFF',
+          }}
+        />
+        <Legend
+          wrapperStyle={{ fontSize: '12px', color: '#A1A1AA' }}
+        />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

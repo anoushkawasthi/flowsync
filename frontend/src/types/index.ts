@@ -49,4 +49,5 @@ export interface SearchResult {
 export interface ProjectConfig {
   projectId: string;
   token: string;
+  projectName?: string;
 }

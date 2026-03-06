@@ -17,6 +17,18 @@ export function activate(context: vscode.ExtensionContext) {
   log.sep();
   log.info("FlowSync extension activated");
 
+  // ── Persistent status bar button ──────────────────────────────────────────
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+  statusBarItem.command = "flowsync.openPanel";
+  statusBarItem.text = "$(zap) FlowSync";
+  statusBarItem.tooltip = "Open FlowSync panel";
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const config = readConfig();
   log.info("Workspace config", config ?? "no .flowsync.json found");
 
@@ -25,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
     const freshConfig = readConfig();
     if (freshConfig) {
       log.ok("onAuthenticated", `projectId=${freshConfig.projectId} port=${freshConfig.port}`);
-      initializeForProject(context, freshConfig);
+      initializeForProject(context, freshConfig, statusBarItem);
     } else {
       log.error("onAuthenticated", "readConfig returned null after init — .flowsync.json may not have been written");
     }
@@ -61,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   if (config) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
-    initializeForProject(context, config);
+    initializeForProject(context, config, statusBarItem);
     // Auto-trigger "Catch Me Up" if >4 hours since last seen
     checkAndAutoTriggerCatchMeUp(context, context.extensionUri);
   } else {
@@ -71,7 +83,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function initializeForProject(
   context: vscode.ExtensionContext,
-  config: ReturnType<typeof readConfig> & object
+  config: ReturnType<typeof readConfig> & object,
+  statusBarItem?: vscode.StatusBarItem
 ): Promise<void> {
   const { projectId, backendUrl, defaultBranch, port: preferredPort } = config;
 
@@ -93,7 +106,7 @@ async function initializeForProject(
           () => {
             const freshConfig = readConfig();
             if (freshConfig) {
-              initializeForProject(context, freshConfig);
+              initializeForProject(context, freshConfig, statusBarItem);
             }
           },
           "join"
@@ -113,9 +126,17 @@ async function initializeForProject(
   if (actualPort !== preferredPort) {
     log.warn("initializeForProject", `port ${preferredPort} was taken, bound to ${actualPort} — updating .flowsync.json and hook script`);
     writeConfig({ projectId, backendUrl, defaultBranch, port: actualPort });
+    if (statusBarItem) {
+      statusBarItem.text = `$(check) FlowSync`;
+      statusBarItem.tooltip = `FlowSync connected — click to open panel`;
+    }
     vscode.window.setStatusBarMessage(`$(check) FlowSync connected on port ${actualPort}`, 8000);
   } else {
     log.ok("initializeForProject", `listener bound on port ${actualPort}`);
+    if (statusBarItem) {
+      statusBarItem.text = `$(check) FlowSync`;
+      statusBarItem.tooltip = `FlowSync connected — click to open panel`;
+    }
     vscode.window.setStatusBarMessage(`$(check) FlowSync connected (port ${actualPort})`, 8000);
   }
   updateHookPort(actualPort);

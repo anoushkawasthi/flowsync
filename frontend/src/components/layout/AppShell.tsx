@@ -20,6 +20,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     setConfig,
     isConfigured,
     loaded,
+    projectName,
     branches,
     selectedBranch,
     setSelectedBranch,
@@ -67,6 +68,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           selectedBranch={selectedBranch}
           onBranchChange={setSelectedBranch}
           onMenuClick={() => setMobileOpen(true)}
+          projectName={projectName}
         />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>

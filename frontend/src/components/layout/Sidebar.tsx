@@ -34,7 +34,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { clearConfig } = useAppContext();
+  const { clearConfig, projectName } = useAppContext();
 
   const handleLogout = () => {
     clearConfig();
@@ -58,7 +58,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             <Image src="/logo.png" alt="FlowSync" width={24} height={24} className="h-6 w-6 shrink-0 rounded" />
             {(!collapsed || mobileOpen) && (
               <span className="text-lg font-bold text-zinc-100">
-                FlowSync
+                {projectName || 'FlowSync'}
               </span>
             )}
           </div>

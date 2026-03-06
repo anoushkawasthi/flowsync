@@ -1,16 +1,18 @@
 # FlowSync MCP Server
 
-TypeScript MCP server that exposes FlowSync project context as tools for GitHub Copilot and other MCP-compatible AI agents.
+TypeScript MCP server that gives AI coding agents **persistent project memory** — 5 tools for logging decisions, searching context, and querying project history.
 
 ---
 
 ## Overview
 
-The MCP server wraps the FlowSync API Gateway — all heavy lifting (Bedrock RAG, DynamoDB reads, embedding search) happens in the existing Lambda functions. The MCP server is a thin adapter that:
+The MCP server is the **primary interface** between your AI agent (Copilot, Cursor, Claude) and the FlowSync project brain. The core workflow:
 
-1. Accepts tool calls from an AI agent over stdio
-2. Translates them into HTTP requests to the FlowSync API
-3. Returns structured JSON results back to the agent
+1. **After work** — agent calls `log_context` to record decisions, risks, and reasoning
+2. **Before work** — agent calls `search_context` to recall what the team decided
+3. **Anytime** — agent calls `get_project_context`, `get_recent_changes`, or `get_events` for raw context
+
+All heavy lifting (Bedrock RAG, DynamoDB reads, embedding search) happens in Lambda functions. The MCP server is a thin adapter that translates tool calls into HTTP requests.
 
 **The server is bundled into the VS Code extension** (`dist/mcp-server.mjs`) and started automatically when the extension activates. For development it can also be run standalone.
 

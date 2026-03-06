@@ -1,10 +1,10 @@
 # FlowSync
 
-*Code Collaboration, Reimagined.*
+*Persistent Memory for AI Coding Agents.*
 
-**AI-powered context layer for AI-assisted development teams.**
+**Give your AI agent project-wide context it never forgets — via MCP tools.**
 
-Every time your team pushes code, FlowSync automatically captures *what* was built, *why* it was decided, and *what risks* were introduced — and makes that knowledge queryable by both humans and AI agents.
+Your AI agent calls `log_context` to record decisions after every task and `search_context` to recall project history before starting new work. For developers who don't use an AI agent, every git push still auto-captures context as a fallback.
 
 Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pro + Titan Embeddings) + **DynamoDB**
 
@@ -12,12 +12,13 @@ Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pr
 
 ## Features
 
-- **Zero-config context capture** — a post-push git hook is installed automatically; every `git push` sends the diff to the AI backend without any manual input
-- **AI-powered extraction** — AWS Bedrock Nova Pro analyses each diff and extracts: feature summary, decisions made, risks introduced, pending tasks, and affected files
-- **Vector search via MCP** — Titan Embeddings index all context records; AI coding agents can query your project history over the Model Context Protocol using 5 built-in tools
-- **Catch Me Up** — one command summarises everything your teammates pushed since you last checked, with deduplication across authors and branches
-- **Merge propagation** — when a branch is merged, all context records are automatically copied to the target branch so history is never lost
-- **Team memory** — team leads generate a shared API token; all teammates push context to the same project, building a living knowledge base
+- **`log_context` — Agent records reasoning** — after every task, your AI agent logs decisions, risks, and rationale via the MCP tool; this is FlowSync's core value
+- **`search_context` — Agent queries history** — natural language questions get grounded answers with source citations via Titan Embeddings + Nova Pro RAG
+- **5 MCP tools for AI agents** — works with GitHub Copilot, Cursor, Claude, and any MCP-compatible agent out of the box
+- **Auto-capture fallback** — a post-push git hook captures diffs automatically; Nova Pro extracts context even without an AI agent
+- **Catch Me Up** — one command summarises everything your teammates pushed since you last checked
+- **Merge propagation** — when a branch is merged, all context records are automatically copied to the target branch
+- **Team memory** — shared API token lets all teammates contribute to the same project brain
 
 ---
 

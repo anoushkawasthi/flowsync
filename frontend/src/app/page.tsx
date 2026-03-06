@@ -28,37 +28,37 @@ const VSIX_DOWNLOAD_URL = '/downloads/flowsync-1.0.1.vsix';
 
 const features = [
   {
-    icon: GitBranch,
-    title: 'Auto-captured on push',
+    icon: Brain,
+    title: 'Agent logs reasoning',
     description:
-      'Install the VS Code extension once. Every git push automatically triggers context extraction — no manual input.',
+      'Your AI agent calls log_context after every task — recording decisions, risks, and rationale. The WHY behind code is captured automatically.',
     accent: 'text-teal-400',
     bg: 'bg-teal-500/10',
     border: 'border-teal-500/20',
   },
   {
-    icon: Brain,
-    title: 'AI-powered extraction',
+    icon: Bot,
+    title: 'Agent searches context',
     description:
-      'Claude analyses your diff and extracts the decision made, risks introduced, pending tasks, and affected entities.',
+      'Before starting work, your agent calls search_context to ask "what did we decide about auth?" and gets a grounded, citation-backed answer.',
     accent: 'text-purple-400',
     bg: 'bg-purple-500/10',
     border: 'border-purple-500/20',
   },
   {
-    icon: Bot,
-    title: 'MCP tools for AI agents',
+    icon: Cpu,
+    title: 'MCP-native integration',
     description:
-      'Your AI coding assistant can query FlowSync directly via MCP. Ask "what did we decide about auth?" and get a grounded answer.',
+      'Works with GitHub Copilot, Cursor, Claude, and any MCP-compatible agent. Five built-in tools — zero custom glue code required.',
     accent: 'text-blue-400',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/20',
   },
   {
-    icon: Users,
-    title: 'Persistent team memory',
+    icon: GitBranch,
+    title: 'Auto-capture fallback',
     description:
-      'Context is stored per-project in DynamoDB. Every team member sees the same shared history — branches, authors, decisions.',
+      'Not using an AI agent? Every git push still auto-extracts context via Nova Pro. Your project brain grows either way.',
     accent: 'text-amber-400',
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/20',
@@ -68,20 +68,20 @@ const features = [
 const steps = [
   {
     step: '01',
-    title: 'Install the extension',
-    description: 'Download the FlowSync VS Code extension and run "FlowSync: Initialize Project" in a git repo.',
+    title: 'Install & initialize',
+    description: 'Download the VSIX, install it in VS Code, and click the ⚡ FlowSync status bar button. Initialize your project — you get a Project ID and Token.',
     icon: Download,
   },
   {
     step: '02',
-    title: 'Push your code',
-    description: 'Work normally. Every git push triggers the hook — your diff is sent to AWS Bedrock for analysis.',
-    icon: Terminal,
+    title: 'Connect your AI agent',
+    description: 'Your AI agent now automatically has 5 new tools: log_context to record decisions, search_context to query history, and 3 more.',
+    icon: Bot,
   },
   {
     step: '03',
-    title: 'Query your context',
-    description: 'Open the dashboard to see decisions, risks, and tasks. Or let your AI agent query via MCP.',
+    title: 'Code with memory',
+    description: 'Your agent logs WHY after every task and searches context before starting new work. Git pushes are auto-captured as a fallback. Open the dashboard for team visibility.',
     icon: Cpu,
   },
 ];
@@ -189,8 +189,11 @@ function LoginForm() {
       >
         <Image src="/logo.png" alt="" width={24} height={24} className="mr-2 h-6 w-6" />
         Try Demo Project
-        <span className="ml-auto text-[10px] text-zinc-500 font-normal">(preloaded data)</span>
+        <span className="ml-auto text-[10px] text-zinc-500 font-normal">(live data)</span>
       </Button>
+      <p className="mt-2 text-center text-[10px] text-zinc-600">
+        Real pushes from a live project — not mock data
+      </p>
     </div>
   );
 }
@@ -240,13 +243,13 @@ export default function LandingPage() {
           {/* Left: copy */}
           <div>
             <h1 className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-              Your codebase's{' '}
-              <span className="text-teal-400">memory layer</span>
+              Persistent memory for{' '}
+              <span className="text-teal-400">AI coding agents</span>
             </h1>
             <p className="mb-6 text-lg text-zinc-400 leading-relaxed">
-              FlowSync captures what your team decides, every time they push
-              code. AI agents query your project history naturally. No more
-              "why did we do it this way?" moments.
+              Your AI agent logs decisions after every task and searches
+              project history before starting new work — via MCP tools.
+              Git push auto-capture is the built-in fallback.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <a href={VSIX_DOWNLOAD_URL} download>
@@ -277,25 +280,21 @@ export default function LandingPage() {
             ) : (
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
                 <div className="space-y-2 font-mono text-sm">
-                  <div className="text-zinc-500"># your git repo</div>
+                  <div className="text-zinc-500"># AI agent finishes implementing auth</div>
                   <div className="text-zinc-300">
-                    <span className="text-teal-400">$</span> git push origin feature/auth
+                    <span className="text-teal-400">mcp</span> log_context
                   </div>
-                  <div className="text-zinc-500 text-xs mt-3">→ FlowSync captured context</div>
-                  <div className="mt-3 rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-xs space-y-1.5">
-                    <div><span className="text-zinc-500">Feature:</span> <span className="text-zinc-200">JWT Authentication System</span></div>
+                  <div className="mt-2 rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-xs space-y-1.5">
                     <div><span className="text-zinc-500">Decision:</span> <span className="text-teal-300">Use RS256 for cross-service token validation</span></div>
                     <div><span className="text-zinc-500">Risk:</span> <span className="text-amber-300">Token expiry not handled on mobile clients</span></div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {['auth.ts', 'middleware.ts', 'userController.ts'].map(e => (
-                        <span key={e} className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-400 text-[10px]">{e}</span>
-                      ))}
-                    </div>
+                    <div><span className="text-zinc-500">Task:</span> <span className="text-zinc-200">Add refresh token rotation</span></div>
                   </div>
-                  <div className="text-zinc-500 text-xs">
-                    <span className="text-teal-400">$</span> mcp query "what did we decide about auth?"
+                  <div className="text-zinc-500 text-xs mt-3"># Next day — agent starts new task</div>
+                  <div className="text-zinc-300">
+                    <span className="text-teal-400">mcp</span> search_context "what did we decide about auth?"
                   </div>
-                  <div className="text-zinc-300 text-xs">↳ JWT with RS256, see commit a1b2c3d</div>
+                  <div className="text-zinc-300 text-xs mt-1">↳ RS256 for cross-service validation (logged 1d ago, 2 sources)</div>
+                  <div className="text-zinc-600 text-[10px] mt-3"># git pushes also auto-captured as fallback</div>
                 </div>
               </div>
             )}
@@ -306,8 +305,8 @@ export default function LandingPage() {
       {/* Features */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-zinc-800/60">
         <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold sm:text-3xl">How FlowSync works</h2>
-          <p className="mt-2 text-zinc-400">Four pieces that give your team and your AI agents context.</p>
+          <h2 className="text-2xl font-bold sm:text-3xl">How it works</h2>
+          <p className="mt-2 text-zinc-400">Your AI agent gets persistent project memory through four capabilities.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => (
@@ -328,8 +327,8 @@ export default function LandingPage() {
       {/* How to use */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-zinc-800/60">
         <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold sm:text-3xl">Get started in 3 steps</h2>
-          <p className="mt-2 text-zinc-400">Zero config. Works with any git repo.</p>
+          <h2 className="text-2xl font-bold sm:text-3xl">Up and running in 3 steps</h2>
+          <p className="mt-2 text-zinc-400">Works with any git repo. Your AI agent gets memory in minutes.</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-3">
           {steps.map((s, i) => (
@@ -358,9 +357,9 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-zinc-800/60">
         <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-8 text-center">
           <Image src="/logo.png" alt="FlowSync" width={80} height={80} className="mx-auto mb-4 h-20 w-20" />
-          <h2 className="mb-2 text-2xl font-bold">Ready to remember everything?</h2>
+          <h2 className="mb-2 text-2xl font-bold">Give your AI agent a memory</h2>
           <p className="mb-6 text-zinc-400">
-            Install the extension and push a commit. FlowSync captures the rest.
+            Install the extension, connect your MCP agent, and every decision is captured — automatically.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <a href={VSIX_DOWNLOAD_URL} download>

@@ -1,6 +1,6 @@
-# FlowSync — AI-Native Project Development System
+# FlowSync — Persistent Memory for AI Coding Agents
 
-> *Code Collaboration, Reimagined.*
+> *Give your AI agent project-wide context it never forgets.*
 
 > **AI for Bharat Hackathon** | Powered by Amazon Bedrock
 > Team **Vanta** — Aahil Khan, Anoushka Awasthi, Maulik Dang, Sanyam Wadhwa
@@ -9,53 +9,51 @@
 
 ## 🧠 What is FlowSync?
 
-FlowSync is an **AI-native development intelligence system** that transforms raw, fragmented coding activities — VS Code events, commits, file changes — into a structured, living **"Project Brain."**
+FlowSync gives AI coding agents — GitHub Copilot, Cursor, Claude — **persistent project memory** via the Model Context Protocol (MCP).
 
-It solves the **"lost context" problem** in AI-assisted development teams by ensuring every code change, decision, and architectural shift is traceable, searchable, and visualized in real-time.
+Your agent calls `log_context` to record *why* it made a decision, and `search_context` to recall what the team decided weeks ago. Five MCP tools turn your agent from a stateless autocomplete into a teammate that **remembers everything**.
+
+For developers who don't use an AI agent, FlowSync also auto-captures context from every `git push` as a built-in fallback.
 
 ---
 
 ## 🚨 The Problem
 
-When developers write code, the *reasoning* behind that code is often lost in chat logs or forgotten entirely. Traditional tools fall short:
+AI coding agents are powerful but **stateless** — they lose all project context between sessions. Traditional tools can't fix this:
 
 | Tool | Limitation |
-|------|-----------|
+|------|------------|
 | **Git Logs** | Stores *what* changed, not *why* |
 | **Documentation** | Requires manual updates; goes stale quickly |
-| **AI Assistants (e.g., ChatGPT)** | No persistent memory of project state |
+| **AI Assistants** | No persistent memory across sessions |
+| **Chat history** | Fragmented, unsearchable, per-user |
 
 ---
 
 ## ✅ How FlowSync Works
 
-### 1. 👀 It Watches — *Capture*
-A lightweight **VS Code Extension** quietly captures development events (file saves, Git commits, active window changes) in the background with zero developer friction.
+### 1. 🤖 Agent Logs — *`log_context`*
+After completing a task, your AI agent calls `log_context` to record the decisions made, risks introduced, and reasoning — structured and searchable. This is FlowSync's **core value**: capturing the *why* behind code, not just the *what*.
 
-### 2. 🤔 It Thinks — *AI Processing*
-Raw event data is processed by **Amazon Bedrock (Nova Pro + Nova Lite + Titan Embeddings)**, which analyzes code diffs and commits to extract developer *intent* — e.g., *"This commit fixes a bug in the login system"* or *"This adds a new payment feature."*
+### 2. 🔍 Agent Searches — *`search_context`*
+Before starting work, your agent calls `search_context` with a natural-language question like *"what did we decide about auth?"* — and gets a grounded answer with source citations, powered by Titan Embeddings + Nova Pro RAG.
 
-### 3. 🧩 It Remembers — *Knowledge Graph*
-Extracted intelligence is saved into a **"Project Brain"** — a persistent, structured Knowledge Graph in DynamoDB — connecting features, files, and decisions. Unlike a chatbot, this brain remembers the *entire project history forever*.
+### 3. 📡 Auto-Capture Fallback — *Git Push*
+For developers who don't use an AI agent, a post-push hook automatically sends diffs to **Amazon Bedrock (Nova Pro)** which extracts decisions, risks, tasks, and affected files. The project brain grows either way.
 
-### 4. 💬 It Answers — *Dashboard & Q&A*
-Any team member can ask natural language questions like:
-- *"Why did we switch to SQS?"*
-- *"What is the status of the Auth module?"*
-- *"Who changed the database last week?"*
-
-The system returns instant, accurate, source-cited answers.
+### 👥 Team Visibility*
+Any team member can view the context timeline, chat with the project brain, or ask natural language questions from the web dashboard — no AI agent required.
 
 ---
 
 ## ✨ Key Features
 
-- **Automated Context Ingestion** — VS Code Extension captures events silently in the background
-- **AI-Powered Intent Extraction** — AWS Bedrock deduces reasoning behind every code change
-- **Dynamic Knowledge Graph** — Living project map in DynamoDB, updated in real-time
-- **Natural Language Project Q&A** — Query your project like a conversation
-- **Strict Traceability & Source Citations** — Every AI insight is linked back to its originating commit or IDE event, preventing hallucinations
-- **Automated Status Visibility** — Real-time view of what the team is building; no more manual Jira updates
+- **`log_context` MCP Tool** — AI agent records decisions, risks, reasoning, and tasks after every unit of work
+- **`search_context` MCP Tool** — AI agent queries project history with natural language; gets grounded, citation-backed answers
+- **5 MCP Tools Total** — `get_project_context`, `get_recent_changes`, `search_context`, `log_context`, `get_events` — works with Copilot, Cursor, Claude
+- **Auto-Capture Fallback** — Every git push triggers AI extraction via Nova Pro; project brain grows even without an AI agent
+- **Strict Traceability & Source Citations** — Every AI insight is linked back to its originating commit or logged context, preventing hallucinations
+- **Team Dashboard** — Real-time timeline of decisions, risks, and tasks across all branches and contributors
 
 ---
 
@@ -95,22 +93,17 @@ STORAGE
 ## 🔄 Process Flow
 
 ```
-1. Initialize Project  →  2. Define Features  →  3. Code Normally
-        ↑                                               ↓
-9. Query System                               4. Capture Events (VS Code hooks)
-        ↑                                               ↓
-8. Visualize Dashboard  ←  7. Update State  ←  5. Ingest Events (validate + store)
-                                    ↑                   ↓
-                            6. AI Processing  ←─────────┘
-                         (extract context, infer intent)
+1. Agent works on task  →  2. Agent calls log_context   →  3. Context stored in Project Brain
+        ↑                                                           ↓
+6. Team views dashboard   ←  5. RAG answers with citations  ←  4. Agent calls search_context
 
-                        ──── Continuous Loop ────
+                  ── Fallback: git push auto-captures diffs ──
 ```
 
 **Key Actors:**
-- **Developer** — Codes, commits, adds notes
-- **Team Lead** — Approves features, monitors progress
-- **Team Member** — Queries system, views dashboard
+- **AI Agent** — Primary user; logs decisions via `log_context`, queries via `search_context`
+- **Developer** — Codes normally; pushes trigger auto-capture as fallback
+- **Team Lead / Member** — Views dashboard, chats with project brain
 
 ---
 
@@ -139,10 +132,10 @@ STORAGE
 | Embeddings | Amazon Titan Embeddings | ~₹84 ($1.00) |
 | Compute | AWS Lambda | <₹170 ($2.00) |
 | Storage | Amazon DynamoDB | ~₹420 ($5.00) |
-| API & Network | Amazon API Gateway | ~₹170 ($2.00) |
-| **Total** | | **~₹1,349 ($16.00) / month** |
+| API & Network | Amazon API Gateway | ~₹265 ($3.15) |
+| **Total** | | **~₹1,400 ($17.00) / month** |
 
-> **~₹337 ($4.00) per developer per month** (4-person team)
+> **~₹350 ($4.00) per developer per month** (4-person team)
 
 ### Why it's cost-effective:
 - **Zero Idle Cost** — Serverless architecture means you pay ₹0 when the team isn't coding
@@ -183,68 +176,78 @@ Project API tokens are hashed with `scrypt` (N=16384, r=8, p=1). Scrypt is **mem
 
 | | FlowSync | Git Logs | Documentation | AI Assistants |
 |--|---------|----------|---------------|---------------|
+| AI agent can log & query context | ✅ | ❌ | ❌ | ❌ |
 | Captures *why* changes happen | ✅ | ❌ | ❌ | ❌ |
-| Auto-updated | ✅ | ✅ | ❌ | ❌ |
+| Auto-updated (no manual work) | ✅ | ✅ | ❌ | ❌ |
 | Persistent project memory | ✅ | ❌ | ❌ | ❌ |
-| Natural language Q&A | ✅ | ❌ | ❌ | ✅ |
-| Source-cited, hallucination-free | ✅ | ✅ | ✅ | ❌ |
+| Natural language Q&A with citations | ✅ | ❌ | ❌ | Partial |
+| MCP-native (works with Copilot/Cursor) | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
 ## 🎯 USP
 
-- **Deterministic AI** — Humans define structure; AI interprets activity. Guarantees correctness.
-- **Intelligence Layer** — Doesn't just *track* development — it *understands* it.
-- **Guaranteed Accountability** — Strict traceability prevents AI hallucinations about project facts.
-- **First of its kind** — Combines activity tracking, reasoning extraction, and structured memory in one platform.
+- **Agent-First Architecture** — Built for AI agents as the primary user; MCP tools are the main interface, not an afterthought
+- **Persistent Memory** — Unlike chat history, FlowSync stores structured, searchable project knowledge forever
+- **Dual Input** — AI agent logging + automatic git push capture ensures no context is ever lost
+- **Guaranteed Accountability** — Strict traceability and source citations prevent AI hallucinations about project facts
+- **First of its kind** — The first system that gives AI coding agents persistent, project-wide memory via MCP
 
 ---
 
-## � Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- AWS CLI configured (`aws configure`) with Bedrock access enabled in `us-east-1`
-- Node.js 20+, Python 3.12+, AWS CDK v2 (`npm i -g aws-cdk`)
 - VS Code 1.85+
+- A git repository
 
-### 1. Deploy Backend
+### 1. Install the Extension
+Download `flowsync-1.0.1.vsix` from the [Releases](https://github.com/your-org/flowsync/releases) page or from the [FlowSync website](https://d2bwi2bny67wme.cloudfront.net).
+
 ```bash
-git clone https://github.com/your-org/flowsync
-cd flowsync/frontend && npm install && npm run build     # produces frontend/out/
-cd ../infra && npm install
-cdk bootstrap   # first time only
-cdk deploy      # deploys all Lambda, DynamoDB, API Gateway, CloudFront
+code --install-extension flowsync-1.0.1.vsix
 ```
-> After deploy, CDK prints `ApiUrl` and `FrontendUrl` — copy both.
 
-### 2. Install VS Code Extension
-```bash
-code --install-extension extension/flowsync-1.0.0.vsix
-```
-Open Command Palette → **FlowSync: Initialize Project** — paste your `ApiUrl` and project token.
+### 2. Initialize Your Project
+Open your repo in VS Code. Click the **⚡ FlowSync** button in the status bar → **Initialize Project**.
 
-### 3. Configure MCP Server (optional, for Claude/Cursor)
-Add to your MCP client config:
-```json
+FlowSync auto-detects your project name, languages, frameworks, and branch. You’ll receive a **Project ID** and **API Token** — save these and share the token with teammates.
+
+### 3. Connect Your AI Agent
+Your agent (Copilot, Cursor, Claude) should automatically discover 5 MCP tools: `log_context`, `search_context`, `get_project_context`, `get_recent_changes`, and `get_events`.
+
+If not, add `.vscode/mcp.json` to your repo:
+```jsonc
 {
-  "mcpServers": {
+  "servers": {
     "flowsync": {
+      "type": "stdio",
       "command": "node",
-      "args": ["path/to/flowsync/mcp-server/dist/index.js"],
-      "env": { "FLOWSYNC_API_URL": "<ApiUrl>", "FLOWSYNC_TOKEN": "<token>" }
+      "args": ["${workspaceFolder}/mcp-server/dist/index.js"],
+      "env": {
+        "FLOWSYNC_PROJECT_ID": "<your-project-id>",
+        "FLOWSYNC_TOKEN": "${input:flowsync-token}"
+      }
     }
   }
 }
 ```
 
-### 4. Open Dashboard
-Visit the `FrontendUrl` printed by CDK — sign in with your project token.
+### 4. Start Working
+- **Your AI agent** calls `log_context` after completing tasks and `search_context` before starting new work — automatically
+- **Git pushes** are auto-captured as a fallback, even without an AI agent
+- **Open the dashboard** at [flowsync.site](https://d2bwi2bny67wme.cloudfront.net) with your Project ID and Token
 
-> **Note:** `DEMO_TOKEN` (`demo-token-123`) is an intentional demo credential wired to the hosted demo. Remove it in production by deleting the `demo-projects` seeding in the ingestion Lambda.
+> **Try it now:** Visit the dashboard and click “Try Demo Project” to explore a live project — no setup needed.
 
 ---
+## 📚 Documentation
 
-## �👥 Team
+- **[Technical Deep Dive](docs/technical-deep-dive.md)** — Full architecture, implementation details, MCP server, RAG pipeline, caching, security, and more
+- **[Performance Report](docs/performance-report.md)** — Benchmark results, latency breakdowns, extraction accuracy, and cost analysis
+
+---
+## 👥 Team
 
 | Name | Role |
 |------|------|
