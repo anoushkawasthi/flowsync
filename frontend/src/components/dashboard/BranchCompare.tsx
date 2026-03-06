@@ -7,7 +7,7 @@ import { ContextCard } from './ContextCard';
 import { LoadingCards } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import type { ContextRecord } from '@/types';
-
+//frontend
 interface BranchCompareProps {
   projectId: string;
   token: string;
