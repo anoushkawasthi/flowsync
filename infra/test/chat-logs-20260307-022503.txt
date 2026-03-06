@@ -1,0 +1,12 @@
+[0;36m--- Lambda Logs for Test 2 ---[0m
+	[INFO]	2026-03-06T20:55:05.289Z	c23294dd-4686-4568-b4a9-9b00397e633a	💬 Chat Query: 'Hello! How are you doing today?'
+	[INFO]	2026-03-06T20:55:05.289Z	c23294dd-4686-4568-b4a9-9b00397e633a	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:55:05.294Z	c23294dd-4686-4568-b4a9-9b00397e633a	🔄 Step 2: Using Nova Lite directly (conversational query)
+	[INFO]	2026-03-06T20:55:05.294Z	c23294dd-4686-4568-b4a9-9b00397e633a	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:55:06.187Z	c23294dd-4686-4568-b4a9-9b00397e633a	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T20:55:09.433Z	d3fd4f82-d955-4ab0-b370-017e8d13dac5	💬 Chat Query: 'Who are the developers working on this project?'
+	[INFO]	2026-03-06T20:55:09.433Z	d3fd4f82-d955-4ab0-b370-017e8d13dac5	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:55:09.438Z	d3fd4f82-d955-4ab0-b370-017e8d13dac5	🔄 Step 2: Using Nova Lite directly (conversational query)
+	[INFO]	2026-03-06T20:55:09.438Z	d3fd4f82-d955-4ab0-b370-017e8d13dac5	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:55:10.287Z	d3fd4f82-d955-4ab0-b370-017e8d13dac5	   Retrieved 5 context snippets for Nova Lite
+

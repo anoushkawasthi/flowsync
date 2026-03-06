@@ -1,0 +1,58 @@
+[0;36m--- Lambda Logs for Test 2 ---[0m
+	[INFO]	2026-03-06T20:28:38.206Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	💬 Chat Query: 'Hello! How are you doing today?'
+	[INFO]	2026-03-06T20:28:38.206Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:28:39.344Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:28:39.344Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:28:39.344Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:28:40.244Z	5735de0f-84c5-4fe7-bcb1-acbc92d4b56f	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T20:28:42.630Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	💬 Chat Query: 'Who are the developers working on this project?'
+	[INFO]	2026-03-06T20:28:42.630Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:28:43.509Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:28:43.509Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:28:43.509Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:28:44.370Z	9fb59e4d-85e5-4b99-b5b5-64acf7678837	   Retrieved 5 context snippets for Nova Lite
+
+[0;36m--- Lambda Logs for Test 5 ---[0m
+[INFO]	2026-03-06T20:29:00.584Z	8047ac21-3081-460d-a709-9c3983fd3b23	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:29:00.584Z	8047ac21-3081-460d-a709-9c3983fd3b23	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:29:00.584Z	8047ac21-3081-460d-a709-9c3983fd3b23	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:29:01.464Z	8047ac21-3081-460d-a709-9c3983fd3b23	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T20:29:06.240Z	000f5f2c-6423-40f0-800f-bbafc5847e64	💬 Chat Query: 'What features were implemented recently?'
+	[INFO]	2026-03-06T20:29:06.240Z	000f5f2c-6423-40f0-800f-bbafc5847e64	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:29:09.826Z	000f5f2c-6423-40f0-800f-bbafc5847e64	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T20:29:09.826Z	000f5f2c-6423-40f0-800f-bbafc5847e64	   Answer length: 156 chars
+	[INFO]	2026-03-06T20:29:09.826Z	000f5f2c-6423-40f0-800f-bbafc5847e64	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 8 ---[0m
+	[INFO]	2026-03-06T20:29:30.749Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	💬 Chat Query: 'When was the last commit made?'
+	[INFO]	2026-03-06T20:29:30.749Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:29:31.624Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:29:31.625Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:29:31.625Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:29:32.527Z	918e9c79-f22d-425f-ae88-7a3ed51b34b8	   Retrieved 5 context snippets for Nova Lite
+
+[0;36m--- Lambda Logs for Test 9 ---[0m
+	[INFO]	2026-03-06T20:29:47.238Z	34c0cb23-5e86-430a-ac08-b11f51fc40c8	💬 Chat Query: 'I'm trying to understand the project timeline better'
+	[INFO]	2026-03-06T20:29:47.238Z	34c0cb23-5e86-430a-ac08-b11f51fc40c8	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:29:49.887Z	34c0cb23-5e86-430a-ac08-b11f51fc40c8	🔄 Step 2: Using Nova Lite directly (conversational query)
+	[INFO]	2026-03-06T20:29:49.887Z	34c0cb23-5e86-430a-ac08-b11f51fc40c8	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:29:50.766Z	34c0cb23-5e86-430a-ac08-b11f51fc40c8	   Retrieved 5 context snippets for Nova Lite
+
+[0;36m--- Lambda Logs for Test 13 ---[0m
+	[INFO]	2026-03-06T20:30:34.579Z	8c5d0226-3134-4faa-8652-e26eefef22e6	💬 Chat Query: 'List the main components of the system'
+	[INFO]	2026-03-06T20:30:34.579Z	8c5d0226-3134-4faa-8652-e26eefef22e6	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:30:35.469Z	8c5d0226-3134-4faa-8652-e26eefef22e6	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:30:35.469Z	8c5d0226-3134-4faa-8652-e26eefef22e6	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:30:35.469Z	8c5d0226-3134-4faa-8652-e26eefef22e6	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:30:36.346Z	8c5d0226-3134-4faa-8652-e26eefef22e6	   Retrieved 5 context snippets for Nova Lite
+
+[0;36m--- Lambda Logs for Test 15 ---[0m
+	[INFO]	2026-03-06T20:30:55.634Z	45681853-ddaf-4464-99e0-ab02f3e06a07	💬 Chat Query: 'I'm working on a similar project myself'
+	[INFO]	2026-03-06T20:30:55.634Z	45681853-ddaf-4464-99e0-ab02f3e06a07	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T20:30:56.527Z	45681853-ddaf-4464-99e0-ab02f3e06a07	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T20:30:56.527Z	45681853-ddaf-4464-99e0-ab02f3e06a07	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T20:30:56.527Z	45681853-ddaf-4464-99e0-ab02f3e06a07	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T20:30:57.390Z	45681853-ddaf-4464-99e0-ab02f3e06a07	   Retrieved 5 context snippets for Nova Lite
+
+[0;36m--- Lambda Logs for Test 16 ---[0m
+

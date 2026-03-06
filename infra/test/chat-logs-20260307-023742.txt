@@ -1,0 +1,69 @@
+[0;36m--- Lambda Logs for Test 2 ---[0m
+[INFO]	2026-03-06T21:07:45.797Z	babe46a9-ea10-4d76-b300-dc872ce2e76a	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T21:07:45.798Z	babe46a9-ea10-4d76-b300-dc872ce2e76a	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T21:07:45.798Z	babe46a9-ea10-4d76-b300-dc872ce2e76a	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T21:07:46.705Z	babe46a9-ea10-4d76-b300-dc872ce2e76a	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T21:07:49.694Z	75323610-989c-480c-bb76-ab1e05dc834a	💬 Chat Query: 'Who are the developers working on this project?'
+	[INFO]	2026-03-06T21:07:49.694Z	75323610-989c-480c-bb76-ab1e05dc834a	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:07:53.839Z	75323610-989c-480c-bb76-ab1e05dc834a	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:07:53.839Z	75323610-989c-480c-bb76-ab1e05dc834a	   Answer length: 199 chars
+	[INFO]	2026-03-06T21:07:53.839Z	75323610-989c-480c-bb76-ab1e05dc834a	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 5 ---[0m
+[INFO]	2026-03-06T21:08:13.037Z	08fa1116-206c-44ae-989d-009d10dabade	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:08:13.037Z	08fa1116-206c-44ae-989d-009d10dabade	   Answer length: 611 chars
+	[INFO]	2026-03-06T21:08:13.037Z	08fa1116-206c-44ae-989d-009d10dabade	   Sources: 5
+	[INFO]	2026-03-06T21:08:15.930Z	eb99096c-6388-42b8-845d-473980ee124c	💬 Chat Query: 'What features were implemented recently?'
+	[INFO]	2026-03-06T21:08:15.930Z	eb99096c-6388-42b8-845d-473980ee124c	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:08:20.137Z	eb99096c-6388-42b8-845d-473980ee124c	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:08:20.137Z	eb99096c-6388-42b8-845d-473980ee124c	   Answer length: 375 chars
+	[INFO]	2026-03-06T21:08:20.137Z	eb99096c-6388-42b8-845d-473980ee124c	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 8 ---[0m
+[INFO]	2026-03-06T21:08:34.158Z	1ab1aada-2c68-470a-a9fc-3f5711c08075	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:08:34.158Z	1ab1aada-2c68-470a-a9fc-3f5711c08075	   Answer length: 500 chars
+	[INFO]	2026-03-06T21:08:34.158Z	1ab1aada-2c68-470a-a9fc-3f5711c08075	   Sources: 5
+	[INFO]	2026-03-06T21:08:36.650Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	💬 Chat Query: 'Thanks, that makes more sense now'
+	[INFO]	2026-03-06T21:08:36.650Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:08:38.035Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T21:08:38.035Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T21:08:38.035Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T21:08:38.908Z	b90a86b0-21fe-4275-9a80-87da52d84c9f	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T21:08:41.767Z	f581e8c4-4dca-416e-8b46-b5421fc9160e	💬 Chat Query: 'When was the last commit made?'
+	[INFO]	2026-03-06T21:08:41.767Z	f581e8c4-4dca-416e-8b46-b5421fc9160e	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:08:44.024Z	f581e8c4-4dca-416e-8b46-b5421fc9160e	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:08:44.024Z	f581e8c4-4dca-416e-8b46-b5421fc9160e	   Answer length: 250 chars
+	[INFO]	2026-03-06T21:08:44.024Z	f581e8c4-4dca-416e-8b46-b5421fc9160e	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 9 ---[0m
+	[INFO]	2026-03-06T21:08:53.480Z	46c907d0-85ed-4bcf-a5c0-9eb8a4a3e97f	💬 Chat Query: 'I'm trying to understand the project timeline better'
+	[INFO]	2026-03-06T21:08:53.480Z	46c907d0-85ed-4bcf-a5c0-9eb8a4a3e97f	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:08:57.452Z	46c907d0-85ed-4bcf-a5c0-9eb8a4a3e97f	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:08:57.452Z	46c907d0-85ed-4bcf-a5c0-9eb8a4a3e97f	   Answer length: 358 chars
+	[INFO]	2026-03-06T21:08:57.452Z	46c907d0-85ed-4bcf-a5c0-9eb8a4a3e97f	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 13 ---[0m
+[INFO]	2026-03-06T21:09:22.458Z	232125f5-2552-46f7-bfac-0e262862bfba	⚠️  RAG UNGROUNDED: Nova Pro couldn't find specific facts
+	[INFO]	2026-03-06T21:09:22.458Z	232125f5-2552-46f7-bfac-0e262862bfba	🔄 Step 2: Falling back to Nova Lite conversational
+	[INFO]	2026-03-06T21:09:22.458Z	232125f5-2552-46f7-bfac-0e262862bfba	💬 Using Nova Lite for conversational response
+	[INFO]	2026-03-06T21:09:23.345Z	232125f5-2552-46f7-bfac-0e262862bfba	   Retrieved 5 context snippets for Nova Lite
+	[INFO]	2026-03-06T21:09:27.597Z	d02b4d15-8e00-4ae0-a795-87b6f12e7496	💬 Chat Query: 'List the main components of the system'
+	[INFO]	2026-03-06T21:09:27.597Z	d02b4d15-8e00-4ae0-a795-87b6f12e7496	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:09:30.991Z	d02b4d15-8e00-4ae0-a795-87b6f12e7496	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:09:30.991Z	d02b4d15-8e00-4ae0-a795-87b6f12e7496	   Answer length: 158 chars
+	[INFO]	2026-03-06T21:09:30.991Z	d02b4d15-8e00-4ae0-a795-87b6f12e7496	   Sources: 5
+
+[0;36m--- Lambda Logs for Test 15 ---[0m
+[INFO]	2026-03-06T21:09:45.506Z	c802d5cf-f7ab-4611-a8b0-e780be2f21b1	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:09:45.506Z	c802d5cf-f7ab-4611-a8b0-e780be2f21b1	   Answer length: 537 chars
+	[INFO]	2026-03-06T21:09:45.506Z	c802d5cf-f7ab-4611-a8b0-e780be2f21b1	   Sources: 5
+	[INFO]	2026-03-06T21:09:47.970Z	00639de8-c15d-40a9-b281-68805b301644	💬 Chat Query: 'I'm working on a similar project myself'
+	[INFO]	2026-03-06T21:09:47.970Z	00639de8-c15d-40a9-b281-68805b301644	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+
+[0;36m--- Lambda Logs for Test 16 ---[0m
+	[INFO]	2026-03-06T21:10:01.303Z	0e87d444-89e1-4559-b6b5-284a9777901b	💬 Chat Query: 'Describe the architecture of this application'
+	[INFO]	2026-03-06T21:10:01.303Z	0e87d444-89e1-4559-b6b5-284a9777901b	🔍 Step 1: Attempting RAG (Nova Pro) - Chat-optimized approach
+	[INFO]	2026-03-06T21:10:05.521Z	0e87d444-89e1-4559-b6b5-284a9777901b	✅ RAG SUCCESS: Grounded answer found (Nova Pro)
+	[INFO]	2026-03-06T21:10:05.521Z	0e87d444-89e1-4559-b6b5-284a9777901b	   Answer length: 562 chars
+	[INFO]	2026-03-06T21:10:05.521Z	0e87d444-89e1-4559-b6b5-284a9777901b	   Sources: 5
+
