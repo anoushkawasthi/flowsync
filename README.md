@@ -202,7 +202,7 @@ Project API tokens are hashed with `scrypt` (N=16384, r=8, p=1). Scrypt is **mem
 - A git repository
 
 ### 1. Install the Extension
-Download `flowsync-1.0.1.vsix` from the [Releases](https://github.com/your-org/flowsync/releases) page or from the [FlowSync website](https://d2bwi2bny67wme.cloudfront.net).
+Download `flowsync-1.0.1.vsix` from the [Releases](https://github.com/anoushkawasthi/flowsync/releases) page or from the [FlowSync website](https://flowsync.aahil-khan.tech/).
 
 ```bash
 code --install-extension flowsync-1.0.1.vsix
@@ -236,7 +236,7 @@ If not, add `.vscode/mcp.json` to your repo:
 ### 4. Start Working
 - **Your AI agent** calls `log_context` after completing tasks and `search_context` before starting new work — automatically
 - **Git pushes** are auto-captured as a fallback, even without an AI agent
-- **Open the dashboard** at [flowsync.site](https://d2bwi2bny67wme.cloudfront.net) with your Project ID and Token
+- **Open the dashboard** at [flowsync.site](https://flowsync.aahil-khan.tech/) with your Project ID and Token
 
 > **Try it now:** Visit the dashboard and click “Try Demo Project” to explore a live project — no setup needed.
 
