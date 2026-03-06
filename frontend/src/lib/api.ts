@@ -93,6 +93,8 @@ export interface ChatResponse {
   sources: ChatSource[];
   sessionId: string;
   timestamp: string;
+  ragUsed?: boolean;  // Added: indicates if RAG pipeline was used
+  answerGrounded?: boolean;  // Added: indicates if answer was grounded in context
 }
 
 export async function sendChatMessage(
@@ -128,15 +130,13 @@ export async function sendChatMessage(
     };
   }
 
+  // Chat endpoint doesn't require authentication
   const response = await api.post<ChatResponse>(
     '/api/v1/chat',
     {
       projectId,
       message,
       sessionId,
-    },
-    {
-      headers: { Authorization: `Bearer ${token}` },
     }
   );
   return response.data;

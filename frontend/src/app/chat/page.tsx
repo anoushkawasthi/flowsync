@@ -19,6 +19,8 @@ interface Message {
   content: string;
   timestamp: string;
   sources?: Source[];
+  ragUsed?: boolean;  // Indicates if RAG pipeline was used (Nova Pro + Nova Lite)
+  answerGrounded?: boolean;  // Indicates if answer was verified by Nova Pro
 }
 
 interface Source {
@@ -318,6 +320,8 @@ export default function ChatPage() {
         content: response.reply,
         timestamp: new Date().toISOString(),
         sources: response.sources,
+        ragUsed: response.ragUsed,
+        answerGrounded: response.answerGrounded,
       };
 
       const finalMessages = [...newMessages, assistantMessage];
@@ -417,7 +421,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-full flex gap-4 relative">
+    <div className="h-[calc(100vh-theme(spacing.12)-theme(spacing.4))] sm:h-[calc(100vh-theme(spacing.14)-theme(spacing.8))] md:h-[calc(100vh-theme(spacing.14)-theme(spacing.12))] flex gap-4 relative">
       {/* Backdrop for mobile sidebar */}
       {showSidebar && (
         <div 
@@ -512,13 +516,13 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2 md:mb-4 flex-wrap gap-2">
-          <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center justify-between mb-2 gap-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowSidebar(!showSidebar)}
-              className="text-zinc-400 hover:text-zinc-100 border-zinc-700 relative"
+              className="text-zinc-400 hover:text-zinc-100 border-zinc-700 relative h-8 px-2"
             >
               <History className="h-4 w-4" />
               <span className="hidden lg:inline ml-2">History</span>
@@ -528,12 +532,12 @@ export default function ChatPage() {
                 </span>
               )}
             </Button>
-            <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500/10 border border-teal-500/30">
-              <MessageSquare className="h-5 w-5 text-teal-500" />
+            <div className="hidden sm:flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg bg-teal-500/10 border border-teal-500/30">
+              <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-teal-500" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-100">FlowSync AI Chat</h1>
-              <p className="text-xs sm:text-sm text-zinc-500 hidden sm:block">Ask questions about your project</p>
+              <h1 className="text-base sm:text-lg md:text-xl font-bold text-zinc-100">FlowSync AI Chat</h1>
+              <p className="text-[10px] sm:text-xs text-zinc-500 hidden sm:block">Ask about your project</p>
             </div>
           </div>
           {currentSessionId && messages.length > 0 && (
@@ -541,10 +545,9 @@ export default function ChatPage() {
               variant="outline"
               size="sm"
               onClick={() => deleteSession(currentSessionId)}
-              className="text-zinc-400 hover:text-zinc-100 border-zinc-700"
+              className="text-zinc-400 hover:text-zinc-100 border-zinc-700 h-8 px-2"
             >
-              <Trash2 className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Delete</span>
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -558,24 +561,24 @@ export default function ChatPage() {
         {/* Chat Container */}
         <Card className="flex-1 flex flex-col border-zinc-800 bg-zinc-900/50 overflow-hidden">
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <ScrollArea className="flex-1 p-2 sm:p-3 md:p-4" ref={scrollRef}>
             {/* Context Memory Card */}
             {currentSessionId && (
-              <div className="mb-4">
+              <div className="mb-2 sm:mb-3 md:mb-4">
                 {!editingContext && !showContext && contextValue && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowContext(true)}
-                    className="text-teal-400 border-teal-500/30 hover:bg-teal-500/10 mb-2"
+                    className="text-teal-400 border-teal-500/30 hover:bg-teal-500/10 mb-2 h-8 text-xs"
                   >
-                    <FileText className="h-3 w-3 mr-2" />
+                    <FileText className="h-3 w-3 mr-1.5" />
                     Show Context
                   </Button>
                 )}
                 
                 {currentSessionId && (showContext || editingContext || (!contextValue && messages.length === 0)) && (
-                  <Card className="border-teal-500/30 bg-teal-500/5 p-4">
+                  <Card className="border-teal-500/30 bg-teal-500/5 p-3 sm:p-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-teal-400" />
@@ -662,32 +665,37 @@ export default function ChatPage() {
               </div>
             )}
 
-            <div className="space-y-6 pb-4">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6 pb-2 sm:pb-3 md:pb-4">
               {messages.map((message, index) => (
                 <div key={index} className="animate-in fade-in-50 duration-200">
                   <div
-                    className={`flex gap-2 md:gap-3 ${
+                    className={`flex gap-1.5 sm:gap-2 md:gap-3 ${
                       message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     {/* Avatar for assistant */}
                     {message.role === 'assistant' && (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
-                        <Bot className="h-4 w-4 text-white" />
+                      <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
+                        <Bot className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-white" />
                       </div>
                     )}
                     
                     <div
-                      className={`max-w-[90%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] rounded-2xl overflow-hidden shadow-lg ${
+                      className={`max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg ${
                         message.role === 'user'
                           ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white'
                           : 'bg-zinc-800/90 backdrop-blur-sm text-zinc-100 border border-zinc-700/50'
                       }`}
                     >
-                      <div className="p-3 md:p-4">
+                      <div className="p-2.5 sm:p-3 md:p-4">
                         {message.role === 'assistant' && (
                           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-zinc-700/50">
                             <span className="text-xs font-semibold text-teal-400 uppercase tracking-wide">AI Assistant</span>
+                            {message.ragUsed && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/50 text-emerald-400 bg-emerald-500/10">
+                                {message.answerGrounded ? '✓ Verified' : 'RAG'}
+                              </Badge>
+                            )}
                           </div>
                         )}
                         <div className={`prose prose-invert prose-sm max-w-none ${
@@ -698,15 +706,15 @@ export default function ChatPage() {
                               code({ node, inline, className, children, ...props }: any) {
                                 const match = /language-(\w+)/.exec(className || '');
                                 return !inline && match ? (
-                                  <div className="my-4 rounded-lg overflow-hidden border border-zinc-700 shadow-md">
-                                    <div className="bg-zinc-900 px-3 py-1.5 border-b border-zinc-700 flex items-center justify-between">
-                                      <span className="text-xs text-zinc-400 font-mono uppercase tracking-wide">{match[1]}</span>
+                                  <div className="my-2 sm:my-4 rounded-lg overflow-hidden border border-zinc-700 shadow-md">
+                                    <div className="bg-zinc-900 px-2 sm:px-3 py-1 sm:py-1.5 border-b border-zinc-700 flex items-center justify-between">
+                                      <span className="text-[10px] sm:text-xs text-zinc-400 font-mono uppercase tracking-wide">{match[1]}</span>
                                     </div>
                                     <SyntaxHighlighter
                                       style={vscDarkPlus}
                                       language={match[1]}
                                       PreTag="div"
-                                      customStyle={{ margin: 0, background: 'transparent', padding: '12px' }}
+                                      customStyle={{ margin: 0, background: 'transparent', padding: '8px', fontSize: '11px' }}
                                       {...props}
                                     >
                                       {String(children).replace(/\n$/, '')}
@@ -721,7 +729,7 @@ export default function ChatPage() {
                                 );
                               },
                               p({ children }) {
-                                return <p className="mb-3 last:mb-0 leading-relaxed text-[0.9rem]">{children}</p>;
+                                return <p className="mb-2 sm:mb-3 last:mb-0 leading-relaxed text-xs sm:text-[0.9rem]">{children}</p>;
                               },
                               ul({ children }) {
                                 return <ul className="space-y-2 my-3 pl-1">{children}</ul>;
@@ -731,32 +739,32 @@ export default function ChatPage() {
                               },
                               li({ children, ...props }) {
                                 return (
-                                  <li className="flex items-start gap-2 text-[0.9rem]" {...props}>
-                                    <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-teal-500 mt-2"></span>
+                                  <li className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-[0.9rem]" {...props}>
+                                    <span className="flex-shrink-0 w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-teal-500 mt-1.5 sm:mt-2"></span>
                                     <span className="flex-1">{children}</span>
                                   </li>
                                 );
                               },
                               h1({ children }) {
                                 return (
-                                  <h1 className="text-xl font-bold mt-6 mb-3 pb-2 border-b border-zinc-700/50 text-teal-400 first:mt-0">
+                                  <h1 className="text-base sm:text-xl font-bold mt-4 sm:mt-6 mb-2 sm:mb-3 pb-2 border-b border-zinc-700/50 text-teal-400 first:mt-0">
                                     {children}
                                   </h1>
                                 );
                               },
                               h2({ children }) {
                                 return (
-                                  <h2 className="text-lg font-bold mt-5 mb-2.5 text-teal-400 flex items-center gap-2">
-                                    <span className="w-1 h-5 bg-teal-500 rounded-full"></span>
+                                  <h2 className="text-sm sm:text-lg font-bold mt-3 sm:mt-5 mb-2 sm:mb-2.5 text-teal-400 flex items-center gap-1.5 sm:gap-2">
+                                    <span className="w-0.5 sm:w-1 h-4 sm:h-5 bg-teal-500 rounded-full"></span>
                                     {children}
                                   </h2>
                                 );
                               },
                               h3({ children }) {
-                                return <h3 className="text-base font-semibold mt-4 mb-2 text-zinc-200">{children}</h3>;
+                                return <h3 className="text-sm sm:text-base font-semibold mt-3 sm:mt-4 mb-1.5 sm:mb-2 text-zinc-200">{children}</h3>;
                               },
                               h4({ children }) {
-                                return <h4 className="text-sm font-semibold mt-3 mb-1.5 text-zinc-300">{children}</h4>;
+                                return <h4 className="text-xs sm:text-sm font-semibold mt-2 sm:mt-3 mb-1 sm:mb-1.5 text-zinc-300">{children}</h4>;
                               },
                               blockquote({ children }) {
                                 return (
@@ -809,12 +817,12 @@ export default function ChatPage() {
                             {message.content}
                           </ReactMarkdown>
                         </div>
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-opacity-20 border-white">
-                          <p className="text-xs opacity-60 font-medium">
+                        <div className="flex items-center justify-between mt-2 sm:mt-3 pt-2 border-t border-opacity-20 border-white">
+                          <p className="text-[10px] sm:text-xs opacity-60 font-medium">
                             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           {message.role === 'assistant' && (
-                            <Badge variant="outline" className="text-xs border-teal-500/30 text-teal-400 bg-teal-500/5">
+                            <Badge variant="outline" className="text-[10px] sm:text-xs border-teal-500/30 text-teal-400 bg-teal-500/5">
                               AI
                             </Badge>
                           )}
@@ -824,15 +832,15 @@ export default function ChatPage() {
                     
                     {/* Avatar for user */}
                     {message.role === 'user' && (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
-                        <User className="h-4 w-4 text-white" />
+                      <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                        <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-white" />
                       </div>
                     )}
                   </div>
 
                   {/* Sources */}
                   {message.sources && message.sources.length > 0 && (
-                    <div className="mt-3 ml-8 md:ml-11 mr-8 md:mr-0 space-y-2">
+                    <div className="mt-2 sm:mt-3 ml-7 sm:ml-8 md:ml-11 mr-7 sm:mr-8 md:mr-0 space-y-2">
                       <button
                         onClick={() => toggleSource(index)}
                         className="flex items-center gap-2 text-sm font-medium text-teal-400 hover:text-teal-300 transition-colors"
@@ -871,7 +879,9 @@ export default function ChatPage() {
                                 <div className="flex items-center gap-1">
                                   <div className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse"></div>
                                   <span className="text-xs text-teal-400 font-semibold">
-                                    {Math.round(source.relevance * 100)}% match
+                                    {source.relevance && !isNaN(source.relevance) 
+                                      ? `${Math.round(source.relevance * 100)}% match`
+                                      : 'N/A'}
                                   </span>
                                 </div>
                               </div>
@@ -891,14 +901,14 @@ export default function ChatPage() {
               ))}
 
               {isLoading && (
-                <div className="flex gap-3 justify-start animate-in fade-in-50 duration-200">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
-                    <Bot className="h-4 w-4 text-white" />
+                <div className="flex gap-1.5 sm:gap-2 md:gap-3 justify-start animate-in fade-in-50 duration-200">
+                  <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
+                    <Bot className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-white" />
                   </div>
-                  <div className="bg-zinc-800/90 backdrop-blur-sm border border-zinc-700/50 rounded-2xl p-4 shadow-lg">
+                  <div className="bg-zinc-800/90 backdrop-blur-sm border border-zinc-700/50 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-lg">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
-                      <span className="text-sm text-zinc-400">Thinking...</span>
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-teal-500" />
+                      <span className="text-xs sm:text-sm text-zinc-400">Thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -908,8 +918,8 @@ export default function ChatPage() {
           </ScrollArea>
 
           {/* Input */}
-          <div className="border-t border-zinc-800 p-3 md:p-4 bg-zinc-900/50">
-            <div className="flex gap-2">
+          <div className="border-t border-zinc-800 p-2 sm:p-3 md:p-4 bg-zinc-900/50">
+            <div className="flex gap-1.5 sm:gap-2">
               <Input
                 ref={inputRef}
                 placeholder={currentSessionId ? "Ask a question..." : "Create a new chat first..."}
@@ -917,12 +927,12 @@ export default function ChatPage() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyPress}
                 disabled={isLoading || !currentSessionId}
-                className="flex-1 bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500 h-10 md:h-11 text-sm md:text-base"
+                className="flex-1 bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500 h-9 sm:h-10 md:h-11 text-sm"
               />
               <Button
                 onClick={handleSend}
                 disabled={!inputValue.trim() || isLoading || !currentSessionId}
-                className="shrink-0 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white h-10 md:h-11 px-3 md:px-4 shadow-lg"
+                className="shrink-0 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 md:px-4 shadow-lg"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -931,8 +941,8 @@ export default function ChatPage() {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-zinc-500 mt-2 hidden sm:block">
-              Press Enter to send, Shift+Enter for new line
+            <p className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 hidden sm:block">
+              Press Enter to send
             </p>
           </div>
         </Card>

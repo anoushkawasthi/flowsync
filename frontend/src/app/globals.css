@@ -35,10 +35,24 @@
     @apply bg-zinc-950 text-zinc-100;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Better mobile button taps */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Prevent text selection during touch on interactive elements */
+  .touch-action-none {
+    touch-action: none;
   }
 }
 

@@ -34,23 +34,23 @@ export function TopBar({
   const title = pageTitles[pathname] || 'FlowSync';
 
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-4 sm:px-6 backdrop-blur">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="sticky top-0 z-30 flex h-12 sm:h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-3 sm:px-4 md:px-6 backdrop-blur">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
           className="shrink-0 rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 lg:hidden"
           aria-label="Open menu"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
-        <h1 className="truncate text-lg font-semibold text-zinc-100">{title}</h1>
+        <h1 className="truncate text-base sm:text-lg font-semibold text-zinc-100">{title}</h1>
       </div>
 
       {pathname !== '/settings' && branches.length > 0 && (
-        <div className="flex items-center gap-2 shrink-0 ml-2">
-          <GitBranch className="hidden h-4 w-4 text-zinc-500 sm:block" />
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
+          <GitBranch className="hidden h-3.5 w-3.5 sm:h-4 sm:w-4 text-zinc-500 sm:block" />
           <Select value={selectedBranch} onValueChange={onBranchChange}>
-            <SelectTrigger className="w-[120px] sm:w-[180px] h-8 text-xs sm:text-sm">
+            <SelectTrigger className="w-[100px] sm:w-[140px] md:w-[180px] h-7 sm:h-8 text-[11px] sm:text-xs md:text-sm">
               <SelectValue placeholder="Branch" />
             </SelectTrigger>
             <SelectContent>
