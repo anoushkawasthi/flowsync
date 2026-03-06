@@ -105,6 +105,12 @@ export function getCurrentBranch(): string | null {
   return git("branch --show-current");
 }
 
+export function getLocalBranches(): string[] {
+  const raw = git("branch --format=%(refname:short)");
+  if (!raw) return [];
+  return raw.split("\n").map((b) => b.trim()).filter(Boolean);
+}
+
 export function getMergeInfo(): { isMerge: boolean; sourceBranch: string | null } {
   const parentsLine = git("rev-list --parents -n 1 HEAD");
   const parts = parentsLine ? parentsLine.trim().split(" ") : [];

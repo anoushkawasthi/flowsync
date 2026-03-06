@@ -5,6 +5,7 @@ import * as https from "https";
 import { writeConfig, getWorkspaceRoot, BASE_PORT } from "../config";
 import { findAvailablePort } from "../hookListener";
 import { detectAll } from "../autoDetect";
+import { getLocalBranches } from "../gitUtils";
 
 const BACKEND_URL = "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
 
@@ -240,11 +241,29 @@ export function registerInitCommand(
       return;
     }
 
-    const defaultBranch = await vscode.window.showInputBox({
-      prompt: "Default branch",
-      value: detected.defaultBranch,
-    });
-    if (!defaultBranch) return;
+    const branches = getLocalBranches();
+    let defaultBranch: string | undefined;
+    if (branches.length > 0) {
+      const branchItems: vscode.QuickPickItem[] = branches.map((b) => ({
+        label: b,
+        description: b === detected.defaultBranch ? "detected" : undefined,
+        picked: b === detected.defaultBranch,
+      }));
+      const picked = await vscode.window.showQuickPick(branchItems, {
+        placeHolder: detected.defaultBranch
+          ? `Detected: ${detected.defaultBranch} — select default branch`
+          : "Select default branch",
+      });
+      if (!picked) return;
+      defaultBranch = picked.label;
+    } else {
+      // Fallback: no branches yet (brand-new repo), use input box
+      defaultBranch = await vscode.window.showInputBox({
+        prompt: "Default branch",
+        value: detected.defaultBranch ?? "main",
+      });
+      if (!defaultBranch) return;
+    }
 
     await createProject({
       context,
