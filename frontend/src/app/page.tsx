@@ -24,7 +24,7 @@ import { useAppContext } from '@/hooks/useAppContext';
 import { DEMO_PROJECT_ID, DEMO_TOKEN } from '@/lib/constants';
 import { getEvents } from '@/lib/api';
 
-const VSIX_DOWNLOAD_URL = '/downloads/flowsync-1.0.1.vsix';
+const VSIX_DOWNLOAD_URL = '/downloads/flowsync-1.0.2.vsix';
 
 const features = [
   {
