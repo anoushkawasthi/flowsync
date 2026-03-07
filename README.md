@@ -243,8 +243,8 @@ If not, add `.vscode/mcp.json` to your repo:
 ---
 ## 📚 Documentation
 
-- **[Technical Deep Dive](docs/technical-deep-dive.md)** — Full architecture, implementation details, MCP server, RAG pipeline, caching, security, and more
-- **[Performance Report](docs/performance-report.md)** — Benchmark results, latency breakdowns, extraction accuracy, and cost analysis
+- **[Technical Deep Dive](DOCUMENTATION/technical-deep-dive.md)** — Full architecture, implementation details, MCP server, RAG pipeline, caching, security, and more
+- **[Performance Report](DOCUMENTATION/performance-report.md)** — Benchmark results, latency breakdowns, extraction accuracy, and cost analysis
 
 ---
 ## 👥 Team
@@ -259,3 +259,4 @@ If not, add `.vscode/mcp.json` to your repo:
 ---
 
 *Built with ❤️ for the **AI for Bharat Hackathon***
+
