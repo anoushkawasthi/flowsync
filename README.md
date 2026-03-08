@@ -2,7 +2,8 @@
 
 > *Give your AI agent project-wide context it never forgets.*
 
-> **AI for Bharat Hackathon** | Powered by Amazon Bedrock
+> **AI for Bharat Hackathon**
+
 > Team **Vanta** — Aahil Khan, Anoushka Awasthi, Maulik Dang, Sanyam Wadhwa
 
 ---
@@ -259,4 +260,5 @@ If not, add `.vscode/mcp.json` to your repo:
 ---
 
 *Built with ❤️ for the **AI for Bharat Hackathon***
+
 
