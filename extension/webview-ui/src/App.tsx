@@ -5,9 +5,19 @@ import { JoinProject } from "./components/JoinProject";
 import { Dashboard } from "./components/Dashboard";
 import { CatchMeUp } from "./components/CatchMeUp";
 import { Chat } from "./components/Chat";
+import { ProjectContext } from "./components/ProjectContext";
 import { vscode } from "./utilities/vscode";
 
-type View = "loading" | "welcome" | "init" | "join" | "dashboard" | "chat" | "catchMeUp";
+type View =
+  | "loading"
+  | "welcome"
+  | "init"
+  | "join"
+  | "dashboard"
+  | "chat"
+  | "catchMeUp"
+  // Rendered only in the activity-bar view; FlowSyncSidebar navigates here on ready.
+  | "sidebar";
 
 function App() {
   const [view, setView] = useState<View>("loading");
@@ -41,6 +51,12 @@ function App() {
   // it opts out of the shared padded shell rather than sitting inside it.
   if (view === "chat") {
     return <Chat />;
+  }
+
+  // The sidebar has its own tighter padding — app-shell's max-width and gutters
+  // are sized for the editor panel.
+  if (view === "sidebar") {
+    return <ProjectContext />;
   }
 
   return (

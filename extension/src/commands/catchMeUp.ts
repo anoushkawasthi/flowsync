@@ -1,25 +1,13 @@
 import * as vscode from "vscode";
-import * as https from "https";
 import { readConfig, getWorkspaceRoot } from "../config";
 import { log } from "../logger";
 import { FlowSyncPanel } from "../panels/FlowSyncPanel";
+import { fetchEvents, type ContextRecord } from "../api";
 
-const BACKEND_URL = "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
+/** Kept as an alias so the rest of this file reads unchanged. */
+type EventSummary = ContextRecord;
 
-interface EventSummary {
-  eventId: string;
-  author: string;
-  feature: string;
-  decision: string | null;
-  tasks: string[];
-  risk: string | null;
-  stage: string;
-  branch: string;
-  extractedAt: string;
-  commitHash: string | null;
-}
-
-interface CatchUpData {
+export interface CatchUpData {
   totalEvents: number;
   authors: Set<string>;
   decisions: Array<{ text: string; commitHash: string; author: string }>;
@@ -147,45 +135,21 @@ export async function runCatchMeUp(
 }
 
 /**
- * Fetch events from backend since a given timestamp.
+ * Fetch events since a timestamp. The transport lives in ../api so the sidebar
+ * and this command share one code path.
  */
 async function fetchEventsSince(
   projectId: string,
   since: string,
   apiToken: string
 ): Promise<EventSummary[]> {
-  const url = `${BACKEND_URL}/api/v1/projects/${projectId}/events?since=${encodeURIComponent(since)}&limit=50`;
-  
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, {
-      headers: {
-        "Authorization": `Bearer ${apiToken}`,
-        "Accept": "application/json",
-      },
-    }, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
-        if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode}: ${data}`));
-        }
-        try {
-          const parsed = JSON.parse(data);
-          resolve(parsed.events || []);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
-    req.on("error", reject);
-    req.end();
-  });
+  return fetchEvents(projectId, apiToken, { since, limit: 50 });
 }
 
 /**
  * Aggregate events into a summary structure.
  */
-function aggregateEvents(
+export function aggregateEvents(
   events: EventSummary[],
   workspaceRoot: string,
   hoursSince: number,

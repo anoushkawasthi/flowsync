@@ -2,7 +2,7 @@
   "name": "flowsync",
   "displayName": "FlowSync",
   "description": "FlowSync \u2014 Capture, understand, and query your team's dev context with AI",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "vanta-thapar",
   "icon": "assets/logo.png",
   "galleryBanner": {
@@ -68,6 +68,18 @@
         "icon": "$(history)"
       },
       {
+        "command": "flowsync.recordReasoning",
+        "category": "FlowSync",
+        "title": "Record Reasoning",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "flowsync.openWebDashboard",
+        "category": "FlowSync",
+        "title": "Open Web Dashboard",
+        "icon": "$(globe)"
+      },
+      {
         "command": "flowsync.openChat",
         "category": "FlowSync",
         "title": "Ask FlowSync",
@@ -117,6 +129,16 @@
           "command": "flowsync.openOutput",
           "when": "view == flowsync.sidebar",
           "group": "1_flowsync@2"
+        },
+        {
+          "command": "flowsync.recordReasoning",
+          "when": "view == flowsync.sidebar",
+          "group": "navigation@0"
+        },
+        {
+          "command": "flowsync.openWebDashboard",
+          "when": "view == flowsync.sidebar",
+          "group": "1_flowsync@0"
         }
       ],
       "scm/title": [
@@ -142,6 +164,14 @@
         {
           "command": "flowsync.refresh",
           "when": "flowsync.connected"
+        },
+        {
+          "command": "flowsync.recordReasoning",
+          "when": "flowsync.connected"
+        },
+        {
+          "command": "flowsync.openWebDashboard",
+          "when": "true"
         }
       ]
     },
@@ -156,25 +186,36 @@
         "key": "ctrl+alt+u",
         "mac": "cmd+alt+u",
         "when": "flowsync.connected"
+      },
+      {
+        "command": "flowsync.recordReasoning",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "flowsync.connected"
       }
     ],
     "configuration": {
       "title": "FlowSync",
       "properties": {
+        "flowsync.autoOpenOutput": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open the Output panel when FlowSync activates."
+        },
         "flowsync.backendUrl": {
           "type": "string",
           "default": "",
           "markdownDescription": "Override the FlowSync backend URL. Leave empty to use the bundled default."
         },
+        "flowsync.dashboardUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "URL of the FlowSync web dashboard. Leave empty to use the hosted default."
+        },
         "flowsync.showPushNotification": {
           "type": "boolean",
           "default": true,
           "description": "Prompt to add reasoning after each git push."
-        },
-        "flowsync.autoOpenOutput": {
-          "type": "boolean",
-          "default": false,
-          "description": "Open the Output panel when FlowSync activates."
         },
         "flowsync.statusBar.enabled": {
           "type": "boolean",

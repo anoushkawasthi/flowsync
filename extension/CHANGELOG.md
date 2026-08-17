@@ -3,6 +3,45 @@
 All notable changes to the FlowSync extension are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.0]
+
+### Added
+
+- **The Project Context sidebar now shows your project's actual context.** It
+  leads with open risks, pending tasks and recent activity, with counts across
+  the top. Previously it rendered `projectId`, `defaultBranch`, `port` and
+  `backendUrl` — configuration plumbing — because the view made no network call
+  at all and could not show project content.
+- **Agent tools are visible.** A collapsible section lists all five MCP tools
+  (`log_context`, `search_context`, `get_project_context`, `get_recent_changes`,
+  `get_events`) with what each is for, plus a wiring indicator that reads your
+  `.vscode/mcp.json` and warns when it is missing **or points at a different
+  project** — a failure that is otherwise completely silent to the agent.
+- **`FlowSync: Record Reasoning`** (`Ctrl/Cmd+Alt+R`) — the human path to
+  `log_context`, the only write tool, which until now only an AI agent could
+  call. Prompts for reasoning, decision, risk and follow-up tasks, and reports
+  whether it merged into a recent push or created a new record.
+- **`FlowSync: Open Web Dashboard`** — there was previously no way to reach the
+  web dashboard from the extension at all. Copies the Project ID and token to the
+  clipboard, then opens the dashboard. The web app reads credentials only from
+  `localStorage`, so a link cannot pre-authenticate; the clipboard keeps the token
+  out of URLs, browser history and server logs.
+- `flowsync.dashboardUrl` setting.
+
+### Changed
+
+- Backend calls consolidated into one module. The base URL had been hardcoded in
+  three separate files with each call site hand-rolling its own `node:https`
+  plumbing.
+- The sidebar surfaces fetch failures as a visible error state rather than
+  rendering blank.
+
+### Fixed
+
+- **`flowsync.backendUrl` did nothing.** The setting shipped in 1.1.0 but no code
+  ever read it, so pointing the extension at a different backend silently had no
+  effect.
+
 ## [1.1.0]
 
 ### Added

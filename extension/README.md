@@ -46,9 +46,12 @@ Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pr
 ## Where FlowSync lives in VS Code
 
 **Activity bar** — the FlowSync icon opens a **Project Context** sidebar showing
-connection status, project details and quick actions. Multi-step flows
-(initialize, join, chat, catch-up) open in the full editor panel, which has the
-room for them.
+your project's live context: open risks, pending tasks and recent activity, with
+counts across the top. Below that, a collapsible **Agent tools** section lists the
+five MCP tools and tells you whether your `.vscode/mcp.json` is actually wired to
+this project — including the silent case where it exists but points somewhere
+else. Multi-step flows (initialize, join, chat, catch-up) open in the full editor
+panel, which has the room for them.
 
 **Status bar** — a FlowSync item on the left, tinted to show whether the current
 workspace is connected. Click it to open the dashboard. Hide it with
@@ -61,6 +64,8 @@ workspace is connected. Click it to open the dashboard. Hide it with
 | `FlowSync: Open Dashboard` | `Ctrl/Cmd+Alt+F` | Opens the panel — status, context, and chat |
 | `FlowSync: Catch Me Up` | `Ctrl/Cmd+Alt+U` | Summarises teammate pushes since you last checked |
 | `FlowSync: Ask FlowSync` | — | Opens the chat view |
+| `FlowSync: Record Reasoning` | `Ctrl/Cmd+Alt+R` | Log the *why* behind your work without an AI agent |
+| `FlowSync: Open Web Dashboard` | — | Copies your credentials and opens the web dashboard |
 | `FlowSync: Initialize Project` | — | Creates a project and issues an API token |
 | `FlowSync: Join Project` | — | Connects to an existing project with a token |
 | `FlowSync: Refresh Status` | — | Re-reads config and connection state |
@@ -74,6 +79,7 @@ connected; Catch Me Up and Refresh only appear when it is.
 | Setting | Default | Description |
 |---|---|---|
 | `flowsync.backendUrl` | `""` | Override the backend URL |
+| `flowsync.dashboardUrl` | `""` | Override the web dashboard URL |
 | `flowsync.showPushNotification` | `true` | Prompt to add reasoning after each push |
 | `flowsync.autoOpenOutput` | `false` | Open the Output panel on activation |
 | `flowsync.statusBar.enabled` | `true` | Show FlowSync in the status bar |
@@ -144,6 +150,12 @@ Add a `.vscode/mcp.json` to your workspace:
 ## Release Notes
 
 See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+### 1.2.0
+- Project Context sidebar now shows live risks, tasks and recent activity
+- Agent tools surfaced with an mcp.json wiring diagnostic
+- New `Record Reasoning` and `Open Web Dashboard` commands
+- Fixed: `flowsync.backendUrl` was never read by any code
 
 ### 1.1.0
 - Rebuilt the entire UI on a neobrutalist design system: hard borders, flat

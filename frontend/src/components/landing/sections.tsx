@@ -7,7 +7,7 @@ import { LogoLockup, LogoTile } from '@/components/brand/Logo';
 import { TerminalDemo } from './TerminalDemo';
 import { cn } from '@/lib/utils';
 
-export const VSIX_DOWNLOAD_URL = '/downloads/flowsync-1.1.0.vsix';
+export const VSIX_DOWNLOAD_URL = '/downloads/flowsync-1.2.0.vsix';
 
 /* ------------------------------------------------------------------ */
 /*  Nav                                                                */
