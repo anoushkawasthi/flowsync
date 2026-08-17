@@ -1,0 +1,133 @@
+/* ============================================================================
+   FlowSync webview design tokens.
+
+   Mirrors frontend/src/app/tokens.css. Same names, same values — if you change
+   one, change both.
+
+   THEME BRIDGE: VS Code stamps `vscode-light`, `vscode-dark` or
+   `vscode-high-contrast` on <body>. The geometry (borders, shadows, radii,
+   type) is identical in both themes; only the palette follows the host. The old
+   webview hardcoded a single dark palette and ignored the editor theme, which
+   meant the panel looked wrong for anyone on a light theme — and a cream panel
+   inside a dark editor would look just as wrong the other way.
+
+   FONTS are bundled, not fetched. The webview CSP is
+   `font-src ${webview.cspSource}`, so fonts.googleapis.com is blocked outright.
+   Importing the woff2 from src/assets lets Vite emit it next to the stylesheet,
+   where the relative URL resolves inside localResourceRoots.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('../assets/fonts/archivo-latin.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../assets/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  /* ---- light (default, and what vscode-light gets) ---- */
+  --canvas: #faf7f0;
+  --surface: #ffffff;
+  --surface-sunken: #f4f1ea;
+  --ink: #16161a;
+  --ink-muted: rgba(22, 22, 26, 0.72);
+  --ink-subtle: rgba(22, 22, 26, 0.55);
+  --border: #16161a;
+  --border-soft: rgba(22, 22, 26, 0.14);
+  --shadow: #16161a;
+  --grid: rgba(22, 22, 26, 0.055);
+
+  --accent: #b84e35;
+  --accent-ink: #ffffff;
+  --accent-text: #a8432c;
+
+  --on-pastel: #16161a;
+  --p-primary: #c6d6e3;
+  --p-success: #c7d8c4;
+  --p-warn: #e3d3ac;
+  --p-danger: #e2c4be;
+  --p-neutral: #dad6ce;
+
+  --danger: #a33a29;
+  --warn: #8a6320;
+  --success: #3f6b4a;
+
+  /* ---- geometry ---- */
+  --bw: 2px;
+  --bw-thin: 1.5px;
+  --r-card: 12px;
+  --r-chip: 8px;
+
+  --sh-1: 2px 2px 0 0 var(--shadow);
+  --sh-2: 3px 3px 0 0 var(--shadow);
+  --sh-3: 5px 5px 0 0 var(--shadow);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-micro: 140ms;
+  --t-hover: 180ms;
+
+  --measure: 62ch;
+
+  font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--ink);
+  background-color: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark and high-contrast hosts. Note --shadow drops to black rather than
+   staying the border colour: a light border plus a light offset shadow on every
+   card reads as a glow, not as depth. */
+body.vscode-dark,
+body.vscode-high-contrast {
+  --canvas: #14141a;
+  --surface: #1e1e26;
+  --surface-sunken: #191920;
+  --ink: #f0ede6;
+  --ink-muted: rgba(240, 237, 230, 0.7);
+  --ink-subtle: rgba(240, 237, 230, 0.5);
+  --border: #565663;
+  --border-soft: rgba(240, 237, 230, 0.12);
+  --shadow: #000000;
+  --grid: rgba(240, 237, 230, 0.06);
+
+  --accent: #cf6a4d;
+  --accent-ink: #14141a;
+  --accent-text: #e08a6e;
+
+  --on-pastel: #f0ede6;
+  --p-primary: #223140;
+  --p-success: #223227;
+  --p-warn: #37301d;
+  --p-danger: #382723;
+  --p-neutral: #292930;
+
+  --danger: #e59182;
+  --warn: #d8b273;
+  --success: #96c2a2;
+}
+
+/* High contrast wants the border back at full strength. */
+body.vscode-high-contrast {
+  --border: #f0ede6;
+  --border-soft: rgba(240, 237, 230, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

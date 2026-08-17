@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { vscode } from "../utilities/vscode";
+import { IconChevronDown, IconChevronRight, IconSend, IconMessage } from "./icons";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -115,9 +116,9 @@ export function Chat() {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>FlowSync AI Chat</h2>
+        <h2>Ask FlowSync</h2>
         {messages.length > 0 && (
-          <button className="btn-link" onClick={clearConversation}>
+          <button className="btn btn-link btn-sm" onClick={clearConversation}>
             Clear
           </button>
         )}
@@ -126,14 +127,13 @@ export function Chat() {
       <div className="chat-messages" ref={scrollRef}>
         {messages.length === 0 && (
           <div className="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                stroke="var(--vscode-descriptionForeground)"
-                strokeWidth="1.5"
-              />
-            </svg>
-            <p>Ask me anything about your project</p>
+            {/* currentColor, not var(--vscode-descriptionForeground) — this was
+                one of three stray host-theme references left in a webview that
+                otherwise ignored the host entirely. */}
+            <span className="empty-state-icon">
+              <IconMessage size={20} />
+            </span>
+            <p>Ask anything about your project&apos;s history, decisions, or risks.</p>
           </div>
         )}
 
@@ -159,7 +159,12 @@ export function Chat() {
                   className="sources-toggle"
                   onClick={() => toggleSource(index)}
                 >
-                  {expandedSources.has(index) ? '▼' : '▶'} {message.sources.length} source
+                  {expandedSources.has(index) ? (
+                    <IconChevronDown size={12} />
+                  ) : (
+                    <IconChevronRight size={12} />
+                  )}{' '}
+                  {message.sources.length} source
                   {message.sources.length !== 1 ? 's' : ''}
                 </button>
 
@@ -193,7 +198,7 @@ export function Chat() {
               <strong>FlowSync AI</strong>
             </div>
             <div className="message-content">
-              <span className="spinner" /> Thinking...
+              <span className="spinner" /> Thinking…
             </div>
           </div>
         )}
@@ -211,11 +216,12 @@ export function Chat() {
           disabled={isLoading}
         />
         <button
-          className="btn-primary btn-send"
+          className="btn btn-primary btn-send"
           onClick={handleSend}
           disabled={!inputValue.trim() || isLoading}
+          aria-label="Send message"
         >
-          Send
+          <IconSend size={15} />
         </button>
       </div>
     </div>

@@ -3,8 +3,19 @@ import { cn } from '@/lib/utils';
 import { AlertTriangle, Info } from 'lucide-react';
 
 interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'warn';
 }
+
+/**
+ * Alerts are pastel-filled slabs rather than the usual translucent tint. A 10%
+ * red wash over a dark surface is invisible on paper and muddy on a pastel, so
+ * the state is carried by a full flat fill plus the hard border instead.
+ */
+const variantClass: Record<NonNullable<AlertProps['variant']>, string> = {
+  default: 'bg-surface text-ink',
+  destructive: 'bg-danger-fill text-on-pastel',
+  warn: 'bg-warn-fill text-on-pastel',
+};
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
   ({ className, variant = 'default', children, ...props }, ref) => (
@@ -12,18 +23,17 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       ref={ref}
       role="alert"
       className={cn(
-        'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4',
-        variant === 'destructive'
-          ? 'border-red-500/30 bg-red-500/10 text-red-400 [&>svg]:text-red-400'
-          : 'border-zinc-800 bg-zinc-900 text-zinc-100 [&>svg]:text-zinc-400',
+        'neo relative w-full rounded-card p-4 shadow-neo-1',
+        '[&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg~*]:pl-7',
+        variantClass[variant],
         className
       )}
       {...props}
     >
-      {variant === 'destructive' ? (
-        <AlertTriangle className="h-4 w-4" />
-      ) : (
+      {variant === 'default' ? (
         <Info className="h-4 w-4" />
+      ) : (
+        <AlertTriangle className="h-4 w-4" />
       )}
       {children}
     </div>
@@ -32,26 +42,22 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
 Alert.displayName = 'Alert';
 
 const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
+  HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+    className={cn('mb-1 font-extrabold leading-none tracking-[-0.01em]', className)}
     {...props}
   />
 ));
 AlertTitle.displayName = 'AlertTitle';
 
 const AlertDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
-    {...props}
-  />
+  <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 ));
 AlertDescription.displayName = 'AlertDescription';
 

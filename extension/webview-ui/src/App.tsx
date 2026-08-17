@@ -6,7 +6,6 @@ import { Dashboard } from "./components/Dashboard";
 import { CatchMeUp } from "./components/CatchMeUp";
 import { Chat } from "./components/Chat";
 import { vscode } from "./utilities/vscode";
-import "./App.css";
 
 type View = "loading" | "welcome" | "init" | "join" | "dashboard" | "chat" | "catchMeUp";
 
@@ -38,12 +37,18 @@ function App() {
 
   const navigate = (v: string) => setView(v as View);
 
+  // Chat owns the full viewport height (its message list scrolls internally), so
+  // it opts out of the shared padded shell rather than sitting inside it.
+  if (view === "chat") {
+    return <Chat />;
+  }
+
   return (
     <div className="app-shell">
       {view === "loading" && (
         <div className="loading-view">
           <span className="spinner spinner-lg" />
-          <p>Loading FlowSync...</p>
+          <p>Loading FlowSync…</p>
         </div>
       )}
       {view === "welcome" && <Welcome onNavigate={navigate} />}
@@ -51,7 +56,6 @@ function App() {
       {view === "join" && <JoinProject onNavigate={navigate} />}
       {view === "dashboard" && <Dashboard onNavigate={navigate} />}
       {view === "catchMeUp" && <CatchMeUp onNavigate={navigate} />}
-      {view === "chat" && <Chat />}
     </div>
   );
 }

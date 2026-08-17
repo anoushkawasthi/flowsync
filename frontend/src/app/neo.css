@@ -1,0 +1,244 @@
+/* ============================================================================
+   Neobrutalist primitives.
+
+   These live here rather than as Tailwind utilities because each one is a small
+   *system* of coupled declarations — the lift/press pair in particular only
+   works if the transform delta and the shadow delta move together, which is
+   exactly the kind of invariant that rots when spread across 30 files as loose
+   utility strings.
+
+   Layered as `components` so any Tailwind utility still wins over them.
+   ========================================================================== */
+
+@layer components {
+  /* ---- surfaces ------------------------------------------------------- */
+
+  .neo {
+    background: var(--surface);
+    border: var(--bw) solid var(--border);
+    border-radius: var(--r-card);
+  }
+
+  /* Nested or small elements step down to the thin border. Never 1px — at 1px
+     the whole system stops reading as deliberate and starts reading as default. */
+  .neo-thin {
+    border-width: var(--bw-thin);
+  }
+
+  /* A hairline for dividers inside an already-bordered container, where a full
+     2px rule would read as a seam between two separate cards. */
+  .neo-rule {
+    border-color: var(--border-soft);
+  }
+
+  .neo-sh-1 { box-shadow: var(--sh-1); }
+  .neo-sh-2 { box-shadow: var(--sh-2); }
+  .neo-sh-3 { box-shadow: var(--sh-3); }
+  .neo-focused { box-shadow: var(--sh-focus); }
+
+  /* ---- the lift/press pair -------------------------------------------- */
+
+  /* Hover lifts toward the light and the shadow GROWS by the same delta, so the
+     shadow's far corner stays pinned and the element reads as rising off the
+     page rather than sliding across it. Active does the inverse. Keep the two
+     deltas equal if you ever retune these. */
+  .neo-lift {
+    box-shadow: var(--sh-2);
+    transition:
+      transform var(--t-hover) var(--ease),
+      box-shadow var(--t-hover) var(--ease),
+      background-color var(--t-micro) var(--ease),
+      color var(--t-micro) var(--ease);
+  }
+  .neo-lift:hover:not(:disabled):not([aria-disabled='true']) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 0 var(--shadow);
+  }
+  .neo-lift:active:not(:disabled):not([aria-disabled='true']) {
+    transform: translate(2px, 2px);
+    box-shadow: var(--sh-1);
+  }
+
+  /* Small controls: chips, icon buttons, rows. Same physics, one rung down. */
+  .neo-lift-sm {
+    box-shadow: var(--sh-1);
+    transition:
+      transform var(--t-hover) var(--ease),
+      box-shadow var(--t-hover) var(--ease),
+      background-color var(--t-micro) var(--ease),
+      color var(--t-micro) var(--ease);
+  }
+  .neo-lift-sm:hover:not(:disabled):not([aria-disabled='true']) {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--sh-2);
+  }
+  .neo-lift-sm:active:not(:disabled):not([aria-disabled='true']) {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+  }
+
+  .neo-lift:disabled,
+  .neo-lift-sm:disabled,
+  .neo-lift[aria-disabled='true'],
+  .neo-lift-sm[aria-disabled='true'] {
+    opacity: 0.45;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* ---- navigation ----------------------------------------------------- */
+
+  /* Sidebar rows are quiet by default: no border, no shadow, just a hover wash.
+     Giving every row its own bordered slab turned the rail into a stack of five
+     competing boxes, which is a lot of chrome for something you read past. Only
+     the active row earns the full treatment. */
+  .neo-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: var(--bw) solid transparent;
+    border-radius: var(--r-chip);
+    padding: 0.5rem 0.6875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    transition:
+      background-color var(--t-micro) var(--ease),
+      color var(--t-micro) var(--ease);
+  }
+  .neo-nav-item:hover {
+    background: var(--surface-sunken);
+    color: var(--ink);
+  }
+  .neo-nav-item[data-active='true'] {
+    border-color: var(--border);
+    background: var(--pastel, var(--p-neutral));
+    color: var(--on-pastel);
+    box-shadow: var(--sh-1);
+  }
+
+  /* ---- type ----------------------------------------------------------- */
+
+  /* The polarity rule: display type tightens as it grows, micro type opens up
+     and goes uppercase. Nothing lives in between — the in-between is what makes
+     a page look like an unstyled wireframe. */
+  .neo-display {
+    font-size: var(--fs-display);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+  .neo-heading {
+    font-size: var(--fs-heading);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .neo-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-subtle);
+  }
+  .neo-label-sm {
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-subtle);
+  }
+  .neo-measure {
+    max-width: var(--measure);
+  }
+
+  /* An uppercase label that draws its own rule across the rest of the row. */
+  .neo-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-subtle);
+  }
+  .neo-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: var(--bw-thin);
+    background: var(--border-soft);
+  }
+
+  /* ---- accent, spent sparingly ---------------------------------------- */
+
+  /* The accent's whole job is emphasis at small surface area: an underline, a
+     bullet, a shadow fill, a highlighter. It is never a large fill. */
+  .neo-underline {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 0.15em;
+  }
+  .neo-highlight {
+    box-shadow: inset 0 -0.32em 0 color-mix(in srgb, var(--accent) 34%, transparent);
+  }
+  .neo-bullet {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+  .neo-bullet::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  /* ---- backdrops ------------------------------------------------------ */
+
+  /* An honest empty frame. Never a placeholder image — hatching says "nothing
+     here yet" without pretending. */
+  .neo-hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 14px,
+      var(--grid) 14px 15px
+    );
+  }
+
+  .neo-grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* ---- misc ----------------------------------------------------------- */
+
+  .neo-pastel {
+    background: var(--pastel, var(--p-neutral));
+    color: var(--on-pastel);
+    border: var(--bw) solid var(--border);
+  }
+
+  /* Square spinner — a rotating bordered box. A spinning ring belongs to the
+     soft-UI vocabulary this design replaces. */
+  .neo-spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: var(--bw) solid var(--border);
+    border-radius: 3px;
+    background: var(--accent);
+    animation: neo-spin 1.2s var(--ease) infinite;
+  }
+}
+
+@keyframes neo-spin {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg) scale(0.82); }
+  100% { transform: rotate(360deg); }
+}

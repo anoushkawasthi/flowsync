@@ -1,58 +1,79 @@
+/* @import must precede every other rule, so postcss-import inlines these before
+   Tailwind runs. That ordering matters: neo.css declares `@layer components`,
+   and Tailwind can only place it correctly if it sees the rules itself. */
+@import './tokens.css';
+@import './neo.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 174 60% 51%;
-    --primary-foreground: 174 80% 97%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 174 60% 51%;
-    --accent-foreground: 174 80% 97%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 174 60% 51%;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
-  body {
-    @apply bg-zinc-950 text-zinc-100;
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-  }
+
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
+
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-archivo), system-ui, sans-serif;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Display type is heavy and tight by default; the polarity rule lives in
+     neo.css but headings need a sane baseline even when unclassed. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* A single visible focus ring for the whole app. 3px solid ink at a 3px
+     offset survives on both the pastels and the surfaces; a subtle ring would
+     disappear against half of them. */
+  :focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
 }
 
-/* Mobile viewport fix */
+/* Mobile viewport fix — 100vh overshoots on mobile Safari/Chrome. */
 @supports (height: 100dvh) {
   .h-screen {
     height: 100dvh !important;
   }
 }
 
-/* Scrollbar styling */
+/* Scrollbars: squared off, drawn in the border token so they flip with theme. */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -60,18 +81,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 3px;
+  background: var(--ink-subtle);
+  border: var(--bw-thin) solid var(--border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: var(--ink-muted);
 }
 
-/* Hide scrollbar on mobile for cleaner look */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
-    width: 3px;
-    height: 3px;
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: none;
   }
 }

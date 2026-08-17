@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { GitBranch, Menu, Copy, Check } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -8,57 +10,86 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { GitBranch, Menu } from 'lucide-react';
-
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/chat': 'Chat',
-  '/search': 'Search',
-  '/analytics': 'Analytics',
-  '/settings': 'Settings',
-};
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { LogoLockup } from '@/components/brand/Logo';
+import { useAppContext } from '@/hooks/useAppContext';
+import { cn, formatContextSnapshot, normalisePath } from '@/lib/utils';
 
 interface TopBarProps {
-  branches: string[];
-  selectedBranch: string;
-  onBranchChange: (branch: string) => void;
   onMenuClick?: () => void;
-  projectName?: string;
 }
 
-export function TopBar({
-  branches,
-  selectedBranch,
-  onBranchChange,
-  onMenuClick,
-  projectName,
-}: TopBarProps) {
+/**
+ * Spans the full viewport width above the sidebar, rather than starting where
+ * the rail ends. Two header bands meeting at a T — one over the rail, one over
+ * the content — put two competing horizontal rules on screen and made the whole
+ * shell look misaligned.
+ *
+ * It deliberately does NOT show the page title: every page opens with its own
+ * PageHeader, and printing the title twice six pixels apart is just noise. The
+ * bar carries identity (logo, project) and global actions only.
+ */
+export function TopBar({ onMenuClick }: TopBarProps) {
   const pathname = usePathname();
-  const title = pageTitles[pathname] || 'FlowSync';
+  const { branches, selectedBranch, setSelectedBranch, projectName, events } = useAppContext();
+  const [copied, setCopied] = useState(false);
+
+  const route = normalisePath(pathname);
+  const canCopy = events.length > 0;
+
+  const handleCopySnapshot = async () => {
+    if (!canCopy) return;
+    try {
+      await navigator.clipboard.writeText(formatContextSnapshot(events, selectedBranch));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy snapshot:', err);
+    }
+  };
 
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-4 sm:px-6 backdrop-blur">
-      <div className="flex items-center gap-3 min-w-0">
-        <button
-          onClick={onMenuClick}
-          className="shrink-0 rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 lg:hidden"
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        <h1 className="truncate text-lg font-semibold text-zinc-100">{title}</h1>
-        {projectName && (
-          <span className="hidden sm:inline shrink-0 text-xs font-medium text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-full">
-            {projectName}
-          </span>
-        )}
-      </div>
+    <header className="flex h-bar shrink-0 items-center gap-3 border-b-bw border-line bg-surface px-3 sm:px-4">
+      <button
+        onClick={onMenuClick}
+        className="neo neo-lift-sm grid h-8 w-8 shrink-0 place-items-center rounded-chip bg-surface text-ink lg:hidden"
+        aria-label="Open menu"
+      >
+        <Menu className="h-4 w-4" />
+      </button>
 
-      {pathname !== '/settings' && branches.length > 0 && (
-        <div className="flex items-center gap-2 shrink-0 ml-2">
-          <GitBranch className="hidden h-4 w-4 text-zinc-500 sm:block" />
-          <Select value={selectedBranch} onValueChange={onBranchChange}>
-            <SelectTrigger className="w-[120px] sm:w-[180px] h-8 text-xs sm:text-sm">
+      <LogoLockup className="shrink-0" />
+
+      {projectName && (
+        <span className="neo-label hidden truncate border-l-thin border-line-soft pl-3 text-ink-muted md:block">
+          {projectName}
+        </span>
+      )}
+
+      {/* gap-2.5 rather than gap-2: each control carries a 3px offset shadow, so
+          a tighter gap makes the shadow of one touch the border of the next. */}
+      <div className="ml-auto flex shrink-0 items-center gap-2.5">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopySnapshot}
+          disabled={!canCopy}
+          title={
+            canCopy
+              ? 'Copy a context summary to the clipboard'
+              : 'No events captured on this branch yet'
+          }
+          className={cn('hidden sm:inline-flex', copied && 'bg-success-fill text-on-pastel')}
+        >
+          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          <span className="hidden lg:inline">{copied ? 'Copied' : 'Copy summary'}</span>
+        </Button>
+
+        {route !== '/settings' && branches.length > 0 && (
+          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+            <SelectTrigger className="h-8 w-[8rem] sm:w-[11rem]" aria-label="Branch">
+              <GitBranch className="h-3.5 w-3.5 shrink-0 text-ink-subtle" />
               <SelectValue placeholder="Branch" />
             </SelectTrigger>
             <SelectContent>
@@ -69,8 +100,10 @@ export function TopBar({
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
-    </div>
+        )}
+
+        <ThemeToggle />
+      </div>
+    </header>
   );
 }

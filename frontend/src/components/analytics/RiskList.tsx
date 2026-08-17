@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ContextRecord } from '@/types';
 
 interface RiskListProps {
@@ -13,36 +12,31 @@ export function RiskList({ events }: RiskListProps) {
   if (risks.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-zinc-400">
-          Active Risks
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <section className="neo rounded-card bg-surface shadow-neo-2">
+      <header className="flex items-center gap-2 border-b-bw border-line px-4 py-3">
+        <AlertTriangle className="h-4 w-4 text-ink-subtle" />
+        <h3 className="neo-label">Active risks</h3>
+        <span className="ml-auto text-sm font-extrabold tabular-nums text-ink-subtle">
+          {risks.length}
+        </span>
+      </header>
+
+      <ul className="space-y-2 p-4">
         {risks.map((event) => (
-          <div
-            key={event.eventId}
-            className="flex gap-3 rounded-md border-l-2 border-orange-500 bg-zinc-800/50 p-3"
-          >
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
-            <div className="flex-1 space-y-1 min-w-0">
-              <p className="text-sm text-orange-300">{event.risk}</p>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-zinc-500">
-                <span className="truncate max-w-[150px] sm:max-w-none">{event.feature}</span>
-                <span className="hidden sm:inline">·</span>
-                <span>{event.author}</span>
-                <span>·</span>
-                <span>
-                  {formatDistanceToNow(new Date(event.extractedAt), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
+          <li key={event.eventId} className="neo neo-thin rounded-chip bg-pastel-risk p-3">
+            <p className="text-sm font-medium text-on-pastel">{event.risk}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-on-pastel opacity-60">
+              <span className="max-w-[14rem] truncate">{event.feature}</span>
+              <span aria-hidden>·</span>
+              <span>{event.author}</span>
+              <span aria-hidden>·</span>
+              <span>
+                {formatDistanceToNow(new Date(event.extractedAt), { addSuffix: true })}
+              </span>
             </div>
-          </div>
+          </li>
         ))}
-      </CardContent>
-    </Card>
+      </ul>
+    </section>
   );
 }

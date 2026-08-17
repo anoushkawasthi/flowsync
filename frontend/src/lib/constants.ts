@@ -7,40 +7,7 @@ export const DEMO_TOKEN = '1e82dd7e6d1e8e21da1f348b1d8ee6d3c45f50ff91c0080693203
 
 export const POLLING_INTERVAL_MS = 5000;
 
-export const STAGE_COLORS: Record<
-  string,
-  { bg: string; text: string; border: string }
-> = {
-  Setup: {
-    bg: 'bg-blue-500/15',
-    text: 'text-blue-400',
-    border: 'border-blue-500/30',
-  },
-  'Feature Development': {
-    bg: 'bg-emerald-500/15',
-    text: 'text-emerald-400',
-    border: 'border-emerald-500/30',
-  },
-  'Bug Fix': {
-    bg: 'bg-red-500/15',
-    text: 'text-red-400',
-    border: 'border-red-500/30',
-  },
-  Refactoring: {
-    bg: 'bg-yellow-500/15',
-    text: 'text-yellow-400',
-    border: 'border-yellow-500/30',
-  },
-  Testing: {
-    bg: 'bg-purple-500/15',
-    text: 'text-purple-400',
-    border: 'border-purple-500/30',
-  },
-  Documentation: {
-    bg: 'bg-zinc-500/15',
-    text: 'text-zinc-400',
-    border: 'border-zinc-500/30',
-  },
-};
+// Stage colours live in src/lib/theme-colors.ts — one palette shared by the
+// badges and the charts, so the two can no longer drift apart.
 
 export const LOCAL_STORAGE_KEY = 'flowsync-config';

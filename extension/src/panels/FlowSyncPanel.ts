@@ -7,6 +7,7 @@ import { findAvailablePort } from "../hookListener";
 import { writeMcpConfig } from "../commands/initProject";
 import { detectAll } from "../autoDetect";
 import { log } from "../logger";
+import { buildWebviewHtml, webviewResourceRoots } from "./webviewHtml";
 
 const BACKEND_URL =
   "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
@@ -52,10 +53,7 @@ export class FlowSyncPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.joinPath(extensionUri, "webview-ui", "build"),
-          vscode.Uri.joinPath(extensionUri, "assets"),
-        ],
+        localResourceRoots: webviewResourceRoots(extensionUri),
       }
     );
 
@@ -137,45 +135,8 @@ export class FlowSyncPanel {
   /* ─── HTML builder ─── */
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    const buildUri = vscode.Uri.joinPath(
-      this._extensionUri,
-      "webview-ui",
-      "build"
-    );
-
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(buildUri, "assets", "index.js")
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(buildUri, "assets", "index.css")
-    );
-    const logoUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "assets", "logo.png")
-    );
-
-    const nonce = getNonce();
-
-    return /* html */ `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy"
-      content="default-src 'none';
-               style-src ${webview.cspSource} 'unsafe-inline';
-               script-src 'nonce-${nonce}';
-               connect-src ${webview.cspSource};
-               font-src ${webview.cspSource};
-               img-src ${webview.cspSource} data:;">
-    <link rel="stylesheet" href="${styleUri}">
-    <script nonce="${nonce}">window.__FLOWSYNC_LOGO__ = "${logoUri}";</script>
-    <title>FlowSync</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script nonce="${nonce}" src="${scriptUri}"></script>
-  </body>
-</html>`;
+    // Shared with the sidebar view so the CSP and injected globals are defined once.
+    return buildWebviewHtml(webview, this._extensionUri);
   }
 
   /* ─── message router ─── */
@@ -442,15 +403,6 @@ export class FlowSyncPanel {
    kept here to avoid circular deps from the webview flow)
    ================================================================ */
 
-function getNonce(): string {
-  let text = "";
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 32; i++) {
-    text += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return text;
-}
 
 const COPILOT_INSTRUCTIONS = `# FlowSync Context Instructions
 

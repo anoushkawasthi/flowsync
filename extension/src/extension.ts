@@ -9,28 +9,85 @@ import { showPostPushNotification } from "./notifications";
 import { FlowSyncPanel } from "./panels/FlowSyncPanel";
 import { initLogger, log } from "./logger";
 import { registerCatchMeUpCommand, checkAndAutoTriggerCatchMeUp } from "./commands/catchMeUp";
+import { registerInitCommand } from "./commands/initProject";
+import { registerJoinCommand } from "./commands/joinProject";
+import { FlowSyncSidebar } from "./panels/FlowSyncSidebar";
+
+const CONFIG_SECTION = "flowsync";
+
+/** Drives the `flowsync.connected` context key that the `when` clauses read. */
+async function setConnectedContext(
+  context: vscode.ExtensionContext
+): Promise<boolean> {
+  const config = readConfig();
+  let connected = false;
+  if (config) {
+    const token = await context.secrets.get(`flowsync.token.${config.projectId}`);
+    connected = Boolean(token);
+  }
+  await vscode.commands.executeCommand("setContext", "flowsync.connected", connected);
+  return connected;
+}
+
+/**
+ * The status bar item reflects connection state through a real ThemeColor rather
+ * than only a codicon, and can be turned off entirely via settings.
+ */
+function applyStatusBar(item: vscode.StatusBarItem, connected: boolean): void {
+  const enabled = vscode.workspace
+    .getConfiguration(CONFIG_SECTION)
+    .get<boolean>("statusBar.enabled", true);
+
+  if (!enabled) {
+    item.hide();
+    return;
+  }
+
+  item.command = "flowsync.openPanel";
+  item.text = connected ? "$(check) FlowSync" : "$(zap) FlowSync";
+  item.tooltip = connected
+    ? "FlowSync connected — click to open the dashboard"
+    : "FlowSync — click to set up this project";
+  item.backgroundColor = new vscode.ThemeColor(
+    connected ? "flowsync.statusBarConnected" : "flowsync.statusBarDisconnected"
+  );
+  item.show();
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = initLogger();
-  outputChannel.show(false); // show panel without stealing focus
+  // Opt-in. This used to run on every activation, which force-opened the Output
+  // panel over whatever the user was looking at each time VS Code started.
+  if (
+    vscode.workspace
+      .getConfiguration(CONFIG_SECTION)
+      .get<boolean>("autoOpenOutput", false)
+  ) {
+    outputChannel.show(false);
+  }
 
   log.sep();
   log.info("FlowSync extension activated");
 
-  // ── Persistent status bar button ──────────────────────────────────────────
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     100
   );
-  statusBarItem.command = "flowsync.openPanel";
-  statusBarItem.text = "$(zap) FlowSync";
-  statusBarItem.tooltip = "Open FlowSync panel";
-  statusBarItem.show();
   context.subscriptions.push(statusBarItem);
-  // ─────────────────────────────────────────────────────────────────────────
+  applyStatusBar(statusBarItem, false);
 
   const config = readConfig();
   log.info("Workspace config", config ?? "no .flowsync.json found");
+
+  // Declared before syncState/onAuthenticated so neither closes over a
+  // binding that is still in its temporal dead zone.
+  let sidebar: FlowSyncSidebar | undefined;
+
+  const syncState = async () => {
+    const connected = await setConnectedContext(context);
+    applyStatusBar(statusBarItem, connected);
+    sidebar?.refresh();
+  };
 
   const onAuthenticated = () => {
     log.step("onAuthenticated", "reading fresh config after init/join");
@@ -41,35 +98,57 @@ export function activate(context: vscode.ExtensionContext) {
     } else {
       log.error("onAuthenticated", "readConfig returned null after init — .flowsync.json may not have been written");
     }
+    void syncState();
   };
 
-  // Register the webview panel command
+  // ── Activity-bar sidebar ─────────────────────────────────────────────────
+  sidebar = new FlowSyncSidebar(context.extensionUri, context, onAuthenticated);
   context.subscriptions.push(
-    vscode.commands.registerCommand("flowsync.openPanel", () => {
-      const initialView = readConfig() ? "dashboard" : "welcome";
-      FlowSyncPanel.createOrShow(
-        context.extensionUri,
-        context,
-        onAuthenticated,
-        initialView
-      );
+    vscode.window.registerWebviewViewProvider(FlowSyncSidebar.viewId, sidebar, {
+      // Keep the React tree alive while the view is collapsed so reopening it
+      // doesn't replay the whole mount + status round-trip.
+      webviewOptions: { retainContextWhenHidden: true },
+    })
+  );
+
+  const openPanel = (view?: string) =>
+    FlowSyncPanel.createOrShow(
+      context.extensionUri,
+      context,
+      onAuthenticated,
+      view ?? (readConfig() ? "dashboard" : "welcome")
+    );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("flowsync.openPanel", () => openPanel()),
+    vscode.commands.registerCommand("flowsync.openChat", () => openPanel("chat")),
+    vscode.commands.registerCommand("flowsync.refresh", async () => {
+      await syncState();
+      vscode.window.setStatusBarMessage("$(check) FlowSync status refreshed", 3000);
+    }),
+    vscode.commands.registerCommand("flowsync.openOutput", () => {
+      outputChannel.show(true);
+    }),
+    // Re-apply when the user toggles the status bar setting.
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(`${CONFIG_SECTION}.statusBar.enabled`)) {
+        void syncState();
+      }
     })
   );
 
   // Register "Catch Me Up" command
   registerCatchMeUpCommand(context, context.extensionUri);
 
-  // Register the chat command
+  // These two were exported but never called, so `FlowSync: Initialize Project`
+  // and `FlowSync: Join Project` were registered nowhere and their QuickPick
+  // flows were unreachable dead code.
   context.subscriptions.push(
-    vscode.commands.registerCommand("flowsync.openChat", () => {
-      FlowSyncPanel.createOrShow(
-        context.extensionUri,
-        context,
-        onAuthenticated,
-        "chat"
-      );
-    })
+    registerInitCommand(context, onAuthenticated),
+    registerJoinCommand(context, onAuthenticated)
   );
+
+  void syncState();
 
   if (config) {
     log.step("activate", `found existing config, initializing for projectId=${config.projectId}`);
@@ -224,7 +303,11 @@ async function handlePushEvent(
     return;
   }
 
-  if (gitUserName) {
+  const notifyOnPush = vscode.workspace
+    .getConfiguration("flowsync")
+    .get<boolean>("showPushNotification", true);
+
+  if (gitUserName && notifyOnPush) {
     await showPostPushNotification(branch, diff, gitUserName);
   }
 }

@@ -6,19 +6,22 @@ import { SearchBar } from '@/components/search/SearchBar';
 import { SearchResults } from '@/components/search/SearchResults';
 import { LoadingSearchResult } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
 export default function SearchPage() {
   const { config } = useAppContext();
-  const { result, loading, error, search } = useSearch(
-    config.projectId,
-    config.token
-  );
+  const { result, loading, error, search } = useSearch(config.projectId, config.token);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+    <div className="mx-auto max-w-3xl space-y-5">
+      <PageHeader
+        eyebrow="Retrieval"
+        title="Search context"
+        lede="Ask about decisions, architecture, or history. Answers are drawn from the context FlowSync has captured."
+      />
+
       <SearchBar onSearch={search} loading={loading} />
 
       {loading && <LoadingSearchResult />}
@@ -33,9 +36,9 @@ export default function SearchPage() {
 
       {!result && !loading && !error && (
         <EmptyState
-          icon={<Search className="h-8 w-8 text-zinc-500" />}
-          title="Search your project context"
-          description="Ask questions about your codebase, decisions, and architecture. FlowSync uses RAG to find answers from your commit history."
+          icon={<Search className="h-7 w-7" />}
+          title="Nothing searched yet"
+          description="Try asking why a library was chosen, what is still outstanding on a feature, or what risks were flagged last week."
         />
       )}
     </div>

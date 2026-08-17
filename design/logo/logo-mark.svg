@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" role="img" aria-label="FlowSync">
+  <!--
+    FlowSync mark — a right-angled "S" built from two blocks and a stepped connector.
+    Reads three ways: two things converging (sync), an S (FlowSync), and a commit
+    graph stepping between branches. Every edge lands on a 1px grid at 32px so the
+    mark stays crisp when scaled down to 16px.
+  -->
+  <!-- block A — top left -->
+  <rect x="2" y="2" width="9" height="9" />
+  <!-- stepped connector: down, across, down -->
+  <rect x="4" y="11" width="5" height="8" />
+  <rect x="4" y="14" width="24" height="5" />
+  <rect x="23" y="14" width="5" height="8" />
+  <!-- block B — bottom right -->
+  <rect x="21" y="21" width="9" height="9" />
+</svg>

@@ -43,16 +43,40 @@ Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pr
 
 ---
 
-## Commands
+## Where FlowSync lives in VS Code
 
-The extension registers two commands in the Command Palette (`Ctrl+Shift+P`):
+**Activity bar** — the FlowSync icon opens a **Project Context** sidebar showing
+connection status, project details and quick actions. Multi-step flows
+(initialize, join, chat, catch-up) open in the full editor panel, which has the
+room for them.
 
-| Command | Description |
-|---|---|
-| `FlowSync: Open Dashboard` | Opens the FlowSync panel — initialize, join, view context, and chat |
-| `FlowSync: Catch Me Up` | Summarizes all teammate pushes since you last checked |
+**Status bar** — a FlowSync item on the left, tinted to show whether the current
+workspace is connected. Click it to open the dashboard. Hide it with
+`flowsync.statusBar.enabled`.
 
-Project initialization and joining are done inside the **Open Dashboard** panel UI, not as separate commands.
+### Commands
+
+| Command | Keybinding | Description |
+|---|---|---|
+| `FlowSync: Open Dashboard` | `Ctrl/Cmd+Alt+F` | Opens the panel — status, context, and chat |
+| `FlowSync: Catch Me Up` | `Ctrl/Cmd+Alt+U` | Summarises teammate pushes since you last checked |
+| `FlowSync: Ask FlowSync` | — | Opens the chat view |
+| `FlowSync: Initialize Project` | — | Creates a project and issues an API token |
+| `FlowSync: Join Project` | — | Connects to an existing project with a token |
+| `FlowSync: Refresh Status` | — | Re-reads config and connection state |
+| `FlowSync: Show Logs` | — | Opens the FlowSync output channel |
+
+Initialize and Join only appear in the palette when the workspace is *not* yet
+connected; Catch Me Up and Refresh only appear when it is.
+
+### Settings
+
+| Setting | Default | Description |
+|---|---|---|
+| `flowsync.backendUrl` | `""` | Override the backend URL |
+| `flowsync.showPushNotification` | `true` | Prompt to add reasoning after each push |
+| `flowsync.autoOpenOutput` | `false` | Open the Output panel on activation |
+| `flowsync.statusBar.enabled` | `true` | Show FlowSync in the status bar |
 
 ---
 
@@ -118,6 +142,25 @@ Add a `.vscode/mcp.json` to your workspace:
 ---
 
 ## Release Notes
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+### 1.1.0
+- Rebuilt the entire UI on a neobrutalist design system: hard borders, flat
+  offset shadows, muted palette, Archivo + JetBrains Mono
+- New activity-bar container with a **Project Context** sidebar view
+- Commands now use a proper `FlowSync` category, plus keybindings, context-aware
+  palette filtering, SCM and view-title menu entries
+- Added settings for the backend URL, push notifications, output auto-open and
+  the status bar
+- Status bar reflects connection state with a themable colour
+- Webview now follows your VS Code light/dark/high-contrast theme instead of
+  forcing its own dark palette
+- Fonts are bundled, so the panel renders correctly offline and under the CSP
+- New square logo (the old one was 500x300 and was being squashed everywhere)
+- Fixed: the Output panel no longer force-opens on every activation
+- Fixed: `Initialize Project` and `Join Project` were registered nowhere and
+  were unreachable
 
 ### 0.0.1
 - Initial prototype release for AI for Bharat Hackathon
