@@ -11,6 +11,8 @@ import { initLogger, log } from "./logger";
 import { registerCatchMeUpCommand, checkAndAutoTriggerCatchMeUp } from "./commands/catchMeUp";
 import { registerInitCommand } from "./commands/initProject";
 import { registerJoinCommand } from "./commands/joinProject";
+import { registerRecordReasoningCommand } from "./commands/recordReasoning";
+import { registerOpenWebDashboardCommand } from "./commands/openWebDashboard";
 import { FlowSyncSidebar } from "./panels/FlowSyncSidebar";
 
 const CONFIG_SECTION = "flowsync";
@@ -145,7 +147,10 @@ export function activate(context: vscode.ExtensionContext) {
   // flows were unreachable dead code.
   context.subscriptions.push(
     registerInitCommand(context, onAuthenticated),
-    registerJoinCommand(context, onAuthenticated)
+    registerJoinCommand(context, onAuthenticated),
+    // The human path to log_context, which was previously agent-only.
+    registerRecordReasoningCommand(context, () => sidebar?.refresh()),
+    registerOpenWebDashboardCommand(context)
   );
 
   void syncState();
