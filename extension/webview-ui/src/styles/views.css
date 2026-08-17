@@ -1,0 +1,391 @@
+/* ============================================================================
+   Per-view layout. The panel is narrow and can be docked narrower still, so
+   everything here is single-column by default and only widens when there is
+   room — a two-up grid at 320px is worse than a stack.
+   ========================================================================== */
+
+.app-shell {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+/* ---- Welcome --------------------------------------------------------- */
+
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.welcome-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Square tile with a hard border — the logo used to carry an inline
+   borderRadius:12 that no token controlled. */
+.welcome-logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--accent);
+  object-fit: contain;
+  box-shadow: var(--sh-1);
+}
+
+.welcome-title {
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.welcome-subtitle {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  max-width: var(--measure);
+}
+
+.card-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 34rem) {
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.welcome-footer {
+  border-top: var(--bw-thin) solid var(--border-soft);
+  padding-top: 0.875rem;
+}
+
+.welcome-footer p {
+  font-size: 0.75rem;
+}
+
+/* ---- Dashboard ------------------------------------------------------- */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* A full-width status banner instead of a badge floating above a heading. */
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  padding: 0.875rem 1rem;
+  box-shadow: var(--sh-2);
+}
+
+.dashboard-header h1 {
+  font-size: 1.25rem;
+  margin-right: auto;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.dashboard-section h2 {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ---- Init / Join forms ----------------------------------------------- */
+
+.form-container,
+.project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  border-bottom: var(--bw-thin) solid var(--border-soft);
+  padding-bottom: 0.875rem;
+}
+
+.form-header p {
+  font-size: 0.8125rem;
+  max-width: var(--measure);
+}
+
+.back-button {
+  align-self: flex-start;
+}
+
+.languages,
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* ---- Success / no-git states ---------------------------------------- */
+
+.success-view,
+.no-git-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.success-icon,
+.no-git-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  box-shadow: var(--sh-1);
+}
+
+.success-icon {
+  background: var(--p-success);
+  color: var(--on-pastel);
+}
+
+/* Was referencing --error-bg / --error-border / --error, none of which exist —
+   the real tokens are the --danger family, so the hardcoded fallbacks always
+   won and the state never followed the theme. */
+.no-git-icon {
+  background: var(--p-danger);
+  color: var(--on-pastel);
+}
+
+.success-message,
+.no-git-hint {
+  font-size: 0.8125rem;
+  max-width: 40ch;
+}
+
+/* Was referencing undefined --input-bg / --text-primary with no fallback, so
+   both declarations were dropped at parse time and the block rendered bare. */
+.no-git-command {
+  border: var(--bw-thin) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  padding: 0.5rem 0.625rem;
+}
+
+.no-git-command code {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+/* ---- Chat ------------------------------------------------------------ */
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: var(--bw) solid var(--border);
+  background: var(--surface);
+  padding: 0.625rem 1rem;
+}
+
+.chat-header h2 {
+  font-size: 0.9375rem;
+  margin-right: auto;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1rem;
+}
+
+.message-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.message {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-card);
+  padding: 0.625rem 0.75rem;
+  max-width: 90%;
+  box-shadow: var(--sh-1);
+}
+
+.message-user {
+  align-self: flex-end;
+  background: var(--p-primary);
+  color: var(--on-pastel);
+}
+
+.message-assistant {
+  align-self: flex-start;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.message-content {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-time {
+  color: var(--ink-subtle);
+}
+
+.message-user .message-time {
+  color: var(--on-pastel);
+  opacity: 0.65;
+}
+
+.message-sources {
+  margin-top: 0.5rem;
+  border-top: var(--bw-thin) solid var(--border-soft);
+  padding-top: 0.5rem;
+}
+
+.sources-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.source-card {
+  border-width: var(--bw-thin);
+  background: var(--surface-sunken);
+  padding: 0.5rem 0.625rem;
+}
+
+.source-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.source-feature {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.source-meta {
+  color: var(--ink-subtle);
+}
+
+.relevance {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.source-snippet {
+  margin-top: 0.375rem;
+  border: var(--bw-thin) solid var(--border-soft);
+  border-radius: 4px;
+  background: var(--surface);
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 0.5rem;
+  border-top: var(--bw) solid var(--border);
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+}
+
+.chat-input {
+  flex: 1;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.chat-input::placeholder {
+  color: var(--ink-subtle);
+}
+
+.chat-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

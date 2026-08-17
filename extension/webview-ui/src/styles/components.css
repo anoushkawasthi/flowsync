@@ -1,0 +1,558 @@
+/* ============================================================================
+   Shared primitives. Every class here is used by at least one component — the
+   previous stylesheet had rules for classes nobody rendered (.logo-icon) while
+   five classes that WERE rendered had no rule at all (.btn-link, .btn-send,
+   .badge, .empty-state-icon, .welcome-logo).
+   ========================================================================== */
+
+/* ---- micro labels ---------------------------------------------------- */
+
+.label,
+.stat-label,
+.status-badge,
+.card-action,
+.field-hint,
+.message-time,
+.source-meta,
+.token-warning {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---- buttons --------------------------------------------------------- */
+
+/* The lift/press pair: hover raises 1px and the shadow grows by the same 1px so
+   its far corner stays pinned; active presses back in. Keep the deltas equal. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: var(--sh-1);
+  transition:
+    transform var(--t-hover) var(--ease),
+    box-shadow var(--t-hover) var(--ease),
+    background-color var(--t-micro) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sh-2);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Ghost and link deliberately carry no border or shadow — they sit inside
+   already-bordered containers where more chrome reads as a box in a box. */
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  transform: none;
+  background: var(--surface-sunken);
+  box-shadow: none;
+}
+
+.btn-link {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.25rem 0.375rem;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.btn-link:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-sm {
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+}
+
+/* Square send button sized to match the composer input's height. */
+.btn-send {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---- cards ----------------------------------------------------------- */
+
+.card,
+.action-card,
+.stat-card,
+.decision-card,
+.risk-card,
+.task-item,
+.source-card,
+.token-box,
+.info-callout,
+.auto-detect-notice {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: left;
+  box-shadow: var(--sh-2);
+  transition:
+    transform var(--t-hover) var(--ease),
+    box-shadow var(--t-hover) var(--ease);
+}
+
+.action-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--shadow);
+}
+
+.action-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--sh-1);
+}
+
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--p-primary);
+  color: var(--on-pastel);
+}
+
+.card-icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.card-title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.card-description {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.card-action {
+  margin-top: auto;
+  color: var(--accent-text);
+}
+
+/* ---- stats ----------------------------------------------------------- */
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  box-shadow: var(--sh-1);
+}
+
+.stat-label {
+  color: var(--ink-subtle);
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.stat-value.small {
+  font-size: 0.8125rem;
+}
+
+/* ---- status ---------------------------------------------------------- */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  border: var(--bw-thin) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--p-neutral);
+  color: var(--on-pastel);
+  padding: 0.25rem 0.5rem;
+}
+
+.status-badge.connected {
+  background: var(--p-success);
+}
+
+/* A square, like every other small mark in this system. */
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border: var(--bw-thin) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--p-neutral);
+  color: var(--on-pastel);
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- chips ----------------------------------------------------------- */
+
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.chip {
+  border: var(--bw-thin) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  transition: background-color var(--t-micro) var(--ease);
+}
+
+.chip:hover {
+  background: var(--surface-sunken);
+}
+
+.chip-selected {
+  border-width: var(--bw);
+  background: var(--p-primary);
+  color: var(--on-pastel);
+  box-shadow: var(--sh-1);
+}
+
+/* ---- forms ----------------------------------------------------------- */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-group > label,
+.form-group > .label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  width: 100%;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--ink-subtle);
+}
+
+.form-group.has-error input,
+.form-group.has-error textarea {
+  border-color: var(--danger);
+}
+
+.field-error {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.field-hint {
+  color: var(--ink-subtle);
+}
+
+.form-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--p-danger);
+  color: var(--on-pastel);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: var(--sh-1);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ---- notices --------------------------------------------------------- */
+
+.info-callout,
+.auto-detect-notice {
+  background: var(--p-primary);
+  color: var(--on-pastel);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  box-shadow: var(--sh-1);
+}
+
+.token-box {
+  background: var(--p-warn);
+  color: var(--on-pastel);
+  padding: 0.875rem;
+  box-shadow: var(--sh-2);
+}
+
+.token-display {
+  display: block;
+  border: var(--bw-thin) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.5rem 0.625rem;
+  margin: 0.5rem 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.token-warning {
+  color: var(--on-pastel);
+  opacity: 0.75;
+}
+
+/* ---- notes: decisions, risks, tasks ---------------------------------- */
+
+.decision-card,
+.risk-card,
+.task-item {
+  padding: 0.625rem 0.75rem;
+  border-width: var(--bw-thin);
+}
+
+.decision-card {
+  background: var(--p-primary);
+  color: var(--on-pastel);
+}
+
+.risk-card {
+  background: var(--p-danger);
+  color: var(--on-pastel);
+}
+
+.task-item {
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.decision-card-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.decision-card-meta {
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* ---- steps ----------------------------------------------------------- */
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+/* Square, not a circle. */
+.step-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--bw) solid var(--border);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.step-content strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.step-content p {
+  font-size: 0.8125rem;
+}
+
+/* ---- empty states --------------------------------------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 14px,
+    var(--grid) 14px 15px
+  );
+  padding: 2rem 1rem;
+  text-align: center;
+  box-shadow: var(--sh-2);
+}
+
+.empty-state p {
+  font-size: 0.8125rem;
+  max-width: 34ch;
+}
+
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-chip);
+  background: var(--p-neutral);
+  color: var(--on-pastel);
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* ---- spinner --------------------------------------------------------- */
+
+/* A tumbling bordered square. A spinning ring belongs to the soft-UI
+   vocabulary this design replaces. */
+.spinner {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: var(--bw-thin) solid var(--border);
+  border-radius: 2px;
+  background: var(--accent);
+  animation: neo-spin 1.2s var(--ease) infinite;
+}
+
+.spinner-lg {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-width: var(--bw);
+}
+
+@keyframes neo-spin {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg) scale(0.82); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 60vh;
+}
+
+.loading-view p {
+  font-size: 0.8125rem;
+}

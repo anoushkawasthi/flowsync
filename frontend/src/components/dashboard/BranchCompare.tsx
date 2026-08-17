@@ -6,8 +6,16 @@ import { getEvents } from '@/lib/api';
 import { ContextCard } from './ContextCard';
 import { LoadingCards } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import type { ContextRecord } from '@/types';
-//frontend
+
 interface BranchCompareProps {
   projectId: string;
   token: string;
@@ -15,6 +23,7 @@ interface BranchCompareProps {
 }
 
 type Classification = 'left-only' | 'right-only' | 'shared';
+type Side = 'a' | 'b';
 
 function normaliseFeature(f: string): string {
   return f.toLowerCase().trim().replace(/\s+/g, ' ');
@@ -54,29 +63,43 @@ function classifyEvents(
   return { left: labelledLeft, right: labelledRight };
 }
 
+const sideFill: Record<Side, string> = {
+  a: 'bg-pastel-compare-a',
+  b: 'bg-pastel-compare-b',
+};
+
+/**
+ * Shared events used to be dimmed to `opacity-40`, which reads as disabled
+ * rather than as "present on both sides". They now keep full contrast and are
+ * marked with a badge instead, so the eye can still scan them.
+ */
 function ClassifiedCard({
   record,
   label,
+  side,
 }: {
   record: ContextRecord;
   label: Classification;
+  side: Side;
 }) {
+  const isShared = label === 'shared';
   return (
     <div className="relative">
-      {label === 'left-only' && (
-        <div className="absolute inset-y-0 left-0 w-0.5 rounded-l-lg bg-blue-500 z-10" />
-      )}
-      {label === 'right-only' && (
-        <div className="absolute inset-y-0 left-0 w-0.5 rounded-l-lg bg-purple-500 z-10" />
-      )}
-      <div className={label === 'shared' ? 'opacity-40' : undefined}>
-        <ContextCard event={record} />
-      </div>
-      {label === 'shared' && (
-        <div className="absolute top-3 right-3 rounded-full bg-zinc-700 px-2 py-0.5 text-[10px] font-medium text-zinc-400 z-10">
+      {isShared && (
+        <span className="neo neo-thin absolute -top-2 right-3 z-10 rounded-chip bg-pastel-neutral px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-on-pastel">
           Shared
-        </div>
+        </span>
       )}
+      {!isShared && (
+        <span
+          aria-hidden
+          className={cn(
+            'neo absolute -left-1.5 top-6 z-10 h-4 w-4 rounded-[3px]',
+            sideFill[side]
+          )}
+        />
+      )}
+      <ContextCard event={record} />
     </div>
   );
 }
@@ -87,7 +110,7 @@ function BranchColumn({
   loading,
   classified,
   onBranchChange,
-  accentColor,
+  side,
   disabledBranches = [],
 }: {
   branch: string;
@@ -95,74 +118,65 @@ function BranchColumn({
   loading: boolean;
   classified: { record: ContextRecord; label: Classification }[];
   onBranchChange: (b: string) => void;
-  accentColor: 'blue' | 'purple';
+  side: Side;
   disabledBranches?: string[];
 }) {
   const uniqueCount = classified.filter((c) => c.label !== 'shared').length;
   const sharedCount = classified.filter((c) => c.label === 'shared').length;
 
   return (
-    <div className="flex flex-col min-w-0 md:min-w-auto flex-1 w-full md:w-auto snap-center md:snap-align-none">
-      <div
-        className={`flex items-center gap-2 rounded-lg border p-2 mb-3 text-xs sm:text-sm ${
-          accentColor === 'blue'
-            ? 'border-blue-500/30 bg-blue-500/5'
-            : 'border-purple-500/30 bg-purple-500/5'
-        }`}
+    <div className="neo flex min-w-0 flex-1 flex-col rounded-card bg-surface shadow-neo-2">
+      <header
+        className={cn(
+          'flex items-center gap-2 rounded-t-[calc(var(--r-card)-2px)] border-b-bw border-line p-3',
+          sideFill[side]
+        )}
       >
-        <GitBranch
-          className={`h-3.5 w-3.5 shrink-0 ${
-            accentColor === 'blue' ? 'text-blue-400' : 'text-purple-400'
-          }`}
-        />
-        <select
-          value={branch}
-          onChange={(e) => onBranchChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent text-xs sm:text-sm text-zinc-200 outline-none cursor-pointer truncate"
-        >
-          {branches.map((b) => (
-            <option
-              key={b}
-              value={b}
-              className="bg-zinc-900 text-zinc-200"
-              disabled={disabledBranches.includes(b)}
-            >
-              {b}
-            </option>
-          ))}
-        </select>
-      </div>
+        <GitBranch className="h-4 w-4 shrink-0 text-on-pastel" />
+        <Select value={branch} onValueChange={onBranchChange}>
+          <SelectTrigger className="h-9 min-w-0 flex-1 bg-surface">
+            <SelectValue placeholder="Branch" />
+          </SelectTrigger>
+          <SelectContent>
+            {branches.map((b) => (
+              <SelectItem key={b} value={b} disabled={disabledBranches.includes(b)}>
+                {b}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </header>
 
       {!loading && classified.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 text-[11px] sm:text-xs text-zinc-500">
-          <span>
-            <span
-              className={`font-semibold ${
-                accentColor === 'blue' ? 'text-blue-400' : 'text-purple-400'
-              }`}
-            >
-              {uniqueCount}
-            </span>{' '}
+        <div className="flex gap-4 border-b-thin border-line px-3 py-2">
+          <span className="neo-label-sm text-ink-muted">
+            <span className="text-sm font-extrabold tabular-nums text-ink">{uniqueCount}</span>{' '}
             unique
           </span>
-          <span>
-            <span className="font-semibold text-zinc-400">{sharedCount}</span> shared
+          <span className="neo-label-sm text-ink-muted">
+            <span className="text-sm font-extrabold tabular-nums text-ink">{sharedCount}</span>{' '}
+            shared
           </span>
         </div>
       )}
 
-      <div className="space-y-2 sm:space-y-3 overflow-y-auto max-h-[calc(100vh-22rem)] sm:max-h-[calc(100vh-18rem)] pr-1 sm:pr-2">
+      {/* No nested scroller. This used to be capped with
+          `max-h-[calc(100vh-24rem)] overflow-y-auto`, which trapped a thousand
+          pixels of cards inside a 236px box — you'd scroll the page to its end
+          and the column would still be cut off. The page is the only scroll
+          container now. */}
+      <div className="space-y-4 p-3">
         {loading ? (
-          <LoadingCards count={3} />
+          <LoadingCards count={2} />
         ) : classified.length === 0 ? (
           <EmptyState
-            icon={<Minus className="h-5 w-5 text-zinc-600" />}
+            icon={<Minus className="h-6 w-6" />}
             title="No context yet"
-            description={`No pushes captured on "${branch}"`}
+            description={`No pushes captured on "${branch}".`}
           />
         ) : (
           classified.map(({ record, label }) => (
-            <ClassifiedCard key={record.eventId} record={record} label={label} />
+            <ClassifiedCard key={record.eventId} record={record} label={label} side={side} />
           ))
         )}
       </div>
@@ -199,7 +213,7 @@ export function BranchCompare({ projectId, token, branches }: BranchCompareProps
       .finally(() => setRightLoading(false));
   }, [projectId, token, rightBranch]);
 
-  // Sync defaults when branches list first populates
+  // Sync defaults when the branches list first populates
   useEffect(() => {
     if (branches.length === 0) return;
     const left = branches.includes('main') ? 'main' : branches[0];
@@ -222,50 +236,44 @@ export function BranchCompare({ projectId, token, branches }: BranchCompareProps
   return (
     <div className="space-y-4">
       {hasBothLoaded && (
-        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm">
-          <span className="text-zinc-500">Comparison:</span>
-          <span className="flex flex-wrap gap-1 sm:gap-0">
-            <span className="font-semibold text-blue-400">{totalLeft}</span>
-            <span className="text-zinc-400 ml-1 mr-1">unique to</span>
-            <span className="font-medium text-zinc-300">{leftBranch}</span>
-          </span>
-          <span className="flex flex-wrap gap-1 sm:gap-0">
-            <span className="font-semibold text-purple-400">{totalRight}</span>
-            <span className="text-zinc-400 ml-1 mr-1">unique to</span>
-            <span className="font-medium text-zinc-300">{rightBranch}</span>
-          </span>
-          <span className="flex flex-wrap gap-1 sm:gap-0">
-            <span className="font-semibold text-zinc-400">{totalShared}</span>
-            <span className="text-zinc-400 ml-1">shared</span>
-          </span>
+        <div className="neo flex flex-wrap items-center gap-x-5 gap-y-2 rounded-card bg-surface px-4 py-3 shadow-neo-1">
+          <span className="neo-label">Comparison</span>
+          <Tally count={totalLeft} swatch={sideFill.a} label={`unique to ${leftBranch}`} />
+          <Tally count={totalRight} swatch={sideFill.b} label={`unique to ${rightBranch}`} />
+          <Tally count={totalShared} swatch="bg-pastel-neutral" label="shared" />
         </div>
       )}
 
-      {/* Mobile: Horizontal scroll, Desktop: 2-column grid */}
-      <div className="flex md:grid md:grid-cols-2 gap-3 md:gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none">
-        <div className="md:contents">
-          <BranchColumn
-            branch={leftBranch}
-            branches={branches}
-            loading={leftLoading}
-            classified={classified.left}
-            onBranchChange={setLeftBranch}
-            accentColor="blue"
-            disabledBranches={[rightBranch]}
-          />
-        </div>
-        <div className="md:contents">
-          <BranchColumn
-            branch={rightBranch}
-            branches={branches}
-            loading={rightLoading}
-            classified={classified.right}
-            onBranchChange={setRightBranch}
-            accentColor="purple"
-            disabledBranches={[leftBranch]}
-          />
-        </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <BranchColumn
+          branch={leftBranch}
+          branches={branches}
+          loading={leftLoading}
+          classified={classified.left}
+          onBranchChange={setLeftBranch}
+          side="a"
+          disabledBranches={[rightBranch]}
+        />
+        <BranchColumn
+          branch={rightBranch}
+          branches={branches}
+          loading={rightLoading}
+          classified={classified.right}
+          onBranchChange={setRightBranch}
+          side="b"
+          disabledBranches={[leftBranch]}
+        />
       </div>
     </div>
+  );
+}
+
+function Tally({ count, swatch, label }: { count: number; swatch: string; label: string }) {
+  return (
+    <span className="flex items-center gap-2 text-sm text-ink-muted">
+      <span aria-hidden className={cn('neo neo-thin h-3 w-3 rounded-[3px]', swatch)} />
+      <span className="font-extrabold tabular-nums text-ink">{count}</span>
+      {label}
+    </span>
   );
 }

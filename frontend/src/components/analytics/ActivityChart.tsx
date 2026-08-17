@@ -1,16 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
 import { format, parseISO, startOfDay } from 'date-fns';
+import { ChartSlab } from './ChartSlab';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
+import { chartTheme, chartTooltipStyle } from '@/lib/theme-colors';
 import type { ContextRecord } from '@/types';
 
 interface ActivityChartProps {
@@ -18,6 +13,8 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ events }: ActivityChartProps) {
+  const { mounted, isDark } = useResolvedTheme();
+
   const data = useMemo(() => {
     const dayMap: Record<string, number> = {};
     for (const event of events) {
@@ -31,40 +28,31 @@ export function ActivityChart({ events }: ActivityChartProps) {
 
   if (data.length === 0) return null;
 
+  const t = chartTheme(isDark);
+  const tick = { fill: t.inkSubtle, fontSize: 11, fontWeight: 700 };
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-zinc-400">
-          Activity Over Time
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#71717A', fontSize: 12 }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#71717A', fontSize: 12 }}
-              allowDecimals={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#18181B',
-                border: '1px solid #27272A',
-                borderRadius: '8px',
-                color: '#F4F4F5',
-              }}
-            />
-            <Bar dataKey="count" fill="#14B8A6" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <ChartSlab title="Activity over time">
+      <div className="h-[250px]">
+        {mounted && (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data}>
+              <CartesianGrid stroke={t.grid} vertical={false} />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={tick} />
+              <YAxis axisLine={false} tickLine={false} tick={tick} allowDecimals={false} />
+              <Tooltip
+                contentStyle={chartTooltipStyle(isDark)}
+                itemStyle={{ color: t.ink }}
+                labelStyle={{ color: t.ink }}
+                cursor={{ fill: t.grid }}
+              />
+              {/* Squared off with a hard stroke — rounded bars belong to the
+                  soft-UI vocabulary this design replaced. */}
+              <Bar dataKey="count" fill={t.accent} stroke={t.border} strokeWidth={2} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </ChartSlab>
   );
 }

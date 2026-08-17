@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { vscode } from "../utilities/vscode";
+import { IconWarning, IconSparkle, IconArrowLeft } from "./icons";
 
 const LANGUAGE_OPTIONS = [
   "JavaScript",
@@ -110,7 +111,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
   if (hasGit === false) {
     return (
       <div className="form-container">
-        <button className="back-button" onClick={() => onNavigate("welcome")}>
+        <button className="btn btn-ghost btn-sm back-button" onClick={() => onNavigate("welcome")}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -164,7 +165,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
                 </button>
               </div>
               <p className="token-warning">
-                ⚠ This token will not be shown again. Make sure to copy it now.
+                <IconWarning size={12} /> This token will not be shown again — copy it now.
               </p>
             </div>
           )}
@@ -178,10 +179,8 @@ export function InitProject({ onNavigate }: InitProjectProps) {
 
   return (
     <div className="form-container">
-      <button className="back-button" onClick={() => onNavigate("welcome")}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+      <button className="btn btn-ghost btn-sm back-button" onClick={() => onNavigate("welcome")}>
+        <IconArrowLeft size={14} />
         Back
       </button>
 
@@ -192,7 +191,7 @@ export function InitProject({ onNavigate }: InitProjectProps) {
 
       {autoDetected && (
         <div className="auto-detect-notice">
-          ✦ Fields pre-filled from your project files — review and confirm before submitting.
+          <IconSparkle size={13} /> Pre-filled from your project files — review before submitting.
         </div>
       )}
 

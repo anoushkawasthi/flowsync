@@ -2,23 +2,18 @@
 
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartSlab } from './ChartSlab';
+import { useResolvedTheme } from '@/hooks/useResolvedTheme';
+import { stageColor, chartTheme, chartTooltipStyle, STAGE_INK } from '@/lib/theme-colors';
 import type { ContextRecord } from '@/types';
-
-const CHART_COLORS: Record<string, string> = {
-  'Setup': '#3B82F6',
-  'Feature Development': '#10B981',
-  'Bug Fix': '#EF4444',
-  'Refactoring': '#EAB308',
-  'Testing': '#A855F7',
-  'Documentation': '#71717A',
-};
 
 interface StageChartProps {
   events: ContextRecord[];
 }
 
 export function StageChart({ events }: StageChartProps) {
+  const { mounted, isDark } = useResolvedTheme();
+
   const data = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const event of events) {
@@ -29,46 +24,53 @@ export function StageChart({ events }: StageChartProps) {
 
   if (data.length === 0) return null;
 
+  const t = chartTheme(isDark);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-zinc-400">
-          Stage Breakdown
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={55}
-          outerRadius={90}
-          paddingAngle={3}
-          dataKey="value"
-        >
-          {data.map((entry) => (
-            <Cell
-          key={entry.name}
-          fill={CHART_COLORS[entry.name] || '#71717A'}
-            />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{
-            backgroundColor: '#18181B',
-            border: '1px solid #27272A',
-            borderRadius: '8px',
-            color: '#FFFFFF',
-          }}
-        />
-        <Legend
-          wrapperStyle={{ fontSize: '12px', color: '#A1A1AA' }}
-        />
-          </PieChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <ChartSlab title="Stage breakdown">
+      <div className="h-[250px]">
+        {mounted && (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={90}
+                paddingAngle={2}
+                dataKey="value"
+                // A hard stroke on every wedge, matching the borders everywhere else.
+                stroke={t.border}
+                strokeWidth={2}
+              >
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={stageColor(entry.name)} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={chartTooltipStyle(isDark)}
+                itemStyle={{ color: t.ink }}
+                // Wedges are pastels with dark ink on them, so the swatch label
+                // has to stay dark regardless of theme.
+                labelStyle={{ color: STAGE_INK }}
+              />
+              <Legend
+                wrapperStyle={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                }}
+                // Recharts colours each legend label with its series fill.
+                // These fills are pastels, so on a white surface the labels
+                // drop to ~1.5:1 — unreadable. Force them back to ink.
+                formatter={(value: string) => <span style={{ color: t.ink }}>{value}</span>}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </ChartSlab>
   );
 }

@@ -8,6 +8,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * next.config sets `trailingSlash: true`, so usePathname() returns "/dashboard/"
+ * while every route constant is written "/dashboard". Comparing them directly
+ * silently fails, which is why no sidebar item ever showed as active and every
+ * page title fell through to the default. Normalise before comparing.
+ */
+export function normalisePath(pathname: string): string {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+}
+
+/**
  * Formats a list of context records into a Markdown snapshot for sharing.
  * Includes decisions, risks, pending tasks, and activity summary.
  */

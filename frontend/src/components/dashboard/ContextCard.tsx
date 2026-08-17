@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Lightbulb, AlertTriangle, GitMerge } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { StageBadge } from './StageBadge';
+import { cn } from '@/lib/utils';
 import type { ContextRecord } from '@/types';
 
 interface ContextCardProps {
@@ -11,75 +12,80 @@ interface ContextCardProps {
 }
 
 export function ContextCard({ event }: ContextCardProps) {
-  const relativeTime = formatDistanceToNow(new Date(event.extractedAt), {
-    addSuffix: true,
-  });
+  const relativeTime = formatDistanceToNow(new Date(event.extractedAt), { addSuffix: true });
+  const confidencePct = Math.round(event.confidence * 100);
 
   return (
-    <div className="animate-slide-down-fade rounded-lg border border-zinc-800 bg-zinc-900 p-3 sm:p-4 space-y-2.5 sm:space-y-3 hover:border-zinc-700 transition-colors">
-      {/* Header */}
-      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+    <article
+      className={cn(
+        'neo animate-slide-down-fade rounded-card bg-surface p-4 shadow-neo-2',
+        'transition-transform duration-hover ease-neo hover:-translate-y-px'
+      )}
+    >
+      {/* Meta row */}
+      <div className="flex flex-wrap items-center gap-2">
         <StageBadge stage={event.stage} />
         {event.mergedFrom && (
-          <div className="flex items-center gap-1 rounded bg-violet-500/20 px-2 py-1 border border-violet-500/30">
-            <GitMerge className="h-3 w-3 text-violet-400" />
-            <span className="text-xs text-violet-300 font-medium">merged from {event.mergedFrom}</span>
-          </div>
+          <span className="neo neo-thin inline-flex items-center gap-1 rounded-chip bg-pastel-compare-b px-2 py-0.5 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-on-pastel">
+            <GitMerge className="h-3 w-3" />
+            merged from {event.mergedFrom}
+          </span>
         )}
-        <span className="text-xs sm:text-sm text-zinc-300">{event.author}</span>
-        <span className="text-xs text-zinc-500">{relativeTime}</span>
-        <span className="ml-auto font-mono text-xs text-zinc-500">
-          {event.commitHash?.slice(0, 7) ?? ''}
-        </span>
+        <span className="text-sm font-bold text-ink">{event.author}</span>
+        <span className="text-xs text-ink-subtle">{relativeTime}</span>
+        {event.commitHash && (
+          <span className="ml-auto font-mono text-xs text-ink-subtle">
+            {event.commitHash.slice(0, 7)}
+          </span>
+        )}
       </div>
 
-      {/* Feature title */}
-      <h3 className="text-base sm:text-lg font-semibold text-zinc-100">{event.feature}</h3>
+      <h3 className="mt-3 text-lg font-extrabold leading-tight tracking-[-0.02em] text-ink">
+        {event.feature}
+      </h3>
 
-      {/* Decision */}
       {event.decision && (
-        <div className="flex gap-2 rounded-md border border-teal-500/20 bg-teal-500/10 p-3">
-          <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
-          <p className="text-sm text-teal-300">{event.decision}</p>
+        <div className="neo neo-thin mt-3 flex gap-2 rounded-chip bg-pastel-dashboard p-3">
+          <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-on-pastel" />
+          <p className="text-sm font-medium text-on-pastel">{event.decision}</p>
         </div>
       )}
 
-      {/* Risk */}
       {event.risk && (
-        <div className="flex gap-2 rounded-md border border-orange-500/20 bg-orange-500/10 p-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
-          <p className="text-sm text-orange-300">{event.risk}</p>
+        <div className="neo neo-thin mt-2 flex gap-2 rounded-chip bg-pastel-risk p-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-on-pastel" />
+          <p className="text-sm font-medium text-on-pastel">{event.risk}</p>
         </div>
       )}
 
-      {/* Tasks */}
       {event.tasks.length > 0 && (
-        <ul className="space-y-1 pl-4">
+        <ul className="mt-3 space-y-1.5">
           {event.tasks.map((task, i) => (
-            <li key={i} className="text-sm text-zinc-300 list-disc">
+            <li key={i} className="neo-bullet text-sm text-ink-muted">
               {task}
             </li>
           ))}
         </ul>
       )}
 
-      {/* Footer: Entities + Confidence */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
-        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+      {/* Entities + confidence */}
+      <div className="mt-4 flex flex-col gap-2 border-t-thin border-line pt-3 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {event.entities.map((entity) => (
             <span
               key={entity}
-              className="rounded bg-zinc-800 px-1.5 sm:px-2 py-0.5 font-mono text-[11px] sm:text-xs text-zinc-300 truncate max-w-[120px] sm:max-w-none"
+              className="neo neo-thin max-w-[10rem] truncate rounded-[4px] bg-canvas px-1.5 py-0.5 font-mono text-[0.6875rem] text-ink-muted sm:max-w-none"
             >
               {entity}
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Progress value={event.confidence * 100} className="h-1.5 w-16" />
-          <span className="text-xs text-zinc-500">{Math.round(event.confidence * 100)}%</span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="neo-label-sm">Confidence</span>
+          <Progress value={confidencePct} className="h-2 w-16" />
+          <span className="text-xs font-bold tabular-nums text-ink">{confidencePct}%</span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

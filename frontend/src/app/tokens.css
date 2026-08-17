@@ -1,0 +1,145 @@
+/* ============================================================================
+   FlowSync design tokens — the ONLY place hex literals live.
+   Everything downstream (Tailwind config, neo.css, components, Recharts via
+   lib/theme-colors.ts) reads from here. Anything that needs a shade between two
+   tokens uses color-mix() at the point of use rather than earning a new token.
+
+   Three rules that are easy to get wrong:
+   - --border is a token, never #000. Pure-black borders are right on paper and
+     wrong on a dark canvas.
+   - --shadow is a SEPARATE token from --border. In light mode they match. In
+     dark mode they must not: a near-white border plus a near-white offset shadow
+     on every card reads as a glowing outline, not as depth. Dark mode keeps the
+     crisp light border and drops the shadow to black so the slab still lifts.
+   - The pastels flip. Large fills that are light in light mode become dark tints
+     in dark mode, and --on-pastel flips with them. Bright sand or sky blue
+     panels on a near-black canvas are exhausting to read against.
+   ========================================================================== */
+
+:root {
+  /* ---- core ---- */
+  --canvas: #faf7f0;
+  --surface: #ffffff;
+  --surface-sunken: #f4f1ea;
+  --ink: #16161a;
+  --ink-muted: rgba(22, 22, 26, 0.72);
+  --ink-subtle: rgba(22, 22, 26, 0.55);
+  --border: #16161a;
+  --border-soft: rgba(22, 22, 26, 0.14);
+  --shadow: #16161a;
+  --grid: rgba(22, 22, 26, 0.055);
+
+  /* A muted terracotta, not a high-chroma coral. Tuned so white label text on
+     an accent-filled button clears AA (5.0:1) — the lighter end of this hue
+     lands at ~4.4:1 and fails. */
+  --accent: #b84e35;
+  --accent-ink: #ffffff;
+  --accent-text: #a8432c;
+
+  /* ---- section pastels: identity per area ----
+     Deliberately low-chroma. These sit under body text all day; saturated fills
+     read as a toy and fight the accent for attention. Each clears 10:1 against
+     --on-pastel. */
+  --on-pastel: #16161a;
+  --p-dashboard: #c6d6e3;
+  --p-timeline: #c7d8c4;
+  --p-analytics: #e3d3ac;
+  --p-chat: #d3cade;
+  --p-risk: #e2c4be;
+  --p-search: #cfd8be;
+  --p-compare-a: #c6d6e3;
+  --p-compare-b: #d3cade;
+  --p-neutral: #dad6ce;
+
+  /* ---- status: a text colour (AA on surface) + a pastel fill ---- */
+  --danger: #a33a29;
+  --danger-fill: #e2c4be;
+  --warn: #8a6320;
+  --warn-fill: #e3d3ac;
+  --success: #3f6b4a;
+  --success-fill: #c7d8c4;
+
+  /* ---- geometry ---- */
+  --bw: 2px;        /* structural borders */
+  --bw-thin: 1.5px; /* nested or small: chips, hairlines. never 1px */
+  --r-card: 12px;
+  --r-chip: 8px;
+  --r-pill: 999px;
+
+  /* ---- shadow ladder: zero blur, zero spread ---- */
+  --sh-1: 2px 2px 0 0 var(--shadow);
+  --sh-2: 3px 3px 0 0 var(--shadow);
+  --sh-3: 5px 5px 0 0 var(--shadow);
+  --sh-focus: 5px 5px 0 0 var(--accent), 5px 5px 0 2px var(--border);
+
+  /* ---- motion: one easing for everything that decelerates ---- */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-micro: 140ms;
+  --t-hover: 180ms;
+  --t-content: 380ms;
+
+  /* ---- type ---- */
+  --fs-display: clamp(2.25rem, 5.5vw, 4rem);
+  --fs-heading: clamp(1.375rem, 2.4vw, 2rem);
+  --fs-body: 1rem;
+  --measure: 68ch;
+
+  /* ---- shell metrics: shared by the top bar, sidebar and content container
+     so the three can never disagree about where a row starts ---- */
+  --bar-h: 3.5rem;
+  --rail-w: 15rem;
+  --rail-w-collapsed: 4rem;
+  --content-max: 84rem;
+}
+
+.dark {
+  --canvas: #14141a;
+  --surface: #1e1e26;
+  --surface-sunken: #191920;
+  --ink: #f0ede6;
+  --ink-muted: rgba(240, 237, 230, 0.7);
+  --ink-subtle: rgba(240, 237, 230, 0.5);
+  /* Light enough to read as a deliberate hard edge, dark enough that fifty of
+     them on one screen do not glare. */
+  --border: #565663;
+  --border-soft: rgba(240, 237, 230, 0.12);
+  /* Black, not the border colour — see the header note. */
+  --shadow: #000000;
+  --grid: rgba(240, 237, 230, 0.06);
+
+  --accent: #cf6a4d;
+  --accent-ink: #14141a;
+  --accent-text: #e08a6e;
+
+  /* Pastels flip to dark tints of the same hue, and the text on them flips too. */
+  --on-pastel: #f0ede6;
+  --p-dashboard: #223140;
+  --p-timeline: #223227;
+  --p-analytics: #37301d;
+  --p-chat: #2c2637;
+  --p-risk: #382723;
+  --p-search: #2a3223;
+  --p-compare-a: #223140;
+  --p-compare-b: #2c2637;
+  --p-neutral: #292930;
+
+  --danger: #e59182;
+  --danger-fill: #382723;
+  --warn: #d8b273;
+  --warn-fill: #37301d;
+  --success: #96c2a2;
+  --success-fill: #223227;
+}
+
+/* Reduced motion has exactly one owner. Never branch on it per component —
+   scattered branches drift out of sync and are impossible to audit. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

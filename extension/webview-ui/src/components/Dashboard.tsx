@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { vscode } from "../utilities/vscode";
+import { IconList, IconRefresh, IconUnplug } from "./icons";
 
 interface StatusData {
   connected: boolean;
@@ -35,7 +36,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       <div className="dashboard-container">
         <div className="loading-view">
           <span className="spinner spinner-lg" />
-          <p>Loading project status...</p>
+          <p>Loading project status…</p>
         </div>
       </div>
     );
@@ -45,21 +46,47 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return (
       <div className="dashboard-container">
         <div className="empty-state">
-          <div className="empty-state-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
-              <path d="M8 12H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <h2>Not Connected</h2>
+          <span className="empty-state-icon">
+            <IconUnplug size={20} />
+          </span>
+          <h2>Not connected</h2>
           <p>No active FlowSync project detected in this workspace.</p>
           <div className="empty-state-actions">
             <button className="btn btn-primary" onClick={() => onNavigate("init")}>
-              Initialize Project
+              Initialize project
             </button>
             <button className="btn btn-secondary" onClick={() => onNavigate("join")}>
-              Join Project
+              Join project
             </button>
+          </div>
+        </div>
+
+        {/* Onboarding steps belong here, in the disconnected state — on a
+            connected dashboard they are noise above the data you came for. */}
+        <div className="dashboard-section">
+          <h2>How it works</h2>
+          <div className="steps-list">
+            <div className="step-item">
+              <div className="step-number">1</div>
+              <div className="step-content">
+                <strong>Push your code</strong>
+                <p>FlowSync&apos;s git hook captures every push automatically.</p>
+              </div>
+            </div>
+            <div className="step-item">
+              <div className="step-number">2</div>
+              <div className="step-content">
+                <strong>Add context</strong>
+                <p>After each push, optionally add reasoning via your AI agent.</p>
+              </div>
+            </div>
+            <div className="step-item">
+              <div className="step-number">3</div>
+              <div className="step-content">
+                <strong>Stay in sync</strong>
+                <p>Your team and your agents always have the project context.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -68,83 +95,55 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className="dashboard-container">
+      {/* A full-width banner rather than a badge floating above a heading. */}
       <div className="dashboard-header">
-        <div className="status-badge connected">
+        <h1>Project dashboard</h1>
+        <span className="status-badge connected">
           <span className="status-dot" />
           Connected
-        </div>
-        <h1>Project Dashboard</h1>
+        </span>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Project ID</div>
-          <div className="stat-value mono">{status.projectId}</div>
+          <div className="stat-value mono small">{status.projectId}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Default Branch</div>
+          <div className="stat-label">Default branch</div>
           <div className="stat-value">{status.defaultBranch}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Listener Port</div>
+          <div className="stat-label">Listener port</div>
           <div className="stat-value mono">{status.port}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Backend</div>
           <div className="stat-value mono small">
-            {status.backendUrl?.replace("https://", "").replace("http://", "")}
+            {status.backendUrl?.replace(/^https?:\/\//, "")}
           </div>
         </div>
       </div>
 
       <div className="dashboard-section">
-        <h2>How It Works</h2>
-        <div className="steps-list">
-          <div className="step-item">
-            <div className="step-number">1</div>
-            <div className="step-content">
-              <strong>Push your code</strong>
-              <p>FlowSync's git hook captures every push automatically.</p>
-            </div>
-          </div>
-          <div className="step-item">
-            <div className="step-number">2</div>
-            <div className="step-content">
-              <strong>Add context</strong>
-              <p>After each push, optionally add reasoning via Copilot Chat.</p>
-            </div>
-          </div>
-          <div className="step-item">
-            <div className="step-number">3</div>
-            <div className="step-content">
-              <strong>Stay in sync</strong>
-              <p>Your team and AI agents always have project context.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-section">
-        <h2>Quick Actions</h2>
+        <h2>Quick actions</h2>
         <div className="actions-row">
-          <button
-            className="btn btn-secondary"
-            onClick={() => vscode.postMessage({ type: "openOutput" })}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6H20M4 12H20M4 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            View Logs
+          <button className="btn btn-secondary" onClick={() => onNavigate("catchMeUp")}>
+            <IconList size={14} />
+            Catch me up
           </button>
           <button
             className="btn btn-secondary"
             onClick={() => vscode.postMessage({ type: "refreshStatus" })}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M3.51 15A9 9 0 1 0 5.64 5.64L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <IconRefresh size={14} />
             Refresh
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => vscode.postMessage({ type: "openOutput" })}
+          >
+            View logs
           </button>
         </div>
       </div>

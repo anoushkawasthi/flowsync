@@ -1,23 +1,22 @@
 import { Badge } from '@/components/ui/badge';
-import { STAGE_COLORS } from '@/lib/constants';
+import { stageColor, STAGE_INK } from '@/lib/theme-colors';
 import { cn } from '@/lib/utils';
 
 interface StageBadgeProps {
   stage: string;
+  className?: string;
 }
 
-export function StageBadge({ stage }: StageBadgeProps) {
-  const colors = STAGE_COLORS[stage] || STAGE_COLORS['Setup'];
-
+/**
+ * The fill comes from the shared stage palette rather than a Tailwind class
+ * map, so the badge and the analytics donut can never show a stage in two
+ * different colours.
+ */
+export function StageBadge({ stage, className }: StageBadgeProps) {
   return (
     <Badge
-      variant="outline"
-      className={cn(
-        'text-xs font-medium',
-        colors.bg,
-        colors.text,
-        colors.border
-      )}
+      className={cn('border-line', className)}
+      style={{ backgroundColor: stageColor(stage), color: STAGE_INK }}
     >
       {stage}
     </Badge>

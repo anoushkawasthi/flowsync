@@ -1,8 +1,9 @@
 'use client';
 
 import { Activity, AlertTriangle, TrendingUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatSlab } from '@/components/shared/StatSlab';
 import type { ContextRecord } from '@/types';
+import type { CardTone } from '@/components/ui/card';
 
 interface StatsCardsProps {
   events: ContextRecord[];
@@ -13,48 +14,42 @@ export function StatsCards({ events }: StatsCardsProps) {
   const activeRisks = events.filter((e) => e.risk !== null).length;
   const avgConfidence =
     events.length > 0
-      ? Math.round(
-          (events.reduce((sum, e) => sum + e.confidence, 0) / events.length) * 100
-        )
+      ? Math.round((events.reduce((sum, e) => sum + e.confidence, 0) / events.length) * 100)
       : 0;
 
-  const stats = [
+  const stats: { label: string; value: React.ReactNode; icon: React.ReactNode; tone: CardTone }[] = [
     {
-      label: 'Total Events',
+      label: 'Total events',
       value: totalEvents,
-      icon: Activity,
-      color: 'text-teal-500',
+      icon: <Activity className="h-4 w-4" />,
+      tone: 'analytics',
     },
     {
-      label: 'Active Risks',
+      label: 'Active risks',
       value: activeRisks,
-      icon: AlertTriangle,
-      color: 'text-orange-400',
+      // Only colour-code the risk slab when there is something to look at —
+      // a pink "0 risks" slab reads as an alarm that isn't happening.
+      icon: <AlertTriangle className="h-4 w-4" />,
+      tone: activeRisks > 0 ? 'risk' : 'surface',
     },
     {
-      label: 'Avg Confidence',
+      label: 'Avg confidence',
       value: `${avgConfidence}%`,
-      icon: TrendingUp,
-      color: 'text-teal-500',
+      icon: <TrendingUp className="h-4 w-4" />,
+      tone: 'surface',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-3">
       {stats.map((stat) => (
-        <Card key={stat.label}>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-lg bg-zinc-800 p-2">
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
-            </div>
-            <div>
-              <p className={`text-2xl font-bold ${stat.color}`}>
-                {stat.value}
-              </p>
-              <p className="text-sm text-zinc-400">{stat.label}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatSlab
+          key={stat.label}
+          label={stat.label}
+          value={stat.value}
+          icon={stat.icon}
+          tone={stat.tone}
+        />
       ))}
     </div>
   );
