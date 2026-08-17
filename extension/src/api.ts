@@ -15,7 +15,7 @@ import { URL } from "url";
 const DEFAULT_BACKEND_URL =
   "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod";
 
-export const DEFAULT_DASHBOARD_URL = "https://flowsync.aahil-khan.xyz";
+export const DEFAULT_DASHBOARD_URL = "https://flowsync.aahil-khan.tech";
 
 /**
  * Honours the `flowsync.backendUrl` setting. That setting shipped with the
