@@ -223,23 +223,25 @@ export function ClosingCTA({ onOpenLogin }: { onOpenLogin: () => void }) {
   return (
     <section className="border-b-bw border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        <div className="neo flex flex-col items-center gap-5 rounded-card bg-accent px-6 py-12 text-center shadow-neo-3">
-          <LogoTile className="h-14 w-14 bg-surface text-ink" />
-          <h2 className="neo-heading max-w-[20ch] text-accent-ink">
-            Give your AI agent a memory.
-          </h2>
-          <p className="max-w-[46ch] text-accent-ink opacity-80">
+        {/* Surface, not an accent flood. The accent's rule is that it never
+            becomes a large fill — a full-width terracotta slab is the loudest
+            thing on the page and undercuts the restraint everywhere else. The
+            emphasis comes from the logo tile and the primary button instead. */}
+        <div className="neo neo-grid-bg flex flex-col items-center gap-5 rounded-card bg-surface px-6 py-14 text-center shadow-neo-3">
+          <LogoTile className="h-14 w-14" />
+          <h2 className="neo-heading max-w-[22ch] text-ink">Give your AI agent a memory.</h2>
+          <p className="max-w-[46ch] text-ink-muted">
             Install the extension, connect your MCP agent, and every decision is captured
             automatically.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" asChild>
               <a href={VSIX_DOWNLOAD_URL} download>
                 <Download className="h-4 w-4" />
                 Download for VS Code
               </a>
             </Button>
-            <Button size="lg" variant="secondary" onClick={onOpenLogin}>
+            <Button size="lg" variant="outline" onClick={onOpenLogin}>
               Open dashboard
               <ArrowRight className="h-4 w-4" />
             </Button>
