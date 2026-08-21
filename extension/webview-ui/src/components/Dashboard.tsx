@@ -50,7 +50,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <IconUnplug size={20} />
           </span>
           <h2>Not connected</h2>
-          <p>No active FlowSync project detected in this workspace.</p>
+          <p>No active BuildBerry project detected in this workspace.</p>
           <div className="empty-state-actions">
             <button className="btn btn-primary" onClick={() => onNavigate("init")}>
               Initialize project
@@ -70,7 +70,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               <div className="step-number">1</div>
               <div className="step-content">
                 <strong>Push your code</strong>
-                <p>FlowSync&apos;s git hook captures every push automatically.</p>
+                <p>BuildBerry&apos;s git hook captures every push automatically.</p>
               </div>
             </div>
             <div className="step-item">

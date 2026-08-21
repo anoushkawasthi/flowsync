@@ -1,4 +1,4 @@
-# FlowSync Extension — Webview UI
+# BuildBerry Extension — Webview UI
 
 React + TypeScript + Vite app that runs inside the VS Code extension panel (webview).
 
@@ -9,7 +9,7 @@ React + TypeScript + Vite app that runs inside the VS Code extension panel (webv
 | View | Description |
 |---|---|
 | `Welcome` | Default screen — shown when no `.flowsync.json` is found |
-| `InitProject` | Multi-step form to initialize a new FlowSync project |
+| `InitProject` | Multi-step form to initialize a new BuildBerry project |
 | `JoinProject` | Form to join an existing project using a shared API token |
 | `Dashboard` | Context timeline for the current branch |
 | `CatchMeUp` | Summary of teammate changes since last checkpoint |

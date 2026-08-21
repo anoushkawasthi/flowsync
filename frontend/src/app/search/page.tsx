@@ -19,7 +19,7 @@ export default function SearchPage() {
       <PageHeader
         eyebrow="Retrieval"
         title="Search context"
-        lede="Ask about decisions, architecture, or history. Answers are drawn from the context FlowSync has captured."
+        lede="Ask about decisions, architecture, or history. Answers are drawn from the context BuildBerry has captured."
       />
 
       <SearchBar onSearch={search} loading={loading} />

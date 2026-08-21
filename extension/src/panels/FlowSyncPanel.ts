@@ -48,7 +48,7 @@ export class FlowSyncPanel {
 
     const panel = vscode.window.createWebviewPanel(
       FlowSyncPanel.viewType,
-      "FlowSync",
+      "BuildBerry",
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -404,9 +404,9 @@ export class FlowSyncPanel {
    ================================================================ */
 
 
-const COPILOT_INSTRUCTIONS = `# FlowSync Context Instructions
+const COPILOT_INSTRUCTIONS = `# BuildBerry Context Instructions
 
-FlowSync tracks every push to this repo and uses AI (Amazon Bedrock) to extract
+BuildBerry tracks every push to this repo and uses AI (Amazon Bedrock) to extract
 what changed, why, what risks were flagged, and what tasks remain. Use the MCP
 tools below to stay in sync with the project before and after every task.
 
@@ -420,7 +420,7 @@ tools below to stay in sync with the project before and after every task.
 3. To see what was pushed recently, call \`get_recent_changes\`.
 
 ## After a push lands
-- When prompted by the FlowSync VS Code notification, call \`log_context\` ONCE.
+- When prompted by the BuildBerry VS Code notification, call \`log_context\` ONCE.
 - Provide: \`reasoning\` (why you made this change), \`decision\` (what was resolved),
   \`risk\` (anything that could go wrong), \`tasks\` (what still needs doing).
 - \`log_context\` merges into the most recent push record if called within 30 minutes.
@@ -452,7 +452,7 @@ function injectHook(workspaceRoot: string, port: number): void {
   }
   const hookPath = path.join(hooksDir, "pre-push");
   const content = `#!/bin/sh
-# FlowSync — notify local listener of push
+# BuildBerry — notify local listener of push
 cat > /dev/null
 curl -s http://localhost:${port}/flowsync-hook \\
   --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$(git branch --show-current)\\"}" &

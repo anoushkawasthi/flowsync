@@ -26,7 +26,7 @@ export function formatContextSnapshot(
   branch: string
 ): string {
   if (events.length === 0) {
-    return `# FlowSync — Project Summary\n\n**Branch:** ${branch}\n\nNo events captured yet.`;
+    return `# BuildBerry — Project Summary\n\n**Branch:** ${branch}\n\nNo events captured yet.`;
   }
 
   // Identical aggregation logic as ProjectSummary's useSummary hook
@@ -99,7 +99,7 @@ export function formatContextSnapshot(
   });
 
   const lines: string[] = [];
-  lines.push('# FlowSync — Project Summary');
+  lines.push('# BuildBerry — Project Summary');
   lines.push('');
   lines.push(
     `**Branch:** \`${branch}\` | **Last activity:** ${lastActivityTime} | **Stage:** ${currentStage}`

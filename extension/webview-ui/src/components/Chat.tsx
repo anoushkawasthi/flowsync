@@ -116,7 +116,7 @@ export function Chat() {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>Ask FlowSync</h2>
+        <h2>Ask BuildBerry</h2>
         {messages.length > 0 && (
           <button className="btn btn-link btn-sm" onClick={clearConversation}>
             Clear
@@ -141,7 +141,7 @@ export function Chat() {
           <div key={index} className="message-group">
             <div className={`message message-${message.role}`}>
               <div className="message-header">
-                <strong>{message.role === 'user' ? 'You' : 'FlowSync AI'}</strong>
+                <strong>{message.role === 'user' ? 'You' : 'BuildBerry AI'}</strong>
                 <span className="message-time">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
@@ -195,7 +195,7 @@ export function Chat() {
         {isLoading && (
           <div className="message message-assistant">
             <div className="message-header">
-              <strong>FlowSync AI</strong>
+              <strong>BuildBerry AI</strong>
             </div>
             <div className="message-content">
               <span className="spinner" /> Thinking…

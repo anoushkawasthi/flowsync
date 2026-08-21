@@ -42,7 +42,7 @@ export function LogoTile({ className }: { className?: string }) {
 
 /** Tile + wordmark. `label` lets the sidebar swap in the project name. */
 export function LogoLockup({
-  label = 'FlowSync',
+  label = 'BuildBerry',
   className,
   tileClassName,
   wordClassName,

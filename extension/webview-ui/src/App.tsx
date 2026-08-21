@@ -64,7 +64,7 @@ function App() {
       {view === "loading" && (
         <div className="loading-view">
           <span className="spinner spinner-lg" />
-          <p>Loading FlowSync…</p>
+          <p>Loading BuildBerry…</p>
         </div>
       )}
       {view === "welcome" && <Welcome onNavigate={navigate} />}

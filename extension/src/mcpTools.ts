@@ -66,7 +66,7 @@ export interface McpWiring {
 }
 
 /**
- * Answers "will my agent actually reach FlowSync?" by inspecting the
+ * Answers "will my agent actually reach BuildBerry?" by inspecting the
  * .vscode/mcp.json that writeMcpConfig (commands/initProject.ts) generates.
  *
  * A stale projectId here is a real and silent failure mode: the file exists, the
@@ -87,7 +87,7 @@ export function checkMcpWiring(
   if (!fs.existsSync(absolute)) {
     return {
       state: "missing",
-      detail: "No .vscode/mcp.json — your agent cannot reach FlowSync yet.",
+      detail: "No .vscode/mcp.json — your agent cannot reach BuildBerry yet.",
       configPath,
     };
   }

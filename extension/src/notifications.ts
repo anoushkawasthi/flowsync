@@ -16,7 +16,7 @@ export async function showPostPushNotification(
   gitUserName: string
 ): Promise<void> {
   const selection = await vscode.window.showInformationMessage(
-    "FlowSync captured your push. Add reasoning?",
+    "BuildBerry captured your push. Add reasoning?",
     "Add Context",
     "Dismiss"
   );
@@ -51,7 +51,7 @@ function openCopilotChatWithContext(
       : "";
 
   const prompt = [
-    `## FlowSync — Push Detected on \`${branch}\``,
+    `## BuildBerry — Push Detected on \`${branch}\``,
     "",
     ...(filesSummary ? [filesSummary, ""] : []),
     "**Full diff:**",
@@ -59,7 +59,7 @@ function openCopilotChatWithContext(
     truncatedDiff,
     "```",
     "",
-    `Call the FlowSync \`log_context\` MCP tool with your reasoning: what was decided, what changed, what is still pending, and any risks. Set the \`author\` field to "${gitUserName}".`,
+    `Call the BuildBerry \`log_context\` MCP tool with your reasoning: what was decided, what changed, what is still pending, and any risks. Set the \`author\` field to "${gitUserName}".`,
   ].join("\n");
 
   // Use VS Code command to open Copilot Chat with the pre-filled prompt

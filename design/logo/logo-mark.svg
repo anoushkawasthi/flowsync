@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" role="img" aria-label="FlowSync">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" role="img" aria-label="BuildBerry">
   <!--
-    FlowSync mark — a right-angled "S" built from two blocks and a stepped connector.
-    Reads three ways: two things converging (sync), an S (FlowSync), and a commit
+    BuildBerry mark — a right-angled "S" built from two blocks and a stepped connector.
+    Reads three ways: two things converging (sync), an S (BuildBerry), and a commit
     graph stepping between branches. Every edge lands on a 1px grid at 32px so the
     mark stays crisp when scaled down to 16px.
   -->

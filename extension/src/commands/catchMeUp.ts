@@ -47,7 +47,7 @@ export async function runCatchMeUp(
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
     if (!isAutoTrigger) {
-      vscode.window.showErrorMessage("FlowSync: No workspace folder open.");
+      vscode.window.showErrorMessage("BuildBerry: No workspace folder open.");
     }
     return;
   }
@@ -56,7 +56,7 @@ export async function runCatchMeUp(
   if (!config) {
     if (!isAutoTrigger) {
       vscode.window.showErrorMessage(
-        "FlowSync: Project not initialized. Run 'FlowSync: Initialize Project' first."
+        "BuildBerry: Project not initialized. Run 'BuildBerry: Initialize Project' first."
       );
     }
     return;
@@ -65,7 +65,7 @@ export async function runCatchMeUp(
   const apiToken = await context.secrets.get(`flowsync.token.${config.projectId}`);
   if (!apiToken) {
     if (!isAutoTrigger) {
-      vscode.window.showErrorMessage("FlowSync: API token not found.");
+      vscode.window.showErrorMessage("BuildBerry: API token not found.");
     }
     return;
   }
@@ -129,7 +129,7 @@ export async function runCatchMeUp(
   } catch (err) {
     log.error("catchMeUp", `Failed to fetch changes: ${err}`);
     if (!isAutoTrigger) {
-      vscode.window.showErrorMessage(`FlowSync: Failed to fetch changes — ${err}`);
+      vscode.window.showErrorMessage(`BuildBerry: Failed to fetch changes — ${err}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-# FlowSync Dashboard (Frontend)
+# BuildBerry Dashboard (Frontend)
 
 Next.js 14 web dashboard for viewing, searching, and chatting with your project's AI-captured development context — logged by AI agents via MCP tools, or auto-captured from git pushes.
 

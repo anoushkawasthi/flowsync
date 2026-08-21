@@ -169,7 +169,7 @@ const steps = [
     step: '01',
     title: 'Install & initialise',
     description:
-      'Install the extension in VS Code and open the FlowSync panel. Initialise your project to get a Project ID and token.',
+      'Install the extension in VS Code and open the BuildBerry panel. Initialise your project to get a Project ID and token.',
   },
   {
     step: '02',

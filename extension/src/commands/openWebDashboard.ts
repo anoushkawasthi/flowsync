@@ -22,7 +22,7 @@ export function registerOpenWebDashboardCommand(
       // Nothing to copy — still useful to open, the dashboard has a demo project.
       await vscode.env.openExternal(vscode.Uri.parse(dashboardUrl));
       vscode.window.showInformationMessage(
-        "FlowSync: opened the dashboard. This workspace has no project yet, so use 'Try the demo project'."
+        "BuildBerry: opened the dashboard. This workspace has no project yet, so use 'Try the demo project'."
       );
       return;
     }
@@ -32,7 +32,7 @@ export function registerOpenWebDashboardCommand(
     if (!token) {
       await vscode.env.openExternal(vscode.Uri.parse(dashboardUrl));
       vscode.window.showWarningMessage(
-        "FlowSync: opened the dashboard, but no API token is stored for this project. Run 'FlowSync: Join Project' to add one."
+        "BuildBerry: opened the dashboard, but no API token is stored for this project. Run 'BuildBerry: Join Project' to add one."
       );
       return;
     }
@@ -42,7 +42,7 @@ export function registerOpenWebDashboardCommand(
 
     const reveal = "Show Project ID";
     const choice = await vscode.window.showInformationMessage(
-      "FlowSync: Project ID and token copied to your clipboard — paste them into the dashboard login.",
+      "BuildBerry: Project ID and token copied to your clipboard — paste them into the dashboard login.",
       reveal
     );
     if (choice === reveal) {

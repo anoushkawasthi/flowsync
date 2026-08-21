@@ -24,7 +24,7 @@ export default function AnalyticsPage() {
         <EmptyState
           icon={<BarChart3 className="h-7 w-7" />}
           title="No analytics data yet"
-          description="Charts appear once FlowSync has captured events from your project."
+          description="Charts appear once BuildBerry has captured events from your project."
         />
       </div>
     );

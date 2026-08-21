@@ -210,7 +210,7 @@ export class FlowSyncSidebar implements vscode.WebviewViewProvider {
       const message =
         err instanceof BackendError
           ? err.isAuthFailure
-            ? "Your API token was rejected. Re-run 'FlowSync: Join Project'."
+            ? "Your API token was rejected. Re-run 'BuildBerry: Join Project'."
             : `Backend returned ${err.status}.`
           : err instanceof Error
             ? err.message

@@ -24,7 +24,7 @@ const tabs: SegmentedOption<Tab>[] = [
 const emptyCopy = {
   title: 'No events captured yet',
   description:
-    'Push some code to get started. FlowSync captures context from your commits automatically.',
+    'Push some code to get started. BuildBerry captures context from your commits automatically.',
 };
 
 export default function DashboardPage() {
