@@ -24,18 +24,18 @@ export const metadata: Metadata = {
   // Needed so the opengraph/twitter images resolve to absolute URLs. Without it
   // Next falls back to localhost:3000 and warns on every build.
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://flowsync.dev'),
-  title: 'FlowSync — Persistent memory for AI coding agents',
+  title: 'BuildBerry — Persistent memory for AI coding agents',
   description:
     'Your AI agent logs decisions after every task and searches project history before starting new work, via MCP tools. Git push auto-capture is the built-in fallback.',
   openGraph: {
-    title: 'FlowSync — Persistent memory for AI coding agents',
+    title: 'BuildBerry — Persistent memory for AI coding agents',
     description:
       'Your AI agent logs decisions after every task and searches project history before starting new work.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FlowSync — Persistent memory for AI coding agents',
+    title: 'BuildBerry — Persistent memory for AI coding agents',
     description:
       'Your AI agent logs decisions after every task and searches project history before starting new work.',
   },

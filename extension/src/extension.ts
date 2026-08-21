@@ -46,10 +46,10 @@ function applyStatusBar(item: vscode.StatusBarItem, connected: boolean): void {
   }
 
   item.command = "flowsync.openPanel";
-  item.text = connected ? "$(check) FlowSync" : "$(zap) FlowSync";
+  item.text = connected ? "$(check) BuildBerry" : "$(zap) BuildBerry";
   item.tooltip = connected
-    ? "FlowSync connected — click to open the dashboard"
-    : "FlowSync — click to set up this project";
+    ? "BuildBerry connected — click to open the dashboard"
+    : "BuildBerry — click to set up this project";
   item.backgroundColor = new vscode.ThemeColor(
     connected ? "flowsync.statusBarConnected" : "flowsync.statusBarDisconnected"
   );
@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   log.sep();
-  log.info("FlowSync extension activated");
+  log.info("BuildBerry extension activated");
 
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
@@ -126,7 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("flowsync.openChat", () => openPanel("chat")),
     vscode.commands.registerCommand("flowsync.refresh", async () => {
       await syncState();
-      vscode.window.setStatusBarMessage("$(check) FlowSync status refreshed", 3000);
+      vscode.window.setStatusBarMessage("$(check) BuildBerry status refreshed", 3000);
     }),
     vscode.commands.registerCommand("flowsync.openOutput", () => {
       outputChannel.show(true);
@@ -142,8 +142,8 @@ export function activate(context: vscode.ExtensionContext) {
   // Register "Catch Me Up" command
   registerCatchMeUpCommand(context, context.extensionUri);
 
-  // These two were exported but never called, so `FlowSync: Initialize Project`
-  // and `FlowSync: Join Project` were registered nowhere and their QuickPick
+  // These two were exported but never called, so `BuildBerry: Initialize Project`
+  // and `BuildBerry: Join Project` were registered nowhere and their QuickPick
   // flows were unreachable dead code.
   context.subscriptions.push(
     registerInitCommand(context, onAuthenticated),
@@ -161,7 +161,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Auto-trigger "Catch Me Up" if >4 hours since last seen
     checkAndAutoTriggerCatchMeUp(context, context.extensionUri);
   } else {
-    log.info("activate", "no .flowsync.json — open FlowSync dashboard to initialize or join a project");
+    log.info("activate", "no .flowsync.json — open BuildBerry dashboard to initialize or join a project");
   }
 }
 
@@ -180,7 +180,7 @@ async function initializeForProject(
   if (!apiToken) {
     log.warn("initializeForProject", `no token in SecretStorage for key flowsync.token.${projectId} — prompting dashboard join flow`);
     vscode.window.showInformationMessage(
-      "FlowSync project detected. Enter your API token to connect.",
+      "BuildBerry project detected. Enter your API token to connect.",
       "Enter Token"
     ).then((selection: string | undefined) => {
       if (selection === "Enter Token") {
@@ -211,17 +211,17 @@ async function initializeForProject(
     log.warn("initializeForProject", `port ${preferredPort} was taken, bound to ${actualPort} — updating .flowsync.json and hook script`);
     writeConfig({ projectId, backendUrl, defaultBranch, port: actualPort });
     if (statusBarItem) {
-      statusBarItem.text = `$(check) FlowSync`;
-      statusBarItem.tooltip = `FlowSync connected — click to open panel`;
+      statusBarItem.text = `$(check) BuildBerry`;
+      statusBarItem.tooltip = `BuildBerry connected — click to open panel`;
     }
-    vscode.window.setStatusBarMessage(`$(check) FlowSync connected on port ${actualPort}`, 8000);
+    vscode.window.setStatusBarMessage(`$(check) BuildBerry connected on port ${actualPort}`, 8000);
   } else {
     log.ok("initializeForProject", `listener bound on port ${actualPort}`);
     if (statusBarItem) {
-      statusBarItem.text = `$(check) FlowSync`;
-      statusBarItem.tooltip = `FlowSync connected — click to open panel`;
+      statusBarItem.text = `$(check) BuildBerry`;
+      statusBarItem.tooltip = `BuildBerry connected — click to open panel`;
     }
-    vscode.window.setStatusBarMessage(`$(check) FlowSync connected (port ${actualPort})`, 8000);
+    vscode.window.setStatusBarMessage(`$(check) BuildBerry connected (port ${actualPort})`, 8000);
   }
   updateHookPort(actualPort);
   log.info("initializeForProject", "ready — waiting for push events");
@@ -239,7 +239,7 @@ function updateHookPort(port: number): void {
   if (!fs.existsSync(hooksDir)) {
     fs.mkdirSync(hooksDir, { recursive: true });
   }
-  const content = `#!/bin/sh\n# FlowSync — notify local listener of push\nREMOTE_SHA=""\nwhile read local_ref local_sha remote_ref remote_sha; do\n  REMOTE_SHA="$remote_sha"\ndone\nBRANCH=$(git branch --show-current)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$BRANCH\\",\\"remoteRef\\":\\"$REMOTE_SHA\\"}" &\n`;
+  const content = `#!/bin/sh\n# BuildBerry — notify local listener of push\nREMOTE_SHA=""\nwhile read local_ref local_sha remote_ref remote_sha; do\n  REMOTE_SHA="$remote_sha"\ndone\nBRANCH=$(git branch --show-current)\ncurl -s http://localhost:${port}/flowsync-hook \\\n  --data "{\\"event\\":\\"push\\",\\"branch\\":\\"$BRANCH\\",\\"remoteRef\\":\\"$REMOTE_SHA\\"}" &\n`;
   fs.writeFileSync(hookPath, content, { mode: 0o755 });
   log.ok("updateHookPort", `hook script ${existed ? "updated" : "created"} at ${hookPath} for port ${port}`);
 }
@@ -273,7 +273,7 @@ async function handlePushEvent(
     log.error("handlePushEvent", "getLastCommitInfo() returned null — git log failed or format parse error");
   }
   if (!diff || !commitInfo) {
-    vscode.window.showWarningMessage("FlowSync: could not read git data. Check Output panel for details.");
+    vscode.window.showWarningMessage("BuildBerry: could not read git data. Check Output panel for details.");
     return;
   }
 
@@ -301,10 +301,10 @@ async function handlePushEvent(
   try {
     const result = await transmitEvent(backendUrl, apiToken, event);
     log.ok("handlePushEvent", `event transmitted successfully — response: ${JSON.stringify(result)}`);
-    vscode.window.showInformationMessage(`FlowSync: push captured (${commitInfo.commitHash.slice(0, 8)})`);
+    vscode.window.showInformationMessage(`BuildBerry: push captured (${commitInfo.commitHash.slice(0, 8)})`);
   } catch (err) {
     log.error("handlePushEvent", `transmit failed after all retries: ${err instanceof Error ? err.message : String(err)}`);
-    vscode.window.showWarningMessage("FlowSync: could not send push data to backend. Check Output panel.");
+    vscode.window.showWarningMessage("BuildBerry: could not send push data to backend. Check Output panel.");
     return;
   }
 
@@ -318,6 +318,6 @@ async function handlePushEvent(
 }
 
 export function deactivate() {
-  log.info("FlowSync extension deactivated");
+  log.info("BuildBerry extension deactivated");
   stopHookListener();
 }

@@ -26,7 +26,7 @@ export async function findAvailablePort(preferredPort: number): Promise<number> 
     }
     log.info("findAvailablePort", `port ${p} is taken, trying next`);
   }
-  throw new Error(`FlowSync: no available port found in range ${preferredPort}–${preferredPort + 99}`);
+  throw new Error(`BuildBerry: no available port found in range ${preferredPort}–${preferredPort + 99}`);
 }
 
 export async function startHookListener(

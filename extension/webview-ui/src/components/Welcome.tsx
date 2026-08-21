@@ -25,7 +25,7 @@ export function Welcome({ onNavigate }: WelcomeProps) {
         {/* The tile treatment is in CSS now — this used to carry an inline
             borderRadius:12 that no token controlled. */}
         {logo && <img src={logo} alt="" className="welcome-logo" />}
-        <h1 className="welcome-title">FlowSync</h1>
+        <h1 className="welcome-title">BuildBerry</h1>
         <p className="welcome-subtitle">
           Persistent project context for you and your AI agents.
         </p>
@@ -38,7 +38,7 @@ export function Welcome({ onNavigate }: WelcomeProps) {
           </span>
           <span className="card-title">Initialize project</span>
           <span className="card-description">
-            Set up FlowSync for a new project. Creates the config, registers with the backend, and
+            Set up BuildBerry for a new project. Creates the config, registers with the backend, and
             generates an API token for your team.
           </span>
           <span className="card-action">
@@ -63,7 +63,7 @@ export function Welcome({ onNavigate }: WelcomeProps) {
 
       <div className="welcome-footer">
         <p>
-          Already configured? FlowSync auto-connects when a <code>.flowsync.json</code> is detected.
+          Already configured? BuildBerry auto-connects when a <code>.flowsync.json</code> is detected.
         </p>
       </div>
     </div>

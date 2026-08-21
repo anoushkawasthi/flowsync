@@ -11,11 +11,11 @@ const BACKEND_URL = "https://86tzell2w9.execute-api.us-east-1.amazonaws.com/prod
 
 /**
  * Copilot instructions content written to .github/copilot-instructions.md.
- * This makes Copilot proactively call FlowSync before every task.
+ * This makes Copilot proactively call BuildBerry before every task.
  */
-const COPILOT_INSTRUCTIONS = `# FlowSync Context Instructions
+const COPILOT_INSTRUCTIONS = `# BuildBerry Context Instructions
 
-FlowSync tracks every push to this repo and uses AI (Amazon Bedrock) to extract
+BuildBerry tracks every push to this repo and uses AI (Amazon Bedrock) to extract
 what changed, why, what risks were flagged, and what tasks remain. Use the MCP
 tools below to stay in sync with the project before and after every task.
 
@@ -29,7 +29,7 @@ tools below to stay in sync with the project before and after every task.
 3. To see what was pushed recently, call \`get_recent_changes\`.
 
 ## After a push lands
-- When prompted by the FlowSync VS Code notification, call \`log_context\` ONCE.
+- When prompted by the BuildBerry VS Code notification, call \`log_context\` ONCE.
 - Provide: \`reasoning\` (why you made this change), \`decision\` (what was resolved),
   \`risk\` (anything that could go wrong), \`tasks\` (what still needs doing).
 - \`log_context\` merges into the most recent push record if called within 30 minutes.
@@ -47,7 +47,7 @@ tools below to stay in sync with the project before and after every task.
 `;
 
 /**
- * Writes .vscode/mcp.json into the workspace, registering the FlowSync MCP server
+ * Writes .vscode/mcp.json into the workspace, registering the BuildBerry MCP server
  * so GitHub Copilot can discover and call the tools automatically.
  *
  * Points to the bundled mcp-server.js shipped inside the extension VSIX at
@@ -89,7 +89,7 @@ export function writeMcpConfig(
 }
 
 /**
- * Registers the "FlowSync: Initialize Project" command.
+ * Registers the "BuildBerry: Initialize Project" command.
  *
  * Flow:
  * 1. Collects project info via quick input (name, description, languages, default branch)
@@ -110,7 +110,7 @@ export function registerInitCommand(
     const workspaceRoot = getWorkspaceRoot();
     if (!workspaceRoot) {
       vscode.window.showErrorMessage(
-        "FlowSync: open a workspace folder first."
+        "BuildBerry: open a workspace folder first."
       );
       return;
     }
@@ -118,7 +118,7 @@ export function registerInitCommand(
     // Require a git repo at the workspace root before doing anything
     if (!fs.existsSync(path.join(workspaceRoot, ".git"))) {
       vscode.window.showErrorMessage(
-        "FlowSync: no Git repository found in the workspace root. " +
+        "BuildBerry: no Git repository found in the workspace root. " +
         "Run `git init` (or clone a repo) in this folder, then try again."
       );
       return;
@@ -127,13 +127,13 @@ export function registerInitCommand(
     // Check if already initialized
     if (fs.existsSync(path.join(workspaceRoot, ".flowsync.json"))) {
       vscode.window.showWarningMessage(
-        "FlowSync: this project is already initialized."
+        "BuildBerry: this project is already initialized."
       );
       return;
     }
 
     // Auto-detect project metadata
-    vscode.window.showInformationMessage("FlowSync: detecting project metadata...");
+    vscode.window.showInformationMessage("BuildBerry: detecting project metadata...");
     const detected = detectAll(workspaceRoot);
 
     const hasAllDetected =
@@ -237,7 +237,7 @@ export function registerInitCommand(
         : null;
 
     if (!finalLanguages || finalLanguages.length === 0) {
-      vscode.window.showErrorMessage("FlowSync: at least one language is required.");
+      vscode.window.showErrorMessage("BuildBerry: at least one language is required.");
       return;
     }
 
@@ -323,7 +323,7 @@ async function createProject({
     }
   } catch (err) {
     vscode.window.showErrorMessage(
-      `FlowSync: failed to create project. Check your network and try again. (${String(err)})`
+      `BuildBerry: failed to create project. Check your network and try again. (${String(err)})`
     );
     return;
   }
@@ -342,7 +342,7 @@ async function createProject({
   // Write .github/copilot-instructions.md
   writeCopilotInstructions(workspaceRoot);
 
-  // Write .vscode/mcp.json so Copilot auto-discovers the FlowSync tools
+  // Write .vscode/mcp.json so Copilot auto-discovers the BuildBerry tools
   writeMcpConfig(workspaceRoot, context.extensionPath, projectId, apiToken);
 
   // Inject post-push hook with the allocated port
@@ -351,9 +351,9 @@ async function createProject({
   // Show token — this is the ONLY time it is ever visible. Auto-copy + modal.
   await vscode.env.clipboard.writeText(apiToken);
   const tokenAction = await vscode.window.showInformationMessage(
-    `FlowSync initialized for "${projectName}"!\n\n` +
+    `BuildBerry initialized for "${projectName}"!\n\n` +
     `Your API token (already copied to clipboard):\n${apiToken}\n\n` +
-    `Share this token with teammates so they can run "FlowSync: Join Project". ` +
+    `Share this token with teammates so they can run "BuildBerry: Join Project". ` +
     `It will NOT be shown again.`,
     { modal: true },
     "Copy Again"
@@ -363,7 +363,7 @@ async function createProject({
   }
 
   vscode.window.showInformationMessage(
-    `FlowSync ready. Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
+    `BuildBerry ready. Commit .flowsync.json and .github/copilot-instructions.md to share with your team.`
   );
 
   // Start hook listener immediately — no window reopen needed
@@ -401,7 +401,7 @@ function injectPostPushHook(workspaceRoot: string, port: number): void {
   // full range of commits being pushed, not just the tip.
   const hookPath = path.join(hooksDir, "pre-push");
   const hookContent = `#!/bin/sh
-# FlowSync — notify local listener of push
+# BuildBerry — notify local listener of push
 REMOTE_SHA=""
 while read local_ref local_sha remote_ref remote_sha; do
   REMOTE_SHA="$remote_sha"

@@ -1,5 +1,5 @@
 /* ============================================================================
-   FlowSync design tokens — the ONLY place hex literals live.
+   BuildBerry design tokens — the ONLY place hex literals live.
    Everything downstream (Tailwind config, neo.css, components, Recharts via
    lib/theme-colors.ts) reads from here. Anything that needs a shade between two
    tokens uses color-mix() at the point of use rather than earning a new token.

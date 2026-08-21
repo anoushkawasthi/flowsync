@@ -1,6 +1,6 @@
 # Change Log
 
-All notable changes to the FlowSync extension are documented here.
+All notable changes to the BuildBerry extension are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [1.2.0]
@@ -17,11 +17,11 @@ This project follows [Keep a Changelog](https://keepachangelog.com/).
   `get_events`) with what each is for, plus a wiring indicator that reads your
   `.vscode/mcp.json` and warns when it is missing **or points at a different
   project** — a failure that is otherwise completely silent to the agent.
-- **`FlowSync: Record Reasoning`** (`Ctrl/Cmd+Alt+R`) — the human path to
+- **`BuildBerry: Record Reasoning`** (`Ctrl/Cmd+Alt+R`) — the human path to
   `log_context`, the only write tool, which until now only an AI agent could
   call. Prompts for reasoning, decision, risk and follow-up tasks, and reports
   whether it merged into a recent push or created a new record.
-- **`FlowSync: Open Web Dashboard`** — there was previously no way to reach the
+- **`BuildBerry: Open Web Dashboard`** — there was previously no way to reach the
   web dashboard from the extension at all. Copies the Project ID and token to the
   clipboard, then opens the dashboard. The web app reads credentials only from
   `localStorage`, so a link cannot pre-authenticate; the clipboard keeps the token
@@ -46,7 +46,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
-- **Activity-bar presence.** A FlowSync container with a **Project Context**
+- **Activity-bar presence.** A BuildBerry container with a **Project Context**
   sidebar view (a webview view, so it shares the panel's UI), plus title-bar
   actions for Refresh, Open Dashboard, Catch Me Up and Show Logs.
 - **Keybindings.** `Ctrl/Cmd+Alt+F` opens the dashboard, `Ctrl/Cmd+Alt+U` runs
@@ -55,7 +55,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/).
   `autoOpenOutput`, `statusBar.enabled`.
 - **Source-control menu entry** — Catch Me Up appears in the SCM title bar for
   git repositories.
-- `FlowSync: Ask FlowSync`, `FlowSync: Refresh Status` and `FlowSync: Show Logs`
+- `BuildBerry: Ask BuildBerry`, `BuildBerry: Refresh Status` and `BuildBerry: Show Logs`
   commands.
 - Themable status-bar colours (`flowsync.statusBarConnected` /
   `flowsync.statusBarDisconnected`).
@@ -69,7 +69,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/).
   light theme. Geometry stays identical across themes; only the palette follows.
 - **Fonts are bundled** rather than fetched. The webview CSP blocks remote fonts,
   so Archivo and JetBrains Mono now ship inside the extension.
-- Commands use a proper `category` instead of baking `"FlowSync: "` into each
+- Commands use a proper `category` instead of baking `"BuildBerry: "` into each
   title, and the palette now hides commands that don't apply — Initialize and
   Join only when disconnected, Catch Me Up and Refresh only when connected.
 - New square logo. The previous one was 500x300 and was being rendered into
@@ -82,7 +82,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/).
 
 - The Output panel force-opened on **every** activation. It is now opt-in via
   `flowsync.autoOpenOutput` (default off).
-- `FlowSync: Initialize Project` and `FlowSync: Join Project` were exported but
+- `BuildBerry: Initialize Project` and `BuildBerry: Join Project` were exported but
   never registered, so both commands — and their QuickPick flows — were
   unreachable.
 - Five CSS classes were rendered by components but had no rule at all

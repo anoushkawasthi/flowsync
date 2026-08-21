@@ -4,7 +4,7 @@ import { readConfig, getWorkspaceRoot } from "../config";
 import { writeMcpConfig } from "./initProject";
 
 /**
- * Registers the "FlowSync: Join Project" command.
+ * Registers the "BuildBerry: Join Project" command.
  *
  * Used by Dev 2+ who clone a repo that already has .flowsync.json.
  * They need to supply their API token (shared out-of-band by the team lead).
@@ -26,7 +26,7 @@ export function registerJoinCommand(
     const config = readConfig();
     if (!config) {
       vscode.window.showErrorMessage(
-        "FlowSync: no .flowsync.json found in this workspace. Run 'FlowSync: Initialize Project' first."
+        "BuildBerry: no .flowsync.json found in this workspace. Run 'BuildBerry: Initialize Project' first."
       );
       return;
     }
@@ -35,7 +35,7 @@ export function registerJoinCommand(
 
     // Prompt for token
     const token = await vscode.window.showInputBox({
-      prompt: "Enter your FlowSync API token (shared by your team lead)",
+      prompt: "Enter your BuildBerry API token (shared by your team lead)",
       placeHolder: "Paste token here",
       password: true,
       ignoreFocusOut: true,
@@ -52,13 +52,13 @@ export function registerJoinCommand(
     }
 
     // Validate token against backend
-    vscode.window.setStatusBarMessage("$(sync~spin) FlowSync: validating token...", 5000);
+    vscode.window.setStatusBarMessage("$(sync~spin) BuildBerry: validating token...", 5000);
 
     try {
       await validateToken(backendUrl, projectId, token.trim());
     } catch (err) {
       vscode.window.showErrorMessage(
-        `FlowSync: token validation failed. Double-check your token and try again. (${String(err)})`
+        `BuildBerry: token validation failed. Double-check your token and try again. (${String(err)})`
       );
       return;
     }
@@ -69,15 +69,15 @@ export function registerJoinCommand(
     // Delegate back to extension.ts to start the hook listener
     onAuthenticated();
 
-    // Write .vscode/mcp.json so Copilot discovers FlowSync tools in this workspace
+    // Write .vscode/mcp.json so Copilot discovers BuildBerry tools in this workspace
     const workspaceRoot = getWorkspaceRoot();
     if (workspaceRoot) {
       writeMcpConfig(workspaceRoot, context.extensionPath, projectId, token.trim());
     }
 
-    vscode.window.setStatusBarMessage("$(check) FlowSync connected", 5000);
+    vscode.window.setStatusBarMessage("$(check) BuildBerry connected", 5000);
     vscode.window.showInformationMessage(
-      "FlowSync: connected successfully. Your pushes will now be captured automatically."
+      "BuildBerry: connected successfully. Your pushes will now be captured automatically."
     );
   });
 }

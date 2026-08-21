@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
 
 /**
- * Centralized logger — writes to VS Code Output panel ("FlowSync") AND console.
- * View logs: View → Output → select "FlowSync" from the dropdown.
+ * Centralized logger — writes to VS Code Output panel ("BuildBerry") AND console.
+ * View logs: View → Output → select "BuildBerry" from the dropdown.
  */
 let channel: vscode.OutputChannel | null = null;
 
 export function initLogger(): vscode.OutputChannel {
   if (!channel) {
-    channel = vscode.window.createOutputChannel("FlowSync");
+    channel = vscode.window.createOutputChannel("BuildBerry");
   }
   return channel;
 }

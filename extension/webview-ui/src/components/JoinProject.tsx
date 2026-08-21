@@ -56,7 +56,7 @@ export function JoinProject({ onNavigate }: JoinProjectProps) {
           </div>
           <h2>Connected</h2>
           <p className="success-message">
-            FlowSync is now active. Your pushes will be captured automatically.
+            BuildBerry is now active. Your pushes will be captured automatically.
           </p>
           <button className="btn btn-primary" onClick={() => onNavigate("dashboard")}>
             Go to Dashboard
@@ -77,7 +77,7 @@ export function JoinProject({ onNavigate }: JoinProjectProps) {
         <h1>Join Project</h1>
         <p>
           Enter the API token shared by your team lead to connect to an existing
-          FlowSync project.
+          BuildBerry project.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export function JoinProject({ onNavigate }: JoinProjectProps) {
           <input
             id="api-token"
             type="password"
-            placeholder="Paste your FlowSync API token"
+            placeholder="Paste your BuildBerry API token"
             value={token}
             onChange={(e) => {
               setToken(e.target.value);
@@ -124,7 +124,7 @@ export function JoinProject({ onNavigate }: JoinProjectProps) {
         <div>
           <strong>Don't have a token?</strong>
           <p>
-            Ask your team lead to run "FlowSync: Initialize Project" and share the
+            Ask your team lead to run "BuildBerry: Initialize Project" and share the
             generated API token with you.
           </p>
         </div>

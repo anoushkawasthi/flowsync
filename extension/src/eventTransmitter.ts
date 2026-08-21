@@ -55,7 +55,7 @@ export async function transmitEvent(
     }
   }
 
-  throw new Error("FlowSync: transmit failed after all retries");
+  throw new Error("BuildBerry: transmit failed after all retries");
 }
 
 function postJson(

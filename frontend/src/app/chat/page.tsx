@@ -322,7 +322,7 @@ export default function ChatPage() {
                   </h2>
                   <p className="max-w-[44ch] text-sm text-ink-muted">
                     Ask about features, decisions, or project history. Answers cite the context
-                    FlowSync has captured.
+                    BuildBerry has captured.
                   </p>
                   {!currentSessionId && (
                     <Button onClick={createNewSession} className="mt-1">

@@ -20,13 +20,13 @@ export function registerRecordReasoningCommand(
     const config = readConfig();
     if (!config) {
       vscode.window.showErrorMessage(
-        "FlowSync: this workspace has no project. Run 'FlowSync: Initialize Project' first."
+        "BuildBerry: this workspace has no project. Run 'BuildBerry: Initialize Project' first."
       );
       return;
     }
 
     const reasoning = await vscode.window.showInputBox({
-      title: "FlowSync — record reasoning",
+      title: "BuildBerry — record reasoning",
       prompt: "Why did you take this approach? What would a teammate not be able to infer from the code?",
       placeHolder:
         "Chose JWT over sessions because the API must stay stateless for horizontal scaling…",
@@ -48,7 +48,7 @@ export function registerRecordReasoningCommand(
     }
 
     const decision = await vscode.window.showInputBox({
-      title: "FlowSync — decision (optional)",
+      title: "BuildBerry — decision (optional)",
       prompt: "The key architectural or implementation decision, if there was one. Leave blank to skip.",
       ignoreFocusOut: true,
     });
@@ -57,7 +57,7 @@ export function registerRecordReasoningCommand(
     }
 
     const risk = await vscode.window.showInputBox({
-      title: "FlowSync — risk (optional)",
+      title: "BuildBerry — risk (optional)",
       prompt: "Anything you want to flag as a concern. Leave blank to skip.",
       ignoreFocusOut: true,
     });
@@ -66,7 +66,7 @@ export function registerRecordReasoningCommand(
     }
 
     const tasksRaw = await vscode.window.showInputBox({
-      title: "FlowSync — follow-up tasks (optional)",
+      title: "BuildBerry — follow-up tasks (optional)",
       prompt: "Comma-separated. Leave blank to skip.",
       placeHolder: "add integration test, document the retry semantics",
       ignoreFocusOut: true,
@@ -85,7 +85,7 @@ export function registerRecordReasoningCommand(
     const branch = currentBranch(workspaceRoot) || config.defaultBranch || "main";
 
     await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: "FlowSync: recording reasoning…" },
+      { location: vscode.ProgressLocation.Notification, title: "BuildBerry: recording reasoning…" },
       async () => {
         try {
           const result = await logContext(
@@ -107,15 +107,15 @@ export function registerRecordReasoningCommand(
           // is worth saying out loud — otherwise people wonder where it went.
           vscode.window.showInformationMessage(
             result.action === "updated"
-              ? `FlowSync: reasoning merged into your recent push on ${branch}.`
-              : `FlowSync: reasoning recorded on ${branch}. It will bind to your next push.`
+              ? `BuildBerry: reasoning merged into your recent push on ${branch}.`
+              : `BuildBerry: reasoning recorded on ${branch}. It will bind to your next push.`
           );
           onLogged();
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           log.error("recordReasoning", message);
           vscode.window.showErrorMessage(
-            `FlowSync: could not record reasoning. ${message}`
+            `BuildBerry: could not record reasoning. ${message}`
           );
         }
       }

@@ -5,7 +5,7 @@ export const mockEvents: ContextRecord[] = [
     eventId: 'evt-001',
     projectId: '28c3fad3-4cbd-414e-bb63-fcc559ea238b',
     branch: 'main',
-    feature: 'FlowSync initialization',
+    feature: 'BuildBerry initialization',
     decision: null,
     tasks: ['Set up project structure', 'Configure CI/CD pipeline'],
     stage: 'Setup',
@@ -106,7 +106,7 @@ export const mockSearchResult: SearchResult = {
     },
     {
       commitHash: '588f888',
-      feature: 'FlowSync initialization',
+      feature: 'BuildBerry initialization',
       extractedAt: '2026-03-01T10:00:00Z',
       relevanceScore: 87.1,
     },

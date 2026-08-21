@@ -1,7 +1,7 @@
 {
   "name": "flowsync",
-  "displayName": "FlowSync",
-  "description": "FlowSync \u2014 Capture, understand, and query your team's dev context with AI",
+  "displayName": "BuildBerry",
+  "description": "BuildBerry \u2014 Capture, understand, and query your team's dev context with AI",
   "version": "1.2.0",
   "publisher": "vanta-thapar",
   "icon": "assets/logo.png",
@@ -40,7 +40,7 @@
       "activitybar": [
         {
           "id": "flowsync",
-          "title": "FlowSync",
+          "title": "BuildBerry",
           "icon": "assets/icons/activity-bar.svg"
         }
       ]
@@ -57,54 +57,54 @@
     "commands": [
       {
         "command": "flowsync.openPanel",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Open Dashboard",
         "icon": "$(dashboard)"
       },
       {
         "command": "flowsync.catchMeUp",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Catch Me Up",
         "icon": "$(history)"
       },
       {
         "command": "flowsync.recordReasoning",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Record Reasoning",
         "icon": "$(edit)"
       },
       {
         "command": "flowsync.openWebDashboard",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Open Web Dashboard",
         "icon": "$(globe)"
       },
       {
         "command": "flowsync.openChat",
-        "category": "FlowSync",
-        "title": "Ask FlowSync",
+        "category": "BuildBerry",
+        "title": "Ask BuildBerry",
         "icon": "$(comment-discussion)"
       },
       {
         "command": "flowsync.refresh",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Refresh Status",
         "icon": "$(refresh)"
       },
       {
         "command": "flowsync.openOutput",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Show Logs",
         "icon": "$(output)"
       },
       {
         "command": "flowsync.initProject",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Initialize Project"
       },
       {
         "command": "flowsync.joinProject",
-        "category": "FlowSync",
+        "category": "BuildBerry",
         "title": "Join Project"
       }
     ],
@@ -195,22 +195,22 @@
       }
     ],
     "configuration": {
-      "title": "FlowSync",
+      "title": "BuildBerry",
       "properties": {
         "flowsync.autoOpenOutput": {
           "type": "boolean",
           "default": false,
-          "description": "Open the Output panel when FlowSync activates."
+          "description": "Open the Output panel when BuildBerry activates."
         },
         "flowsync.backendUrl": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Override the FlowSync backend URL. Leave empty to use the bundled default."
+          "markdownDescription": "Override the BuildBerry backend URL. Leave empty to use the bundled default."
         },
         "flowsync.dashboardUrl": {
           "type": "string",
           "default": "",
-          "markdownDescription": "URL of the FlowSync web dashboard. Leave empty to use the hosted default."
+          "markdownDescription": "URL of the BuildBerry web dashboard. Leave empty to use the hosted default."
         },
         "flowsync.showPushNotification": {
           "type": "boolean",
@@ -220,14 +220,14 @@
         "flowsync.statusBar.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Show FlowSync in the status bar."
+          "description": "Show BuildBerry in the status bar."
         }
       }
     },
     "colors": [
       {
         "id": "flowsync.statusBarConnected",
-        "description": "Status bar background when FlowSync is connected.",
+        "description": "Status bar background when BuildBerry is connected.",
         "defaults": {
           "light": "#B84E35",
           "dark": "#CF6A4D",
@@ -236,7 +236,7 @@
       },
       {
         "id": "flowsync.statusBarDisconnected",
-        "description": "Status bar background when FlowSync is not connected.",
+        "description": "Status bar background when BuildBerry is not connected.",
         "defaults": {
           "light": "#6B6B78",
           "dark": "#565663",

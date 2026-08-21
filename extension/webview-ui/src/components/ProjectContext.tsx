@@ -159,7 +159,7 @@ export function ProjectContext() {
           <p>
             {data.projectId
               ? "This project has no stored API token."
-              : "No FlowSync project in this workspace."}
+              : "No BuildBerry project in this workspace."}
           </p>
           <div className="empty-state-actions">
             <button className="btn btn-primary btn-sm" onClick={() => openPanel("init")}>

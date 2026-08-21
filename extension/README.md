@@ -1,4 +1,4 @@
-# FlowSync
+# BuildBerry
 
 *Persistent Memory for AI Coding Agents.*
 
@@ -12,7 +12,7 @@ Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pr
 
 ## Features
 
-- **`log_context` — Agent records reasoning** — after every task, your AI agent logs decisions, risks, and rationale via the MCP tool; this is FlowSync's core value
+- **`log_context` — Agent records reasoning** — after every task, your AI agent logs decisions, risks, and rationale via the MCP tool; this is BuildBerry's core value
 - **`search_context` — Agent queries history** — natural language questions get grounded answers with source citations via Titan Embeddings + Nova Pro RAG
 - **5 MCP tools for AI agents** — works with GitHub Copilot, Cursor, Claude, and any MCP-compatible agent out of the box
 - **Auto-capture fallback** — a post-push git hook captures diffs automatically; Nova Pro extracts context even without an AI agent
@@ -27,25 +27,25 @@ Built for the **AI for Bharat Hackathon** · Powered by **AWS Bedrock** (Nova Pr
 ### Team lead — initialize a new project
 
 1. Open the repo folder in VS Code
-2. Press `Ctrl+Shift+P` → **FlowSync: Open Dashboard**
+2. Press `Ctrl+Shift+P` → **BuildBerry: Open Dashboard**
 3. Click **Initialize Project** in the panel
 4. Enter project name, description, primary language, and default branch
 5. Copy the generated API token and share it with your team securely
 6. Commit `.flowsync.json` and `.github/copilot-instructions.md` to the repo
-7. Push — FlowSync captures your first context record automatically
+7. Push — BuildBerry captures your first context record automatically
 
 ### Team members — join an existing project
 
 1. Clone the repo (`.flowsync.json` is already there)
-2. Press `Ctrl+Shift+P` → **FlowSync: Open Dashboard**
+2. Press `Ctrl+Shift+P` → **BuildBerry: Open Dashboard**
 3. Click **Join Project** and paste the API token from your team lead
 4. Push normally — your context is captured from now on
 
 ---
 
-## Where FlowSync lives in VS Code
+## Where BuildBerry lives in VS Code
 
-**Activity bar** — the FlowSync icon opens a **Project Context** sidebar showing
+**Activity bar** — the BuildBerry icon opens a **Project Context** sidebar showing
 your project's live context: open risks, pending tasks and recent activity, with
 counts across the top. Below that, a collapsible **Agent tools** section lists the
 five MCP tools and tells you whether your `.vscode/mcp.json` is actually wired to
@@ -53,7 +53,7 @@ this project — including the silent case where it exists but points somewhere
 else. Multi-step flows (initialize, join, chat, catch-up) open in the full editor
 panel, which has the room for them.
 
-**Status bar** — a FlowSync item on the left, tinted to show whether the current
+**Status bar** — a BuildBerry item on the left, tinted to show whether the current
 workspace is connected. Click it to open the dashboard. Hide it with
 `flowsync.statusBar.enabled`.
 
@@ -61,15 +61,15 @@ workspace is connected. Click it to open the dashboard. Hide it with
 
 | Command | Keybinding | Description |
 |---|---|---|
-| `FlowSync: Open Dashboard` | `Ctrl/Cmd+Alt+F` | Opens the panel — status, context, and chat |
-| `FlowSync: Catch Me Up` | `Ctrl/Cmd+Alt+U` | Summarises teammate pushes since you last checked |
-| `FlowSync: Ask FlowSync` | — | Opens the chat view |
-| `FlowSync: Record Reasoning` | `Ctrl/Cmd+Alt+R` | Log the *why* behind your work without an AI agent |
-| `FlowSync: Open Web Dashboard` | — | Copies your credentials and opens the web dashboard |
-| `FlowSync: Initialize Project` | — | Creates a project and issues an API token |
-| `FlowSync: Join Project` | — | Connects to an existing project with a token |
-| `FlowSync: Refresh Status` | — | Re-reads config and connection state |
-| `FlowSync: Show Logs` | — | Opens the FlowSync output channel |
+| `BuildBerry: Open Dashboard` | `Ctrl/Cmd+Alt+F` | Opens the panel — status, context, and chat |
+| `BuildBerry: Catch Me Up` | `Ctrl/Cmd+Alt+U` | Summarises teammate pushes since you last checked |
+| `BuildBerry: Ask BuildBerry` | — | Opens the chat view |
+| `BuildBerry: Record Reasoning` | `Ctrl/Cmd+Alt+R` | Log the *why* behind your work without an AI agent |
+| `BuildBerry: Open Web Dashboard` | — | Copies your credentials and opens the web dashboard |
+| `BuildBerry: Initialize Project` | — | Creates a project and issues an API token |
+| `BuildBerry: Join Project` | — | Connects to an existing project with a token |
+| `BuildBerry: Refresh Status` | — | Re-reads config and connection state |
+| `BuildBerry: Show Logs` | — | Opens the BuildBerry output channel |
 
 Initialize and Join only appear in the palette when the workspace is *not* yet
 connected; Catch Me Up and Refresh only appear when it is.
@@ -82,7 +82,7 @@ connected; Catch Me Up and Refresh only appear when it is.
 | `flowsync.dashboardUrl` | `""` | Override the web dashboard URL |
 | `flowsync.showPushNotification` | `true` | Prompt to add reasoning after each push |
 | `flowsync.autoOpenOutput` | `false` | Open the Output panel on activation |
-| `flowsync.statusBar.enabled` | `true` | Show FlowSync in the status bar |
+| `flowsync.statusBar.enabled` | `true` | Show BuildBerry in the status bar |
 
 ---
 
@@ -100,7 +100,7 @@ Add a `.vscode/mcp.json` to your workspace:
     {
       "id": "flowsync-token",
       "type": "promptString",
-      "description": "FlowSync API token — find it in .flowsync.json",
+      "description": "BuildBerry API token — find it in .flowsync.json",
       "password": true
     }
   ],
@@ -143,7 +143,7 @@ Add a `.vscode/mcp.json` to your workspace:
 - VS Code 1.109 or later
 - Git installed and available on `PATH`
 - A git repository (`.git` folder present anywhere in the directory tree)
-- Internet access to reach the FlowSync API
+- Internet access to reach the BuildBerry API
 
 ---
 
@@ -161,7 +161,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full history.
 - Rebuilt the entire UI on a neobrutalist design system: hard borders, flat
   offset shadows, muted palette, Archivo + JetBrains Mono
 - New activity-bar container with a **Project Context** sidebar view
-- Commands now use a proper `FlowSync` category, plus keybindings, context-aware
+- Commands now use a proper `BuildBerry` category, plus keybindings, context-aware
   palette filtering, SCM and view-title menu entries
 - Added settings for the backend URL, push notifications, output auto-open and
   the status bar
