@@ -92,14 +92,41 @@ Not an error — the agent really does see five tools. But if you add a tool by 
 
 ---
 
-## D-6 — The extension still calls itself "BuildBerry" in places
+## D-6 — The docs say "FlowSync"; users now see "BuildBerry" ⚠️
 
-Not a doc error, but the same class of confusion. Log lines and the generated Copilot
-instructions say **BuildBerry** (`extension/src/extension.ts:72`,
-`commands/initProject.ts:16`, `:403`) — an earlier product name. All command IDs, config
-keys and file names are `flowsync.*`.
+| | |
+|--|--|
+| **Says** | Every doc in `DOCUMENTATION/` — including this study guide — calls the product **FlowSync** |
+| **Actually** | User-facing text was renamed to **BuildBerry** in commit `6099141` (merged as PR #1, Aug 2026), and the released VSIX is `buildberry-1.2.0.vsix` (PR #2) |
+| **Severity** | High for anything external — the README pitches a product under a name users no longer see |
 
-If a teammate greps for "FlowSync" in the extension logs and finds nothing, this is why.
+The rename was scoped deliberately: **visible strings only** — command titles, notifications,
+status bar, settings labels, webview UI, dashboard copy, wordmark. **Internal identifiers
+were left alone** — command IDs, config keys, `.flowsync.json`, storage keys, API routes,
+DynamoDB table names, the repo name. The commit message is explicit that renaming those
+would be a functional change, not a visual one.
+
+So both names are current, with a clean split:
+
+| | Name |
+|--|--|
+| What users see | **BuildBerry** |
+| What the code, infra and config are called | **`flowsync`** |
+
+This study guide uses "FlowSync" throughout because it documents the codebase, where every
+identifier still is `flowsync`. But the **root `README.md` is a product pitch**, and it
+still says FlowSync everywhere — including the Quick Start, which tells people to install
+`flowsync-1.0.1.vsix` (`README.md:206`, `:209`). PR #2 renamed the package to `buildberry`
+and now ships **`buildberry-1.2.0.vsix`**, so that instruction is wrong on both the name and
+the version, and points at a download that doesn't exist.
+
+> Heads-up: the README differs between checkouts. On `origin/main` it reads
+> `flowsync-1.0.1.vsix` / `flowsync.aahil-khan.tech`; the working copy in the main checkout
+> reads `flowsync-1.2.0.vsix` / `flowsync.aahil-khan.xyz`. Someone has unpushed README edits
+> — worth reconciling before fixing the name, or the fix will be clobbered.
+
+**Suggested fix:** decide the naming policy explicitly, then apply it to `README.md` first
+(especially the Quick Start filename).
 
 ---
 

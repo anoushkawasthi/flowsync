@@ -75,9 +75,17 @@ The generated hook (`initProject.ts:402`) is nine lines of `sh`: read the push r
 stdin, get the branch, and `curl` to `http://localhost:<port>/flowsync-hook` with a
 trailing `&` so the push is never delayed.
 
-> **Naming trivia that will confuse you:** logs, the hook comment, and some strings say
-> **"BuildBerry"** (`extension.ts:72`, `initProject.ts:16`, `initProject.ts:403`) — a leftover from an earlier
-> name. Same product. Command IDs and config are all `flowsync.*`.
+> **Naming, and it goes the direction you won't expect:** the product is being renamed
+> **FlowSync → BuildBerry**. User-facing strings were switched over in commit `6099141`
+> (Aug 2026) — logs, notifications, status bar, webview copy, and the generated Copilot
+> instructions all say BuildBerry (`extension.ts:72`, `initProject.ts:16`, `:403`).
+>
+> **Internal identifiers were deliberately left as `flowsync`** — command IDs, config keys,
+> `.flowsync.json`, storage keys, API routes, table names, the repo itself — because
+> renaming those is a functional change, not a cosmetic one.
+>
+> So: **BuildBerry is what users see; `flowsync` is what the code is called.** This guide
+> uses "FlowSync" throughout, since it's a guide to the codebase.
 
 ---
 
