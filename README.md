@@ -244,6 +244,7 @@ If not, add `.vscode/mcp.json` to your repo:
 ---
 ## 📚 Documentation
 
+- **[Team Study Guide](DOCUMENTATION/study/README.md)** — Start here if you're new to the codebase. A ~2.5 hr guided path: what it is, the stack, the five end-to-end flows, the decision register, a code map, and a self-check quiz
 - **[Technical Deep Dive](DOCUMENTATION/technical-deep-dive.md)** — Full architecture, implementation details, MCP server, RAG pipeline, caching, security, and more
 - **[Performance Report](DOCUMENTATION/performance-report.md)** — Benchmark results, latency breakdowns, extraction accuracy, and cost analysis
 
